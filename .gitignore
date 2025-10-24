@@ -1,0 +1,159 @@
+# =============================================================================
+# SECRETS AND SENSITIVE DATA
+# =============================================================================
+
+# Never commit actual secrets (only encrypted SOPS files allowed)
+secrets/secrets.yaml.dec
+secrets/*.key
+secrets/*.pem
+secrets/secrets.yaml
+*.age-key
+*.asc
+secrets/.sops.yaml
+bitwarden/*
+
+# SSH keys (except public keys for reference)
+*.rsa
+*.ed25519
+*_rsa
+*_ed25519
+id_*
+!*.pub
+
+# Environment variables with secrets
+.env
+.env.local
+.env.*.local
+*.env
+
+# GPG/Age keys
+*.gpg
+*.asc
+*.age-key
+private-keys/
+
+# SOPS/Age private keys
+.sops/
+keys.txt
+
+# =============================================================================
+# NIXOS BUILD ARTIFACTS
+# =============================================================================
+
+# Build results
+result
+result-*
+/result
+/result-*
+
+# Nix build cache
+.nix-build-tmp-*
+nix-build-*
+
+# =============================================================================
+# DEVELOPMENT TOOLS
+# =============================================================================
+
+# IDE/Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.#*
+\#*#
+
+# Vim
+*.tmp
+*.bak
+Session.vim
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# =============================================================================
+# MACOS SPECIFIC
+# =============================================================================
+
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# =============================================================================
+# LINUX SPECIFIC
+# =============================================================================
+
+# Thumbnails
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# =============================================================================
+# KUBERNETES/HELM
+# =============================================================================
+
+# Helm
+charts/*.tgz
+
+# Kubernetes configs with sensitive data
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+kube-config
+.kube
+
+# =============================================================================
+# LOGS AND TEMPORARY FILES
+# =============================================================================
+
+*.log
+*.tmp
+*.temp
+logs/
+tmp/
+
+# =============================================================================
+# CACHE DIRECTORIES
+# =============================================================================
+
+.cache/
+cache/
+.npm/
+node_modules/
+
+# =============================================================================
+# BACKUP FILES
+# =============================================================================
+
+*.backup
+*.bak
+*.orig
+*~
+
+# =============================================================================
+# DIRENV
+# =============================================================================
+
+.envrc.local
+.direnv/
