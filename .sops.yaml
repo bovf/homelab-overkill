@@ -1,0 +1,8 @@
+keys:
+  - &engineer age1kc65s6qmxygapmc66f5w6t2uprl4q8gkqru3jtxa0vdn8ezl9umsklqftu
+creation_rules:
+  - path_regex: secrets/secrets\.yaml
+    key_groups:
+      - age:
+          - *engineer
+          - age1kc65s6qmxygapmc66f5w6t2uprl4q8gkqru3jtxa0vdn8ezl9umsklqftu
