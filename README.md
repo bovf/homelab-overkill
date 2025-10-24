@@ -14,27 +14,28 @@ Uses Nix flakes to manage NixOS + k3s + Helm charts, SOPS for secure secret stor
 
 ## Services
 
-| Service     | Purpose                        | Status  |
-|---------    |---------                       | ------- |
-| GitLab      | Git, CI/CD, container registry | Active  |
-| MinIO       | S3 object storage              | Active  |
-| PostgreSQL  | SQL database                   | Active  |
-| Jellyfin    | Media streaming                | Active  |
-| Sonarr      | TV show automation             | Active  |
-| Radarr      | Movie automation               | Active  |
-| Prowlarr    | Indexer management             | Active  |
-| Bazarr      | Subtitle automation            | Active  |
-| Jellyseerr  | Media request portal           | Active  |
-| qBittorrent | Torrent client                 | Active  |
-| pgAdmin     | Postgres web admin             | Active  |
-| Grafana     | Metrics & dashboards           | Active  |
-| Pangolin    | Private tunnel access          | Active  |
-| Ghost       | Blog                           | Next    |
-| Homepage    | Dashboard                      | Planned |
-| Pi-hole     | DNS/ad blocking                | Planned |
-| ArgoCD      | GitOps Instance                | Planned |
-| Nextcloud   | Personal cloud/NAS             | Planned |
-| Longhorn    | Block storage for NAS          | Planned |
+| Service         | Purpose                        | Status  |
+|-----------------|--------------------------------| ------- |
+| GitLab          | Git, CI/CD, container registry | Active  |
+| MinIO           | S3 object storage              | Active  |
+| PostgreSQL      | SQL database                   | Active  |
+| Jellyfin        | Media streaming                | Active  |
+| Sonarr          | TV show automation             | Active  |
+| Radarr          | Movie automation               | Active  |
+| Prowlarr        | Indexer management             | Active  |
+| Bazarr          | Subtitle automation            | Active  |
+| Jellyseerr      | Media request portal           | Active  |
+| qBittorrent     | Torrent client                 | Active  |
+| pgAdmin         | Postgres web admin             | Active  |
+| Grafana         | Metrics & dashboards           | Active  |
+| Newt            | Private tunnel access          | Active  |
+| Reactive Resume | Resume builder                 | Active  |
+| Ghost           | Blog                           | Next    |
+| Homepage        | Dashboard                      | Planned |
+| Pi-hole         | DNS/ad blocking                | Planned |
+| ArgoCD          | GitOps Instance                | Planned |
+| Nextcloud       | Personal cloud/NAS             | Planned |
+| Longhorn        | Block storage for NAS          | Planned |
 
 ## Quick Start
 
