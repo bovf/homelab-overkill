@@ -23,7 +23,7 @@
                 imagePullPolicy = "IfNotPresent";
                 ports = [ { name = "http"; containerPort = 3000; } ];
                 env = [
-                  { name = "TIMEOUT"; value = "10000"; }
+                  { name = "TIMEOUT"; value = "60000"; }
                   { name = "CONCURRENT"; value = "10"; }
                   { 
                     name = "TOKEN"; 
@@ -68,8 +68,8 @@
                   capabilities = { drop = [ "ALL" ]; };
                 };
                 resources = {
-                  requests = { cpu = "100m"; memory = "256Mi"; };
-                  limits = { cpu = "500m"; memory = "512Mi"; };
+                  requests = { cpu = "100m"; memory = "512Mi"; };
+                  limits = { cpu = "500m"; memory = "2Gi"; };
                 };
               }
             ];
