@@ -6,7 +6,6 @@
 secrets/secrets.yaml.dec
 secrets/*.key
 secrets/*.pem
-secrets/secrets.yaml
 *.age-key
 *.asc
 secrets/.sops.yaml
