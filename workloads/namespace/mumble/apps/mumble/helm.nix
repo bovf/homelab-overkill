@@ -1,4 +1,4 @@
-{ ... }:
+{ config, pkgs, ... }:
 
 {
   services.k3s.manifests.mumble-server.content = {
@@ -9,11 +9,10 @@
       namespace = "kube-system";
     };
     spec = {
-      repo = "https://syntax3rror404.github.io/helm-charts/charts";
-      chart = "mumble";
-      version = "1.0.0";
+      chart = "oci://ghcr.io/juniorjpdj/charts/mumble-server";
+      version = "0.1.32";
       targetNamespace = "mumble";
-      createNamespace = false;
+
       valuesContent = ''
         replicaCount: 1
 
@@ -22,15 +21,7 @@
           pullPolicy: IfNotPresent
           tag: "latest"
 
-        nameOverride: ""
         fullnameOverride: "mumble-server"
-
-        serviceAccount:
-          create: true
-          annotations: {}
-          name: ""
-
-        podAnnotations: {}
 
         podSecurityContext:
           fsGroup: 1000
@@ -44,20 +35,21 @@
               - ALL
           readOnlyRootFilesystem: false
 
+        # bjw-s style: services live under service.<name> (main)
         service:
-          type: ClusterIP
-          annotations: {}
-          ports:
-            mumble:
-              port: 64738
-              targetPort: 64738
-              protocol: UDP
+          main:
+            enabled: true
+            type: ClusterIP
+            annotations: {}
 
+        # Only Secret-backed config to avoid persistence.type PVC validation issues
         persistence:
-          enabled: true
-          storageClass: "local-path"
-          accessMode: ReadWriteOnce
-          size: 1Gi
+          config:
+            enabled: true
+            type: secret
+            name: mumble-config
+            subPath: mumble_server_config.ini
+            mountPath: /data/
 
         resources:
           limits:
@@ -66,27 +58,6 @@
           requests:
             cpu: 100m
             memory: 256Mi
-
-        livenessProbe:
-          enabled: false
-
-        readinessProbe:
-          enabled: false
-
-        nodeSelector: {}
-
-        tolerations: []
-
-        affinity: {}
-
-        mumbleServer:
-          welcometext: "Welcome to Mumble"
-          serverpassword: "krisipisi"
-          users: 100
-          servername: "BigFuckSmallDiscord"
-          port: 64738
-          bandwidth: 128000
-          logLevel: 1
       '';
     };
   };

@@ -6,5 +6,6 @@
     # Import app specific definitions
     ./helm.nix
     ./secret.nix
+    ./configmap.nix
   ];
 }

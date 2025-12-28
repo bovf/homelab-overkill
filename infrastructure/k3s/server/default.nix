@@ -29,7 +29,10 @@ in {
       80    # HTTP
       443   # HTTPS
     ];
-    networking.firewall.allowedUDPPorts = [ 8472 ]; # Flannel
+    networking.firewall.allowedUDPPorts = [ 
+      8472 # Flannel
+      64378 # Flannel
+    ];
     
     environment.systemPackages = with pkgs; [
       kubectl
