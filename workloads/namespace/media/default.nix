@@ -11,6 +11,7 @@
     ./apps/qbittorrent
     ./apps/radarr
     ./apps/sonarr
+    ./apps/nzbget
 
     # Import namespace specific definitions
     ./shared

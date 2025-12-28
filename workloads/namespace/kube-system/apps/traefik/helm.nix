@@ -24,6 +24,18 @@
               default: true
             exposedPort: 443
             protocol: TCP
+          mumble-udp:
+            port: 64738
+            expose:
+              default: true
+            exposedPort: 64738
+            protocol: UDP
+          mumble-tcp:
+            port: 64738
+            expose:
+              default: true
+            exposedPort: 64738
+            protocol: TCP
 
         # ServiceLB in k3s will bind 80/443 on the node when type is LoadBalancer
         service:

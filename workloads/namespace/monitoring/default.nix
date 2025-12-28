@@ -1,4 +1,3 @@
-
 # Monitoring namespace entrypoint
 { ... }:
 

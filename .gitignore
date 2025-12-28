@@ -118,7 +118,7 @@ charts/*.tgz
 # Kubernetes configs with sensitive data
 kubeconfig
 kubeconfig.*
-*.kubeconfig
+*.kubeconfig*
 kube-config
 .kube
 
