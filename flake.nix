@@ -16,27 +16,47 @@
 
   outputs = { self, nixpkgs, flake-utils, nixos-anywhere, disko, sops-nix, home-manager, ... }:
     let
+      # Node schema with secret placeholders and optional identity/user
       nodes = {
         engineer = {
           hostname = "engineer";
           role = "server";
           nodeType = "controller";
           ip = "192.168.1.6";
+          localPort = 22;
+
+          # Secret paths under .ssh.* in secrets/secrets.yaml
+          remoteHostSecretKey = "engineer.remoteHost";
+          remotePortSecretKey = "engineer.remotePort";
+
+          # Optional per-node SSH identity (any path: ~/, ./, etc.)
+          identityFile = "~/.ssh/dobrynikolov";
+          sshUser = "root";
+
           domain = "pangolin.dobryops.com";
           arch = "x86_64-linux";
           enabled = true;
           specs = { cpu = 12; ram = 64; disk = 959; };
         };
-        sentry-level-01 = {
-          hostname = "sentry-level-01";
-          role = "agent";
-          nodeType = "worker";
-          ip = "192.168.1.10";
-          domain = "pangolin.dobryops.com";
-          arch = "x86_64-linux";
-          enabled = false;
-          specs = { cpu = 16; ram = 32; disk = 256; };
-        };
+
+        # sentry-level-01 = {
+        #   hostname = "sentry-level-01";
+        #   role = "agent";
+        #   nodeType = "worker";
+        #   ip = "192.168.1.10";
+        #   localPort = 22;
+        #
+        #   remoteHostSecretKey = "sentry-level-01.remoteHost";
+        #   remotePortSecretKey = "sentry-level-01.remotePort";
+        #
+        #   identityFile = "~/.ssh/id_ed25519_sentry";
+        #   sshUser = "root";
+        #
+        #   domain = "pangolin.dobryops.com";
+        #   arch = "x86_64-linux";
+        #   enabled = false;
+        #   specs = { cpu = 16; ram = 32; disk = 256; };
+        # };
       };
 
       shellsLib = import ./nix/shells;
