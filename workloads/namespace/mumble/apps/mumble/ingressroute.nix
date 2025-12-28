@@ -1,23 +1,50 @@
-# apps/mumble/ingressroute.nix
 { ... }:
 
 {
-  services.k3s.manifests."mumble-ingressroute".content = {
-    apiVersion = "traefik.containo.us/v1alpha1";
+  # UDP for voice
+  services.k3s.manifests.mumble-udp-route.content = {
+    apiVersion = "traefik.io/v1alpha1";
     kind = "IngressRouteUDP";
     metadata = {
-      name = "mumble-ingressroute";
+      name = "mumble-udp";
       namespace = "mumble";
     };
     spec = {
-      entryPoints = [ "mumble-udp" ];  # Configure this in Traefik
-      routes = [{
-        match = "HostSNI(`*`)";  # Matches all UDP traffic
-        services = [{
-          name = "mumble-server-server";
-          port = 64738;
-        }];
-      }];
+      entryPoints = [ "mumble-udp" ];
+      routes = [
+        {
+          services = [
+            {
+              name = "mumble-server";
+              port = "voice";
+            }
+          ];
+        }
+      ];
+    };
+  };
+
+  # TCP fallback / signaling
+  services.k3s.manifests.mumble-tcp-route.content = {
+    apiVersion = "traefik.io/v1alpha1";
+    kind = "IngressRouteTCP";
+    metadata = {
+      name = "mumble-tcp";
+      namespace = "mumble";
+    };
+    spec = {
+      entryPoints = [ "mumble-tcp" ];
+      routes = [
+        {
+          match = "HostSNI(`*`)";
+          services = [
+            {
+              name = "mumble-server";
+              port = "signaling";
+            }
+          ];
+        }
+      ];
     };
   };
 }
