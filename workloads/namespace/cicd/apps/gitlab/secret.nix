@@ -86,19 +86,19 @@
       mode = "0644";
     };
     
-    "gitlab/runner-registration-token.yaml" = {
+    "gitlab/runner-secret.yaml" = {
       content = ''
         apiVersion: v1
         kind: Secret
         metadata:
-          name: gitlab-runner-registration-token
+          name: gitlab-gitlab-runner-secret
           namespace: cicd
         type: Opaque
         stringData:
           runner-token: "${config.sops.placeholder."gitlab/runner_token"}"
-          runner-registration-token: "${config.sops.placeholder."gitlab/runner_registration_token"}"
+          runner-registration-token: ""
       '';
-      path = "/var/lib/rancher/k3s/server/manifests/gitlab-runner-registration-token.yaml";
+      path = "/var/lib/rancher/k3s/server/manifests/gitlab-gitlab-runner-secret.yaml";
       owner = "root";
       group = "root";
       mode = "0644";

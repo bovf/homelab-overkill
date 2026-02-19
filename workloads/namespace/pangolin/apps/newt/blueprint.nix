@@ -10,38 +10,39 @@
 { config, lib, ... }:
 
 let
-  inherit (lib) concatStringsSep mapAttrsToList attrValues groupBy;
+  inherit (lib) concatStringsSep mapAttrsToList groupBy;
 
   resources  = config.workloads.pangolinResources;
   instances  = config.workloads.pangolinInstances;
 
-  # Group resource attribute sets by their newtInstance field.
-  # Result: { "engineer" = [ { key = "jellyfin"; name = ...; ... } ... ]; }
   byInstance =
     groupBy (r: r.newtInstance)
       (mapAttrsToList (key: v: v // { _key = key; }) resources);
 
-  # Render one YAML resource block inside the blueprint.
-  renderResource = r: ''
-              ${r._key}:
-                name: ${r.name}
-                protocol: ${r.protocol}
-                full-domain: ${config.sops.placeholder.${r.domainKey}}
-                enabled: ${if r.enabled then "true" else "false"}
-                auth:
-                  sso-enabled: ${if r.ssoEnabled then "true" else "false"}
-                targets:
-                  - site: ${config.sops.placeholder.${instances.${r.newtInstance}.siteIdKey}}
-                    hostname: ${r.targetHostname}
-                    method: ${r.targetMethod}
-                    port: ${toString r.targetPort}
-                headers:
-                  - name: Host
-                    value: ${config.sops.placeholder.${r.domainKey}}
-  '';
+  indent = str: 
+    let lines = lib.splitString "\n" str;
+    in concatStringsSep "\n" (map (line: if line == "" then line else "      " + line) lines);
 
-  # Render the full sops.templates entry for one instance.
-  # Returns an attrset suitable for merging into sops.templates.
+  renderResource = r: indent ''
+${r._key}:
+  name: ${r.name}
+  protocol: ${r.protocol}
+  full-domain: ${config.sops.placeholder.${r.domainKey}}
+  enabled: ${if r.enabled then "true" else "false"}
+  auth:
+    sso-enabled: ${if r.ssoEnabled then "true" else "false"}
+  targets:
+    - site: ${config.sops.placeholder.${instances.${r.newtInstance}.siteIdKey}}
+      hostname: ${r.targetHostname}
+      method: ${r.targetMethod}
+      port: ${toString r.targetPort}
+  headers:
+    - name: Host
+      value: ${config.sops.placeholder.${r.domainKey}}
+'';
+
+  resourcesYaml = rs: concatStringsSep "\n" (map renderResource rs);
+
   renderInstanceTemplate = instanceName: instanceResources: {
     "pangolin/blueprint-${instanceName}.yaml" = {
       content = ''
@@ -54,7 +55,7 @@ let
         stringData:
           blueprint.yaml: |
             public-resources:
-        ${concatStringsSep "" (map renderResource instanceResources)}
+        ${resourcesYaml instanceResources}
       '';
       path  = "/var/lib/rancher/k3s/server/manifests/pangolin-blueprint-${instanceName}.yaml";
       owner = "root";

@@ -3,7 +3,7 @@
 {
   imports = [
     ./apps/gitlab
-    # ./apps/argocd
+    ./apps/argocd
   ];
 
   services.k3s.manifests.gitlab-ns.content = {

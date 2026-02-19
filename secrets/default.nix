@@ -96,6 +96,10 @@
     secrets."gitlab/runner_token" = {};
     secrets."gitlab/runner_registration_token" = {};
 
+    secrets."argocd/admin_password" = {};
+    secrets."argocd/gitlab_token" = {};
+    secrets."pangolin/resources/argocd/domain" = {};
+
     secrets."reactive_resume/chrome_token" = {};
     secrets."reactive_resume/access_token_secret" = {};
     secrets."reactive_resume/refresh_token_secret" = {};
