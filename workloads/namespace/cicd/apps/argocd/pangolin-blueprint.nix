@@ -1,10 +1,10 @@
 { nodeName, ... }:
 
 {
-  workloads.pangolinResources.gitlab = {
-    name           = "GitLab";
+  workloads.pangolinResources.argocd = {
+    name           = "ArgoCD";
     protocol       = "http";
-    domainKey      = "pangolin/resources/gitlab/domain";
+    domainKey      = "pangolin/resources/argocd/domain";
     enabled        = true;
     ssoEnabled     = true;
     targetHostname = "traefik.kube-system.svc.cluster.local";
@@ -13,5 +13,5 @@
     newtInstance   = nodeName;
   };
 
-  sops.secrets."pangolin/resources/gitlab/domain" = {};
+  sops.secrets."pangolin/resources/argocd/domain" = {};
 }

@@ -97,7 +97,36 @@
             install: false
 
           gitlab-runner:
-            install: false
+            install: true
+            runnerRegistrationToken: ""
+            replicas: 2
+            gitlabUrl: http://gitlab-webservice-default.cicd.svc.cluster.local:8181
+            runners:
+              locked: null
+              authenticationToken:
+                secret: gitlab-gitlab-runner-secret
+                key: runner-token
+              config: |
+                [[runners]]
+                  executor = "kubernetes"
+                  [runners.kubernetes]
+                    namespace = "cicd"
+                    image = "alpine:3.18"
+                    cpu_limit = "1"
+                    memory_limit = "1Gi"
+                    cpu_request = "100m"
+                    memory_request = "128Mi"
+                    [runners.kubernetes.node_selector]
+                      "kubernetes.io/arch" = "amd64"
+            resources:
+              requests:
+                cpu: 250m
+                memory: 256Mi
+              limits:
+                cpu: 500m
+                memory: 1Gi
+            concurrency: 10
+            checkInterval: 30
 
           gitlab:
             gitaly:
