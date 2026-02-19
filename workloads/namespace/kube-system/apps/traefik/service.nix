@@ -17,8 +17,8 @@
       ports = [
         {
           name = "traefik";
-          port = 9000;
-          targetPort = 9000;
+          port = 8080;
+          targetPort = 8080;
           protocol = "TCP";
         }
       ];

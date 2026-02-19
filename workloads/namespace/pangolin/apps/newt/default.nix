@@ -3,9 +3,10 @@
 
 {
   imports = [
-    # Import app specific definitions
     ./helm.nix
     ./secret.nix
-    ./configmap.nix
+    ./instances.nix
+    ./blueprint.nix
+    ./extra-resources.nix
   ];
 }

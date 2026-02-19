@@ -76,6 +76,18 @@
             ./secrets
             ./workloads
             { networking.hostName = nodeConfig.hostname; }
+            # Patch sops-install-secrets to always recreate symlinks so that
+            # k3s detects mtime changes on every nixos-rebuild switch.
+            # sops-nix builds sops-install-secrets via pkgs.callPackage directly
+            # from its own source tree, bypassing nixpkgs overlays. We must
+            # override sops.package explicitly with a patched derivation.
+            ({ pkgs, ... }: {
+              sops.package = (pkgs.callPackage (sops-nix + "/pkgs/sops-install-secrets") {
+                vendorHash = "sha256-b+yUkMeIKiozlrANOwaMY2QDWo0cZYpD9SXZuSgYUQs=";
+              }).overrideAttrs (old: {
+                patches = (old.patches or []) ++ [ ./nix/patches/sops-always-recreate-symlink.patch ];
+              });
+            })
           ];
         };
 
