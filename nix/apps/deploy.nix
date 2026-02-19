@@ -81,7 +81,6 @@
 
           update|switch)
             ensure_arg
-            ensure_tool "nixos-rebuild-ng"
             parse_node_target "''${node_target}"
 
             echo "Updating ''${node} via ''${mode}..."
@@ -97,7 +96,6 @@
 
           test)
             ensure_arg
-            ensure_tool "nixos-rebuild-ng"
             parse_node_target "''${node_target}"
 
             echo "Testing ''${node} via ''${mode}..."
