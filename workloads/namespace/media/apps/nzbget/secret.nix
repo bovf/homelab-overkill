@@ -32,6 +32,7 @@
           # Paths — all explicit to avoid resolving relative to $HOME
           MainDir=/downloads
           DestDir=/downloads/complete
+          InterDir=/downloads/intermediate
           TempDir=/downloads/tmp
           NzbDir=/downloads/nzb
           QueueDir=/downloads/queue
@@ -47,6 +48,10 @@
           Category2.DestDir=/downloads/movies
           Category2.Unpack=yes
 
+          # Unpack
+          Unpack=yes
+          UnpackCleanupDisk=yes
+
           # Logging (WriteLog valid values: none/append/reset/rotate)
           WriteLog=rotate
           RotateLog=3
@@ -58,7 +63,8 @@
           DebugTarget=log
 
           # Performance
-          ArticleCache=0
+          ArticleCache=500
+          WriteBuffer=1024
           DirectWrite=yes
           ContinuePartial=yes
           ReorderFiles=yes
