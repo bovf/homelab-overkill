@@ -21,6 +21,8 @@ in {
         "--service-cidr=10.43.0.0/16"
         "--node-label=node-type=${nodeConfig.nodeType}"
         "--node-label=architecture=${nodeConfig.arch}"
+        "--service-node-port-range=1024-65535"
+        "--kube-apiserver-arg=service-node-port-range=1024-65535"
       ];
     };
 
@@ -31,7 +33,6 @@ in {
     ];
     networking.firewall.allowedUDPPorts = [ 
       8472 # Flannel
-      64378 # Flannel
     ];
     
     environment.systemPackages = with pkgs; [

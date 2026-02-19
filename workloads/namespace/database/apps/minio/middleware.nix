@@ -10,12 +10,12 @@
     };
     spec.headers = {
       customRequestHeaders = {
-        X-Forwarded-Proto = "https";
-        X-Forwarded-Port = "443";
-        X-Forwarded-Host = "minio.dobryops.com";
+        "X-Forwarded-Proto" = "https";
+        "X-Forwarded-Port" = "443";
+        "X-Forwarded-Host" = "minio.dobryops.com";
       };
       customResponseHeaders = {
-        X-Frame-Options = "SAMEORIGIN";
+        "X-Frame-Options" = "SAMEORIGIN";
       };
     };
   };
@@ -29,15 +29,15 @@
     };
     spec.headers = {
       customRequestHeaders = {
-        X-Forwarded-Proto = "https";
-        X-Forwarded-Port = "443";
-        X-Forwarded-Host = "minio-console.dobryops.com";
+        "X-Forwarded-Proto" = "https";
+        "X-Forwarded-Port" = "443";
+        "X-Forwarded-Host" = "minio-console.dobryops.com";
       };
       customResponseHeaders = {
-        X-Frame-Options = "SAMEORIGIN";
-        X-Content-Type-Options = "nosniff";
-        X-XSS-Protection = "1; mode=block";
-        Referrer-Policy = "strict-origin-when-cross-origin";
+        "X-Frame-Options" = "SAMEORIGIN";
+        "X-Content-Type-Options" = "nosniff";
+        "X-XSS-Protection" = "1; mode=block";
+        "Referrer-Policy" = "strict-origin-when-cross-origin";
       };
     };
   };

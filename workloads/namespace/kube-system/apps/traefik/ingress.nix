@@ -24,7 +24,7 @@
                 backend = {
                   service = {
                     name = "traefik-dashboard";
-                    port = { number = 9000; };
+                    port = { number = 8080; };
                   };
                 };
               }
@@ -34,7 +34,7 @@
                 backend = {
                   service = {
                     name = "traefik-dashboard";
-                    port = { number = 9000; };
+                    port = { number = 8080; };
                   };
                 };
               }

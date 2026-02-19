@@ -116,10 +116,12 @@
         podSecurityContext:
           fsGroup: 1000
 
-        # Init container to fix permissions on volumes
-        # Note: k8s-at-home chart expects initContainers as a MAP, not a list
+        # Init container: copies nzbget.conf from the SOPS-rendered secret into
+        # the config PVC, then fixes ownership.  Runs on every pod start so the
+        # config is always in sync with what is declared in Nix.
+        # Note: k8s-at-home chart expects initContainers as a MAP, not a list.
         initContainers:
-          fix-permissions:
+          copy-config:
             image: busybox:1.36
             imagePullPolicy: IfNotPresent
             securityContext:
@@ -129,16 +131,26 @@
               - sh
               - -ceu
               - |
-                # Ensure mounted volumes have correct ownership
+                mkdir -p /config
+                cp /secret/nzbget.conf /config/nzbget.conf
                 chown -R 1000:1000 /config
                 chmod -R 755 /config
                 chown -R 1000:1000 /downloads
                 chmod -R 755 /downloads
+                echo "nzbget.conf deployed successfully"
             volumeMounts:
               - name: config
                 mountPath: /config
               - name: downloads
                 mountPath: /downloads
+              - name: nzbget-conf
+                mountPath: /secret
+                readOnly: true
+
+        extraVolumes:
+          - name: nzbget-conf
+            secret:
+              secretName: nzbget-conf
 
         # Node selector
         nodeSelector: {}

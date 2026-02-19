@@ -12,5 +12,6 @@
     ./reactive-resume-init-job.nix
     ./reactive-resume-configmap.nix
     ./secret.nix
+    ./pangolin-blueprint.nix
   ];
 }

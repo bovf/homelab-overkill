@@ -3,8 +3,8 @@
 
 {
   imports = [
-    # Import app specific definitions
     ./helm.nix
     ./middleware.nix
+    ./pangolin-blueprint.nix
   ];
 }

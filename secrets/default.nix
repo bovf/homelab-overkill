@@ -6,8 +6,40 @@
     age.sshKeyPaths = [ "/root/.ssh/id_ed25519" ];
     age.generateKey = true;
 
-    secrets."pangolin/newt_id" = {};
-    secrets."pangolin/newt_secret" = {};
+    # ------------------------------------------------------------------
+    # Pangolin instances (one block per node / newt deployment)
+    # ------------------------------------------------------------------
+    # engineer node
+    secrets."pangolin/instances/engineer/endpoint"    = {};
+    secrets."pangolin/instances/engineer/newt_id"     = {};
+    secrets."pangolin/instances/engineer/newt_secret" = {};
+    secrets."pangolin/instances/engineer/site_id"     = {};
+
+    # ------------------------------------------------------------------
+    # Pangolin resource domains (one per exposed service)
+    # ------------------------------------------------------------------
+    secrets."pangolin/resources/jellyfin/domain"         = {};
+    secrets."pangolin/resources/sonarr/domain"           = {};
+    secrets."pangolin/resources/radarr/domain"           = {};
+    secrets."pangolin/resources/bazarr/domain"           = {};
+    secrets."pangolin/resources/prowlarr/domain"         = {};
+    secrets."pangolin/resources/jellyseerr/domain"       = {};
+    secrets."pangolin/resources/qbittorrent/domain"      = {};
+    secrets."pangolin/resources/nzbget/domain"           = {};
+    secrets."pangolin/resources/grafana/domain"          = {};
+    secrets."pangolin/resources/prometheus/domain"       = {};
+    secrets."pangolin/resources/minio/domain"            = {};
+    secrets."pangolin/resources/minio_console/domain"    = {};
+    secrets."pangolin/resources/pgadmin/domain"          = {};
+    secrets."pangolin/resources/gitlab/domain"           = {};
+    secrets."pangolin/resources/reactive_resume/domain"  = {};
+    secrets."pangolin/resources/traefik_dashboard/domain" = {};
+
+    # ------------------------------------------------------------------
+    # NZBGet credentials
+    # ------------------------------------------------------------------
+    secrets."media/nzbget/username" = {};
+    secrets."media/nzbget/password" = {};
 
     secrets."nordvpn/wireguard_private_key" = {};
     secrets."nordvpn/username" = {};
