@@ -32,8 +32,17 @@
     secrets."pangolin/resources/minio_console/domain"    = {};
     secrets."pangolin/resources/pgadmin/domain"          = {};
     secrets."pangolin/resources/gitlab/domain"           = {};
+    secrets."pangolin/resources/registry/domain"         = {};
+    secrets."pangolin/resources/postgres/domain"         = {};
+    secrets."pangolin/resources/mumble/domain"           = {};
     secrets."pangolin/resources/reactive_resume/domain"  = {};
     secrets."pangolin/resources/traefik_dashboard/domain" = {};
+
+    # ------------------------------------------------------------------
+    # Admin / shared
+    # ------------------------------------------------------------------
+    secrets."admin/base_domain" = {};
+    secrets."admin/email"       = {};
 
     # ------------------------------------------------------------------
     # NZBGet credentials

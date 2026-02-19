@@ -25,13 +25,15 @@
           ControlUsername=${config.sops.placeholder."media/nzbget/username"}
           ControlPassword=${config.sops.placeholder."media/nzbget/password"}
           SecureControl=no
-          AllowCookies=yes
+          FormAuth=yes
 
-          # Paths
+          # Paths — all explicit to avoid resolving relative to $HOME
           MainDir=/downloads
           DestDir=/downloads/complete
-          InterimDir=/downloads/intermediate
+          TempDir=/downloads/tmp
           NzbDir=/downloads/nzb
+          QueueDir=/downloads/queue
+          ScriptDir=/downloads/scripts
           LogFile=/config/nzbget.log
 
           # Download categories — used by Sonarr / Radarr
@@ -43,8 +45,8 @@
           Category2.DestDir=/downloads/movies
           Category2.Unpack=yes
 
-          # Logging
-          WriteLog=yes
+          # Logging (WriteLog valid values: none/append/reset/rotate)
+          WriteLog=rotate
           RotateLog=3
           LogBufferSize=1000
           DetailTarget=log
@@ -63,14 +65,11 @@
 
           # Connection
           ConnectionTimeout=60
-          TerminateTimeout=600
           ArticleTimeout=60
           KeepHistory=30
 
           # Security
           AuthorizedIP=127.0.0.1
-          AddUserAgent=no
-          FormAuth=no
     '';
     path  = "/var/lib/rancher/k3s/server/manifests/nzbget-conf.yaml";
     owner = "root";

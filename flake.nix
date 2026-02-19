@@ -76,6 +76,15 @@
             ./secrets
             ./workloads
             { networking.hostName = nodeConfig.hostname; }
+            # Patch sops-install-secrets to always recreate symlinks so that
+            # k3s detects mtime changes on every nixos-rebuild switch.
+            {
+              nixpkgs.overlays = [(final: prev: {
+                sops-install-secrets = prev.sops-install-secrets.overrideAttrs (old: {
+                  patches = (old.patches or []) ++ [ ./nix/patches/sops-always-recreate-symlink.patch ];
+                });
+              })];
+            }
           ];
         };
 
