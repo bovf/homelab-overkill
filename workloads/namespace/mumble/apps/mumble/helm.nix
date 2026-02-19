@@ -1,4 +1,4 @@
-{ config, pkgs, ... }:
+{ ... }:
 
 {
   services.k3s.manifests.mumble-server.content = {
@@ -9,47 +9,54 @@
       namespace = "kube-system";
     };
     spec = {
-      chart = "oci://ghcr.io/juniorjpdj/charts/mumble-server";
-      version = "0.1.32";
+      repo = "https://syntax3rror404.github.io/helm-charts/charts"; 
+      version = "1.0.1";
       targetNamespace = "mumble";
+      chart = "mumble";
 
       valuesContent = ''
-        replicaCount: 1
-
         image:
-          repository: phlak/mumble
+          repository: ghcr.io/mumble-voip/mumble-server
+          tag: v1.5.857-0
           pullPolicy: IfNotPresent
-          tag: "latest"
 
-        fullnameOverride: "mumble-server"
-
-        podSecurityContext:
-          fsGroup: 1000
-          runAsUser: 1000
-          runAsNonRoot: true
-
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - ALL
-          readOnlyRootFilesystem: false
-
-        # bjw-s style: services live under service.<name> (main)
         service:
-          main:
-            enabled: true
-            type: ClusterIP
-            annotations: {}
+          type: NodePort
+          externalTrafficPolicy: Local
+          ports:
+            - name: mumble-tcp
+              port: 64738
+              targetPort: 64738
+              protocol: TCP
+              nodePort: 11269
+            - name: mumble-udp
+              port: 64738
+              targetPort: 64738
+              protocol: UDP
+              nodePort: 11269
 
-        # Only Secret-backed config to avoid persistence.type PVC validation issues
         persistence:
-          config:
-            enabled: true
-            type: secret
-            name: mumble-config
-            subPath: mumble_server_config.ini
-            mountPath: /data/
+          enabled: false # Using secret-backed config instead of PVC
+
+        environment:
+          # Tell the container to use your mounted SOPS config
+          customConfigFile: "/data/mumble_server_config.ini"
+
+        # Native Cert-Manager integration for the chart
+        certificate:
+          generate: false
+          existingSecret: "mumble-tls-cert-xv6sf"
+
+        # Mount your SOPS secret
+        extraVolumes:
+          - name: config
+            secret:
+              secretName: mumble-config
+        
+        extraVolumeMounts:
+          - name: config
+            mountPath: /data
+            readOnly: true
 
         resources:
           limits:

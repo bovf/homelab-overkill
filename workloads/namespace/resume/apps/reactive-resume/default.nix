@@ -8,5 +8,6 @@
     ./ingress.nix
     ./secret.nix
     ./service.nix
+    ./pangolin-blueprint.nix
   ];
 }

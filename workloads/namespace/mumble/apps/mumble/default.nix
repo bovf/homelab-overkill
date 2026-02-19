@@ -4,6 +4,7 @@
   imports = [
     ./helm.nix
     ./secret.nix
-    ./ingressroute.nix
+    # ./ingressroute.nix
+    ./certificate.nix
   ];
 }
