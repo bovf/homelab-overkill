@@ -26,6 +26,8 @@
           ControlPassword=${config.sops.placeholder."media/nzbget/password"}
           SecureControl=no
           FormAuth=yes
+          WebDir=/app/nzbget/webui
+          ConfigTemplate=/app/nzbget/share/nzbget/nzbget.conf
 
           # Paths — all explicit to avoid resolving relative to $HOME
           MainDir=/downloads
