@@ -12,6 +12,7 @@
     ./apps/radarr
     ./apps/sonarr
     ./apps/nzbget
+    ./apps/sportarr
 
     # Import namespace specific definitions
     ./shared
