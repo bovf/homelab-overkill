@@ -1,117 +1,109 @@
-{ ... }:
+{ config, ... }:
 
 {
-  services.k3s.manifests.pihole-helm.content = {
-    apiVersion = "helm.cattle.io/v1";
-    kind = "HelmChart";
-    metadata = {
-      name = "pihole";
-      namespace = "kube-system";
-    };
-    spec = {
-      repo = "https://mojo2600.github.io/pihole-kubernetes/";
-      chart = "pihole";
-      version = "2.14.0";
-      targetNamespace = "dns";
+  sops.templates."helm/pihole.yaml" = {
+    content = ''
+      apiVersion: helm.cattle.io/v1
+      kind: HelmChart
+      metadata:
+        name: pihole
+        namespace: kube-system
+      spec:
+        repo: https://mojo2600.github.io/pihole-kubernetes/
+        chart: pihole
+        version: "2.31.0"
+        targetNamespace: dns
+        createNamespace: false
+        valuesContent: |
+          replicaCount: 1
 
-      valuesContent = ''
-        replicaCount: 1
+          image:
+            repository: pihole/pihole
+            tag: "2025.02.2"
+            pullPolicy: IfNotPresent
 
-        image:
-          repository: pihole/pihole
-          tag: "2024.12.2"
-          pullPolicy: IfNotPresent
+          strategy:
+            type: RollingUpdate
 
-        strategy:
-          type: RollingUpdate
+          serviceType: ClusterIP
 
-        # ServiceType: Use LoadBalancer or NodePort for DNS access
-        serviceType: LoadBalancer
-
-        # Ingress for web interface
-        ingress:
-          enabled: true
-          ingressClassName: traefik
-          hosts:
-            - pihole.your-domain.local
-          tls:
+          ingress:
             enabled: true
-            certManager:
-              enabled: true
+            ingressClassName: traefik
+            annotations:
+              traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+              traefik.ingress.kubernetes.io/router.middlewares: dns-pihole-headers@kubernetescrd
+            hosts:
+              - ${config.sops.placeholder."pangolin/resources/pihole/domain"}
+            tls: false
 
-        # Persistent storage for configuration and logs
-        persistentVolumeClaim:
-          enabled: true
-          storageClassName: local-path
-          accessMode: ReadWriteOnce
-          size: 2Gi
+          persistentVolumeClaim:
+            enabled: true
+            storageClassName: local-path
+            accessMode: ReadWriteOnce
+            size: 2Gi
 
-        # DNS ports
-        serviceTCP:
-          loadBalancerIP: ~
-          type: LoadBalancer
-          port: 53
+          serviceDns:
+            mixedService: true
+            type: NodePort
+            nodePort: 30053
 
-        serviceUDP:
-          loadBalancerIP: ~
-          type: LoadBalancer
-          port: 53
+          serviceDhcp:
+            enabled: false
 
-        # Web interface
-        webHttp:
-          enabled: true
-          port: 80
+          webHttp: "80"
+          webHttps: "443"
 
-        webHttps:
-          enabled: true
-          port: 443
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 100m
+              memory: 256Mi
 
-        # Resource limits
-        resources:
-          limits:
-            cpu: 500m
-            memory: 512Mi
-          requests:
-            cpu: 100m
-            memory: 256Mi
+          admin:
+            existingSecret: pihole-web-password
+            passwordKey: password
 
-        # Environment variables for Pi-hole configuration
-        # These configure DNS behavior, logging, and retention
-        env:
-          - name: TZ
-            value: "Europe/Sofia"
-          - name: WEBPASSWORD
-            valueFrom:
-              secretKeyRef:
-                name: pihole-secret
-                key: WEBPASSWORD
-          # Logging: set to 0 to disable, 1 to enable
-          - name: QUERY_LOGGING
-            value: "1"
-          # Database retention: 7 days (in seconds: 604800)
-          - name: MAXDBDAYS
-            value: "7"
+          env:
+            - name: TZ
+              value: "Europe/Sofia"
+            - name: FTLCONF_dns_upstreams
+              value: "8.8.8.8;8.8.4.4"
+            - name: FTLCONF_query_logging
+              value: "true"
+            - name: FTLCONF_database_maxdbdays
+              value: "7"
 
-        # Pod security context
-        podSecurityContext:
-          fsGroup: 999
-          runAsUser: 999
-          runAsNonRoot: true
+          podDnsConfig:
+            enabled: true
+            policy: "None"
+            nameservers:
+              - 8.8.8.8
+              - 8.8.4.4
 
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            add:
-              - NET_BIND_SERVICE  # Required for port 53
-            drop:
-              - ALL
-          readOnlyRootFilesystem: false
+          podSecurityContext:
+            fsGroup: 999
+            runAsUser: 999
+            runAsNonRoot: true
 
-        # Node selection (optional)
-        nodeSelector: {}
-        tolerations: []
-        affinity: {}
-      '';
-    };
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              add:
+                - NET_BIND_SERVICE
+              drop:
+                - ALL
+            readOnlyRootFilesystem: false
+
+          nodeSelector: {}
+          tolerations: []
+          affinity: {}
+    '';
+    path  = "/var/lib/rancher/k3s/server/manifests/pihole.yaml";
+    owner = "root";
+    group = "root";
+    mode  = "0644";
   };
 }
