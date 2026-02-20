@@ -1,4 +1,4 @@
-{ ... }:
+{ config, ... }:
 
 {
   sops.templates."pihole/secret.yaml" = {
@@ -6,12 +6,11 @@
       apiVersion: v1
       kind: Secret
       metadata:
-        name: pihole-secret
+        name: pihole-web-password
         namespace: dns
       type: Opaque
       stringData:
-        # Change this to your desired admin password
-        WEBPASSWORD: "ChangeMe123!PiholeAdminPassword"
+        password: "${config.sops.placeholder."pihole/web_password"}"
     '';
     path  = "/var/lib/rancher/k3s/server/manifests/pihole-secret.yaml";
     owner = "root";

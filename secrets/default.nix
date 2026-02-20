@@ -100,6 +100,13 @@
     secrets."argocd/gitlab_token" = {};
     secrets."pangolin/resources/argocd/domain" = {};
 
+    secrets."pihole/web_password" = {};
+    secrets."pangolin/resources/pihole/domain" = {};
+
+    secrets."pangolin/resources/homepage/domain" = {};
+
+    secrets."pangolin/resources/ghost/domain" = {};
+
     secrets."reactive_resume/chrome_token" = {};
     secrets."reactive_resume/access_token_secret" = {};
     secrets."reactive_resume/refresh_token_secret" = {};

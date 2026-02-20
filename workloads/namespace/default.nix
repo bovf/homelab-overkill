@@ -5,7 +5,9 @@
     ./cert-manager
     ./cicd
     ./database
-    # ./dns
+    ./dns
+    ./ghost
+    ./homepage
     ./intel-device-plugins
     ./kube-system
     ./media

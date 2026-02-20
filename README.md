@@ -17,6 +17,7 @@ Uses Nix flakes to manage NixOS + k3s + Helm charts, SOPS for secure secret stor
 | Service         | Purpose                        | Status  |
 |-----------------|--------------------------------| ------- |
 | GitLab          | Git, CI/CD, container registry | Active  |
+| ArgoCD          | GitOps                         | Active  |
 | MinIO           | S3 object storage              | Active  |
 | PostgreSQL      | SQL database                   | Active  |
 | Jellyfin        | Media streaming                | Active  |
@@ -29,14 +30,13 @@ Uses Nix flakes to manage NixOS + k3s + Helm charts, SOPS for secure secret stor
 | NZBGet          | Usenet client                  | Active  |
 | pgAdmin         | Postgres web admin             | Active  |
 | Grafana         | Metrics & dashboards           | Active  |
+| Pi-hole         | DNS/ad blocking                | Active* |
+| Homepage        | Dashboard                      | Active  |
+| Ghost           | Blog                           | Active  |
 | Newt            | Private tunnel access          | Active  |
 | Reactive Resume | Resume builder                 | Active  |
-| Ghost           | Blog                           | Next    |
-| Homepage        | Dashboard                      | Planned |
-| Pi-hole         | DNS/ad blocking                | Planned |
-| ArgoCD          | GitOps Instance                | Planned |
-| Nextcloud       | Personal cloud/NAS             | Planned |
-| Longhorn        | Block storage for NAS          | Planned |
+
+*\*Pi-hole is deployed and functional for ad blocking, but not yet configured as the network's central DNS server.*
 
 ## Quick Start
 
@@ -137,7 +137,7 @@ sops-nix places symlinks in the k3s manifests directory. k3s detects changes via
 │   └── namespace/
 │       ├── kube-system/       # traefik, nfd, intel-plugins
 │       ├── database/          # postgresql, minio, pgadmin
-│       ├── cicd/              # gitlab
+│       ├── cicd/              # gitlab, argocd
 │       ├── media/             # jellyfin, sonarr, radarr, prowlarr, bazarr,
 │       │                      # jellyseerr, qbittorrent, nzbget
 │       ├── monitoring/        # kube-prometheus-stack
@@ -145,7 +145,9 @@ sops-nix places symlinks in the k3s manifests directory. k3s detects changes via
 │       ├── pangolin/          # newt tunnel client + blueprint aggregator
 │       ├── mumble/            # voice server
 │       ├── resume/            # Reactive Resume
-│       └── ghost/             # Blog (planned)
+│       ├── dns/               # pihole
+│       ├── homepage/          # dashboard
+│       └── ghost/             # blog
 │
 ├── common/                    # Shared NixOS modules (base, services, users)
 │
