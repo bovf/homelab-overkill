@@ -23,7 +23,7 @@ let
     let lines = lib.splitString "\n" str;
     in concatStringsSep "\n" (map (line: if line == "" then line else "      " + line) lines);
 
-  renderResource = r: indent ''
+  renderHttpResource = r: indent ''
 ${r._key}:
   name: ${r.name}
   protocol: ${r.protocol}
@@ -40,6 +40,23 @@ ${r._key}:
     - name: Host
       value: ${config.sops.placeholder.${r.domainKey}}
 '';
+
+  renderTcpUdpResource = r: indent ''
+${r._key}:
+  name: ${r.name}
+  protocol: ${r.protocol}
+  proxy-port: ${toString r.proxyPort}
+  enabled: ${if r.enabled then "true" else "false"}
+  targets:
+    - site: ${config.sops.placeholder.${instances.${r.newtInstance}.siteIdKey}}
+      hostname: ${r.targetHostname}
+      port: ${toString r.targetPort}
+'';
+
+  renderResource = r:
+    if r.protocol == "http" || r.protocol == "https"
+    then renderHttpResource r
+    else renderTcpUdpResource r;
 
   resourcesYaml = rs: concatStringsSep "\n" (map renderResource rs);
 
