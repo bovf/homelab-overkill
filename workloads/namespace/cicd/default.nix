@@ -5,6 +5,7 @@
     ./apps/gitlab
     ./apps/argocd
     ./apps/reloader
+    ./apps/newt
   ];
 
   services.k3s.manifests.gitlab-ns.content = {
