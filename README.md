@@ -4,7 +4,7 @@
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io)
 [![SOPS](https://img.shields.io/badge/SOPS-FFA500?style=for-the-badge&logo=mozilla&logoColor=white)](https://github.com/mozilla/sops)
 
-A declarative, reproducible home infrastructure stack on Kubernetes and NixOS with encrypted secrets and no exposed ports.
+A declarative, reproducible home infrastructure stack on Kubernetes and NixOS with encrypted secrets and minimal exposed ports.
 
 ## What This Is
 
@@ -78,7 +78,8 @@ nix run .#deploy -- update engineer-local
 3. **k3s** provides a lightweight Kubernetes cluster.
 4. **Helm** deploys applications with your config.
 5. **Pangolin** creates private tunnels to services.
-6. **GitOps:** Edit config → commit → deploy. Everything is reproducible and version-tracked.
+6. **Reloader** watches blueprint Secrets and automatically rolling-restarts Newt when they change.
+7. **GitOps:** Edit config → commit → deploy. Everything is reproducible and version-tracked.
 
 ## Security Model
 
@@ -92,7 +93,7 @@ No sensitive data exists in plain text in this repository. Every domain name, cr
 
 ### Pangolin blueprint system
 
-Each workload registers itself as a Pangolin resource via a `pangolin-blueprint.nix` file. The `newt` aggregator collects all registrations and renders one blueprint Secret per Pangolin instance — fully declarative, no central configmap required.
+Each workload registers itself as a Pangolin resource via a `pangolin-blueprint.nix` file. The `newt` aggregator collects all registrations and renders one blueprint Secret per Pangolin instance — fully declarative, no central configmap required. Supports HTTP resources (with SSO, rules, custom headers) and raw TCP/UDP resources (for non-HTTP services like SSH).
 
 ### sops-nix symlink patch
 
@@ -137,7 +138,7 @@ sops-nix places symlinks in the k3s manifests directory. k3s detects changes via
 │   └── namespace/
 │       ├── kube-system/       # traefik, nfd, intel-plugins
 │       ├── database/          # postgresql, minio, pgadmin
-│       ├── cicd/              # gitlab, argocd
+│       ├── cicd/              # gitlab, argocd, reloader
 │       ├── media/             # jellyfin, sonarr, radarr, prowlarr, bazarr,
 │       │                      # jellyseerr, qbittorrent, nzbget
 │       ├── monitoring/        # kube-prometheus-stack
