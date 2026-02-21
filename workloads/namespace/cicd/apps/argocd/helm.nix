@@ -25,6 +25,16 @@
               admin.enabled: true
               url: https://${config.sops.placeholder."pangolin/resources/argocd/domain"}
               exec.enabled: true
+              # CI account – token is generated on-demand and stored as
+              # ARGOCD_AUTH_TOKEN in GitLab CI masked variables. Never stored here.
+              # To (re-)generate after deploy:
+              #   kubectl exec -n cicd deploy/argocd-server -- \
+              #     argocd account generate-token \
+              #       --account ci \
+              #       --server argocd-server.cicd.svc.cluster.local \
+              #       --plaintext \
+              #       --grpc-web
+              accounts.ci: apiKey
             secret:
               createSecret: true
               argocdServerAdminPassword: "${config.sops.placeholder."argocd/admin_password"}"
@@ -32,6 +42,10 @@
               policy.csv: |
                 g, argocd-admins, role:admin
                 g, argocd-readonly, role:readonly
+                p, ci, applications, get,  */*, allow
+                p, ci, applications, sync, */*, allow
+                p, ci, projects,      get,  *, allow
+                p, ci, repositories,  get,  *, allow
               scopes: "[groups]"
 
           controller:
