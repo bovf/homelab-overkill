@@ -28,6 +28,12 @@ in {
       ];
     };
 
+    # Cluster-internal hostnames that the node's containerd must resolve
+    # when pulling images from the GitLab registry (blobs are served via MinIO).
+    networking.extraHosts = ''
+      10.43.137.138 minio.database.svc.cluster.local
+    '';
+
     networking.firewall.allowedTCPPorts = [ 
       6443  # K3s API server
       80    # HTTP
