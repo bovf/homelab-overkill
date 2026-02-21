@@ -24,6 +24,7 @@ in {
         "--node-label=architecture=${nodeConfig.arch}"
         "--service-node-port-range=1024-65535"
         "--kube-apiserver-arg=service-node-port-range=1024-65535"
+        "--kubelet-arg=eviction-hard=nodefs.available<5%,imagefs.available<5%"
       ];
     };
 
