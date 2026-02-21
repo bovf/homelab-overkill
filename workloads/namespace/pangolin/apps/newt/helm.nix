@@ -3,6 +3,9 @@
 let
   inherit (lib) concatStringsSep mapAttrsToList;
 
+  blueprintSecrets = concatStringsSep ","
+    (mapAttrsToList (name: _: "pangolin-blueprint-${name}") config.workloads.pangolinInstances);
+
   # Build one YAML list entry per declared pangolinInstance.
   # Each instance mounts its own blueprint secret (pangolin-blueprint-<name>).
   renderInstance = instanceName: _instanceCfg: ''
@@ -48,6 +51,10 @@ in
       targetNamespace = "pangolin";
       createNamespace = false;
       valuesContent   = ''
+        global:
+          podAnnotations:
+            secret.reloader.stakater.com/reload: "${blueprintSecrets}"
+
         newtInstances:
         ${instancesYaml}
       '';
