@@ -35,6 +35,13 @@
           - name: cicd-gitops
             enabled: true
 
+            # This Newt connects outbound to Pangolin — no inbound WireGuard
+            # ports need to be exposed on the host. Disabling the Service
+            # prevents klipper-ServiceLB from trying to claim ports 51820/51821,
+            # which are already held by the engineer Newt in the pangolin namespace.
+            service:
+              enabled: false
+
             auth:
               existingSecretName: newt-cred-cicd-gitops
               keys:
