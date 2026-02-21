@@ -50,10 +50,6 @@
     secrets."media/nzbget/username" = {};
     secrets."media/nzbget/password" = {};
 
-    secrets."nordvpn/wireguard_private_key" = {};
-    secrets."nordvpn/username" = {};
-    secrets."nordvpn/password" = {};
-
     secrets."qbittorrent/password_hash" = {};
     secrets."qbittorrent/password" = {};
 
