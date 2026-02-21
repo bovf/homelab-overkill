@@ -42,10 +42,11 @@
               policy.csv: |
                 g, argocd-admins, role:admin
                 g, argocd-readonly, role:readonly
-                p, ci, applications, get,  */*, allow
-                p, ci, applications, sync, */*, allow
-                p, ci, projects,      get,  *, allow
-                p, ci, repositories,  get,  *, allow
+                p, ci, applications, get,    */*, allow
+                p, ci, applications, sync,   */*, allow
+                p, ci, applications, update, */*, allow
+                p, ci, projects,      get,    *, allow
+                p, ci, repositories,  get,    *, allow
               scopes: "[groups]"
 
           controller:
