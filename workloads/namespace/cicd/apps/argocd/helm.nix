@@ -79,7 +79,7 @@
                 memory: 256Mi
               limits:
                 cpu: 500m
-                memory: 512Mi
+                memory: 1Gi
             env:
               - name: ARGOCD_EXEC_TIMEOUT
                 value: "180s"
