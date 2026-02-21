@@ -152,13 +152,19 @@
             webservice:
               minReplicas: 1
               maxReplicas: 1
+              # Single Puma worker: baseline RSS ~1.2 GB, well within 4 Gi limit.
+              # With 2 workers (default) RSS at boot was ~2.4 GB leaving <100 MB
+              # headroom against the old 2.5 Gi limit, causing OOMKill under load.
+              # The node has 62 Gi total; 4 Gi limit is safe and generous.
+              puma:
+                workers: 1
               resources:
                 requests:
                   cpu: 300m
-                  memory: 1Gi
+                  memory: 1.5Gi
                 limits:
                   cpu: 1
-                  memory: 2.5Gi
+                  memory: 4Gi
             sidekiq:
               minReplicas: 1
               maxReplicas: 1
