@@ -3,24 +3,6 @@
 {
   sops = {
     templates = {
-      "nordvpn/nordvpn-secret.yaml" = {
-        content = ''
-          apiVersion: v1
-          kind: Secret
-          metadata:
-            name: nordvpn-secret
-            namespace: media
-          type: Opaque
-          stringData:
-            privateKey: "${config.sops.placeholder."nordvpn/wireguard_private_key"}"
-            username: "${config.sops.placeholder."nordvpn/username"}"
-            password: "${config.sops.placeholder."nordvpn/password"}"
-        '';
-        path = "/var/lib/rancher/k3s/server/manifests/nordvpn-secret.yaml";
-        owner = "root";
-        group = "root";
-        mode = "0644";
-      };
       "qbittorrent/qbittorrent-conf.yaml" = {
         content = ''
           apiVersion: v1
@@ -43,6 +25,9 @@
               Session\SSL\Port=41258
               Session\ShareLimitAction=Stop
               Session\TempPath=/downloads/downloads/incomplete/
+              Session\DHTEnabled=true
+              Session\LSDEnabled=true
+              Session\PeXEnabled=true
               
               [LegalNotice]
               Accepted=true
