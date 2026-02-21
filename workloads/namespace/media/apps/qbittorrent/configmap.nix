@@ -24,6 +24,9 @@
         Session\SSL\Port=41258
         Session\ShareLimitAction=Stop
         Session\TempPath=/downloads/incomplete/
+        Session\DHTEnabled=true
+        Session\LSDEnabled=true
+        Session\PeXEnabled=true
 
         [LegalNotice]
         Accepted=true

@@ -3,6 +3,7 @@
 {
   imports = [
     ./cluster.nix
+    ./manifest-cleanup.nix
     ./server
     ./worker
     ./networking.nix

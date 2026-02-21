@@ -1,7 +1,6 @@
 { config, ... }:
 
 {
-  # Need to figure out a way to have NordVPN work with QB, or get another VPN. Gluetun disabled for now.
   sops.templates."helm/qbittorrent.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -44,49 +43,6 @@
                 subPath: downloads/
           gluetun:
             enabled: false
-            image:
-              repository: qmcgaw/gluetun
-              tag: v3.40.0
-              pullPolicy: IfNotPresent
-            securityContext:
-              privileged: true
-              capabilities:
-                add:
-                  - NET_ADMIN
-            vpn:
-              provider: "nordvpn"
-              type: "wireguard"
-              wireguard:
-                privateKeyExistingSecret: nordvpn-secret
-                privateKeyExistingSecretKey: privateKey
-                addresses: "10.5.0.2/32"
-            credentials:
-              create: false
-              existingSecret: nordvpn-secret
-            settings:
-              FIREWALL: "on"
-              FIREWALL_OUTBOUND_SUBNETS: "10.0.0.0/8,172.16.0.0/12,192.168.0.0/16"
-              DNS_ADDRESS: "1.1.1.1"
-              HEALTH_SERVER_PORT: "8000"
-              SERVER_ALLOWLIST: "qbittorrent:8080,qbittorrent:6881"
-              FIREWALL_INPUT_PORTS: "8080,6881"
-            extraEnv:
-              - name: LOG_LEVEL
-                value: "info"
-            extraPorts:
-              - name: bittorrent-udp
-                containerPort: 6881
-                protocol: UDP
-              - name: bittorrent-tcp
-                containerPort: 6881
-                protocol: TCP
-            resources:
-              limits:
-                cpu: 300m
-                memory: 256Mi
-              requests:
-                cpu: 100m
-                memory: 128Mi
           ingress:
             enabled: true
             className: traefik

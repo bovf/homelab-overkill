@@ -10,6 +10,7 @@ in {
       enable = true;
       role = "server";
       clusterInit = isController;
+      manifestCleanup.enable = true;
       
       extraFlags = [
         "--write-kubeconfig-mode=0644"
@@ -30,9 +31,11 @@ in {
       6443  # K3s API server
       80    # HTTP
       443   # HTTPS
+      6881  # qBittorrent
     ];
     networking.firewall.allowedUDPPorts = [ 
-      8472 # Flannel
+      8472  # Flannel
+      6881  # qBittorrent DHT
     ];
     
     environment.systemPackages = with pkgs; [
