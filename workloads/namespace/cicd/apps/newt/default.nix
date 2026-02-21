@@ -2,10 +2,10 @@
 
 {
   imports = [
-    ./instances
-    ./secret
-    ./helm
-    ./rbac
-    ./cronjob
+    ./instances.nix
+    ./secret.nix
+    ./helm.nix
+    ./rbac.nix
+    ./cronjob.nix
   ];
 }
