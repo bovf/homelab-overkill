@@ -41,7 +41,7 @@
               containers = [
                 {
                   name  = "aggregator";
-                  image = "bitnami/kubectl:1.31";
+                  image = "bitnami/kubectl:latest";
                   command = [ "sh" "-c" ];
                   args = [
                     ''
