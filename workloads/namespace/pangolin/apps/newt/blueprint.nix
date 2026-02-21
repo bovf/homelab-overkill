@@ -10,7 +10,7 @@
 { config, lib, ... }:
 
 let
-  inherit (lib) concatStringsSep mapAttrsToList groupBy;
+  inherit (lib) concatStringsSep mapAttrsToList groupBy optionalString;
 
   resources  = config.workloads.pangolinResources;
   instances  = config.workloads.pangolinInstances;
@@ -19,11 +19,21 @@ let
     groupBy (r: r.newtInstance)
       (mapAttrsToList (key: v: v // { _key = key; }) resources);
 
-  indent = str: 
+  indent = str:
     let lines = lib.splitString "\n" str;
     in concatStringsSep "\n" (map (line: if line == "" then line else "      " + line) lines);
 
-  renderResource = r: indent ''
+  renderRule = rule:
+    "  - action: ${rule.action}\n"
+    + "    match: ${rule.match}\n"
+    + "    value: ${rule.value}\n"
+    + optionalString (rule.priority != null) "    priority: ${toString rule.priority}\n";
+
+  renderRules = rules:
+    optionalString (rules != [])
+      ("  rules:\n" + concatStringsSep "" (map renderRule rules));
+
+  renderHttpResource = r: indent ''
 ${r._key}:
   name: ${r.name}
   protocol: ${r.protocol}
@@ -31,7 +41,7 @@ ${r._key}:
   enabled: ${if r.enabled then "true" else "false"}
   auth:
     sso-enabled: ${if r.ssoEnabled then "true" else "false"}
-  targets:
+${renderRules r.rules}  targets:
     - site: ${config.sops.placeholder.${instances.${r.newtInstance}.siteIdKey}}
       hostname: ${r.targetHostname}
       method: ${r.targetMethod}
@@ -40,6 +50,23 @@ ${r._key}:
     - name: Host
       value: ${config.sops.placeholder.${r.domainKey}}
 '';
+
+  renderTcpUdpResource = r: indent ''
+${r._key}:
+  name: ${r.name}
+  protocol: ${r.protocol}
+  proxy-port: ${toString r.proxyPort}
+  enabled: ${if r.enabled then "true" else "false"}
+  targets:
+    - site: ${config.sops.placeholder.${instances.${r.newtInstance}.siteIdKey}}
+      hostname: ${r.targetHostname}
+      port: ${toString r.targetPort}
+'';
+
+  renderResource = r:
+    if r.protocol == "http" || r.protocol == "https"
+    then renderHttpResource r
+    else renderTcpUdpResource r;
 
   resourcesYaml = rs: concatStringsSep "\n" (map renderResource rs);
 

@@ -53,20 +53,52 @@ with lib;
             description = "Human-readable display name (visible in repo, not a secret).";
           };
           protocol = mkOption {
-            type    = types.enum [ "http" "https" ];
+            type    = types.enum [ "http" "https" "tcp" "udp" ];
             default = "http";
           };
+          proxyPort = mkOption {
+            type        = types.nullOr types.int;
+            default     = null;
+            description = "Required for TCP/UDP resources. Port exposed on Pangolin server.";
+          };
           domainKey = mkOption {
-            type        = types.str;
-            description = "SOPS key path for the full domain, e.g. 'pangolin/resources/jellyfin/domain'.";
+            type        = types.nullOr types.str;
+            default     = null;
+            description = "SOPS key path for the full domain (HTTP only). E.g. 'pangolin/resources/jellyfin/domain'.";
           };
           enabled = mkOption {
             type    = types.bool;
             default = false;
           };
           ssoEnabled = mkOption {
-            type    = types.bool;
-            default = true;
+            type        = types.bool;
+            default     = true;
+            description = "Enable SSO authentication. Only for HTTP resources.";
+          };
+          rules = mkOption {
+            type    = types.listOf (types.submodule {
+              options = {
+                priority = mkOption {
+                  type        = types.nullOr types.int;
+                  default     = null;
+                  description = "Processing priority of the rule. Auto-assigned if null.";
+                };
+                action = mkOption {
+                  type        = types.enum [ "allow" "deny" "pass" ];
+                  description = "Rule action.";
+                };
+                match = mkOption {
+                  type        = types.enum [ "ip" "cidr" "country" "path" ];
+                  description = "Match type.";
+                };
+                value = mkOption {
+                  type        = types.str;
+                  description = "Value to match against (e.g. country code, IP, CIDR, path).";
+                };
+              };
+            });
+            default     = [];
+            description = "Access control rules for the resource (HTTP only).";
           };
           targetHostname = mkOption {
             type        = types.str;
@@ -74,8 +106,9 @@ with lib;
             description = "Cluster-internal hostname of the backing service. Not a secret.";
           };
           targetMethod = mkOption {
-            type    = types.enum [ "http" "https" ];
-            default = "https";
+            type        = types.nullOr (types.enum [ "http" "https" ]);
+            default     = "https";
+            description = "Protocol method for HTTP resources. Not used for TCP/UDP.";
           };
           targetPort = mkOption {
             type    = types.int;
