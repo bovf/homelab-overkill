@@ -6,7 +6,7 @@
     protocol       = "http";
     domainKey      = "pangolin/resources/gitlab/domain";
     enabled        = true;
-    ssoEnabled     = true;
+    ssoEnabled     = false;
     targetHostname = "traefik.kube-system.svc.cluster.local";
     targetMethod   = "https";
     targetPort     = 443;
@@ -18,7 +18,7 @@
     protocol       = "http";
     domainKey      = "pangolin/resources/registry/domain";
     enabled        = true;
-    ssoEnabled     = true;
+    ssoEnabled     = false;
     targetHostname = "traefik.kube-system.svc.cluster.local";
     targetMethod   = "https";
     targetPort     = 443;
