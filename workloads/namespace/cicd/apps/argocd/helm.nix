@@ -42,10 +42,11 @@
               policy.csv: |
                 g, argocd-admins, role:admin
                 g, argocd-readonly, role:readonly
-                p, ci, applications, get,  */*, allow
-                p, ci, applications, sync, */*, allow
-                p, ci, projects,      get,  *, allow
-                p, ci, repositories,  get,  *, allow
+                p, ci, applications, get,    */*, allow
+                p, ci, applications, sync,   */*, allow
+                p, ci, applications, update, */*, allow
+                p, ci, projects,      get,    *, allow
+                p, ci, repositories,  get,    *, allow
               scopes: "[groups]"
 
           controller:
@@ -76,10 +77,10 @@
             resources:
               requests:
                 cpu: 100m
-                memory: 256Mi
+                memory: 512Mi
               limits:
                 cpu: 500m
-                memory: 512Mi
+                memory: 2Gi
             env:
               - name: ARGOCD_EXEC_TIMEOUT
                 value: "180s"
