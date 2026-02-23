@@ -1,11 +1,13 @@
 <div align="center">
 
+<pre>
 ██████╗  ██████╗ ██████╗ ██████╗ ██╗   ██╗ ██████╗ ██████╗ ███████╗
 ██╔══██╗██╔═══██╗██╔══██╗██╔══██╗╚██╗ ██╔╝██╔═══██╗██╔══██╗██╔════╝
 ██║  ██║██║   ██║██████╔╝██████╔╝ ╚████╔╝ ██║   ██║██████╔╝███████╗
 ██║  ██║██║   ██║██╔══██╗██╔══██╗  ╚██╔╝  ██║   ██║██╔═══╝ ╚════██║
 ██████╔╝╚██████╔╝██████╔╝██║  ██║   ██║   ╚██████╔╝██║     ███████║
 ╚═════╝  ╚═════╝ ╚═════╝ ╚═╝  ╚═╝   ╚═╝    ╚═════╝ ╚═╝     ╚══════╝
+</pre>
 
 **A declarative, reproducible home infrastructure stack.**  
 *Kubernetes · NixOS · Encrypted Secrets · Zero Exposed Ports*
@@ -235,6 +237,7 @@ workloads/namespace/<ns>/apps/<app>/
 > All `helm.nix` and `middleware.nix` files use `sops.templates` - domain names and credentials are **never present in git**.
 
 ---
+
 
 <div align="center">
 *Keep it simple. Keep it declarative. Keep secrets secret.*
