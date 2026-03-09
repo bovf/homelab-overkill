@@ -8,13 +8,6 @@ with lib;
     ./disko.nix
   ];
         
-  nixpkgs.config = {
-    # Allow the specific insecure but required intel-media-sdk
-    permittedInsecurePackages = [
-      "intel-media-sdk-23.2.2"
-    ];
-  };
-
   # Keyboard US
   services.xserver = {
     xkb = {
@@ -29,10 +22,8 @@ with lib;
     extraPackages = with pkgs; [
       vaapiIntel
       vaapiVdpau
-      # Need to see if still needed for gpu-aceleration for media
-      # intel-media-sdk
-      # libvdpau-va-gl
-      # intel-media-driver
+      vpl-gpu-rt          # oneVPL GPU runtime for QSV (replaces deprecated intel-media-sdk)
+      intel-media-driver  # iHD VA-API driver required for QSV on 6th gen+ Intel CPUs
     ];
   };
   

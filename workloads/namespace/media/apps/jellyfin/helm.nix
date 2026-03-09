@@ -20,13 +20,14 @@
           image:
             repository: docker.io/jellyfin/jellyfin
             tag: '10.10.7'
-          env:
-            - name: LIBVA_DRIVERS_PATH
-              value: /run/opengl-driver/lib/dri
-            - name: LIBVA_DRIVER_NAME
-              value: iHD
-            - name: LD_LIBRARY_PATH
-              value: /run/opengl-driver/lib
+          jellyfin:
+            env:
+              - name: LIBVA_DRIVERS_PATH
+                value: /run/opengl-driver/lib/dri
+              - name: LIBVA_DRIVER_NAME
+                value: iHD
+              - name: LD_LIBRARY_PATH
+                value: /run/opengl-driver/lib
           resources:
             limits:
               gpu.intel.com/i915: 1
