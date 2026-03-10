@@ -85,7 +85,7 @@
 
             echo "Updating ''${node} via ''${mode}..."
 
-            ${pkgs.nixos-rebuild-ng}/bin/nixos-rebuild-ng switch \
+            ${lib.getExe pkgs.nixos-rebuild-ng} switch \
               --flake ".#''${node}" \
               --target-host "''${node_target}" \
               --build-host "''${node_target}" \
@@ -100,7 +100,7 @@
 
             echo "Testing ''${node} via ''${mode}..."
 
-            ${pkgs.nixos-rebuild-ng}/bin/nixos-rebuild-ng test \
+            ${lib.getExe pkgs.nixos-rebuild-ng} test \
               --flake ".#''${node}" \
               --target-host "''${node_target}" \
               --build-host "''${node_target}" \
