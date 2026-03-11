@@ -97,6 +97,13 @@ nix run .#deploy -- install engineer-local
 nix run .#deploy -- update engineer-local
 ```
 
+**5. Bootstrap kubeconfig for local k9s/kubectl access**
+```bash
+eval $(nix run .#kubeconfig -- engineer-local)
+kubectl get nodes
+k9s
+```
+
 ---
 
 ## How It Works
@@ -177,7 +184,9 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 ├── nix/                       # Nix apps and tooling
 │   ├── apps/
 │   │   ├── deploy.nix         # nixos-rebuild-ng based deploy script
-│   │   └── secrets.nix        # Bitwarden secrets management
+│   │   ├── kubeconfig.nix     # Kubeconfig bootstrap for local k9s/kubectl
+│   │   ├── secrets.nix        # Bitwarden secrets management
+│   │   └── utilities.nix      # Node status checks
 │   ├── patches/
 │   │   └── sops-always-recreate-symlink.patch
 │   └── shells/

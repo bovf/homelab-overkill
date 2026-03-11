@@ -25,10 +25,10 @@
     newtInstance   = nodeName;
   };
 
-  workloads.pangolinResources.gitlab-ssh = {
+  workloads.pangolinResources.gitlab_ssh = {
     name           = "GitLab SSH";
     protocol       = "tcp";
-    proxyPort      = 2222;
+    proxyPortKey   = "pangolin/resources/gitlab_ssh/port";
     enabled        = true;
     targetHostname = "gitlab-gitlab-shell.cicd.svc.cluster.local";
     targetPort     = 22;
@@ -37,4 +37,5 @@
 
   sops.secrets."pangolin/resources/gitlab/domain" = {};
   sops.secrets."pangolin/resources/registry/domain" = {};
+  sops.secrets."pangolin/resources/gitlab_ssh/port" = {};
 }

@@ -17,6 +17,7 @@ in {
         "--tls-san=${nodeConfig.hostname}"
         "--tls-san=${nodeConfig.ip}"
         "--tls-san=${nodeConfig.domain}"
+        "--tls-san=*.${nodeConfig.domain}"
         "--flannel-backend=vxlan"
         "--cluster-cidr=10.42.0.0/16"
         "--service-cidr=10.43.0.0/16"

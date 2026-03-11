@@ -59,7 +59,12 @@ with lib;
           proxyPort = mkOption {
             type        = types.nullOr types.int;
             default     = null;
-            description = "Required for TCP/UDP resources. Port exposed on Pangolin server.";
+            description = "Port exposed on Pangolin server (TCP/UDP). Use proxyPortKey instead to keep the port in SOPS.";
+          };
+          proxyPortKey = mkOption {
+            type        = types.nullOr types.str;
+            default     = null;
+            description = "SOPS key path for the proxy port (TCP/UDP). Mutually exclusive with proxyPort. E.g. 'pangolin/resources/gitlab_ssh/port'.";
           };
           domainKey = mkOption {
             type        = types.nullOr types.str;

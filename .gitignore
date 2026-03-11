@@ -121,6 +121,7 @@ kubeconfig.*
 *.kubeconfig*
 kube-config
 .kube
+!nix/apps/kubeconfig.nix
 
 # =============================================================================
 # LOGS AND TEMPORARY FILES

@@ -25,9 +25,13 @@
           ip = "192.0.2.10";
           localPort = 22;
 
-          # Secret paths under .ssh.* in secrets/secrets.yaml
-          remoteHostSecretKey = "engineer.remoteHost";
-          remotePortSecretKey = "engineer.remotePort";
+          # SSH remote access (Pangolin resource secrets)
+          remoteHostSecretKey = "pangolin.resources.engineer_ssh.domain";
+          remotePortSecretKey = "pangolin.resources.engineer_ssh.port";
+
+          # K8s API remote access (Pangolin resource secrets)
+          k8sApiDomainSecretKey = "pangolin.resources.engineer_k8s_api.domain";
+          k8sApiPortSecretKey   = "pangolin.resources.engineer_k8s_api.port";
 
           # Optional per-node SSH identity (any path: ~/, ./, etc.)
           identityFile = "~/.ssh/id_homelab";

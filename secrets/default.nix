@@ -39,6 +39,17 @@
     secrets."pangolin/resources/traefik_dashboard/domain" = {};
 
     # ------------------------------------------------------------------
+    # Pangolin resource ports (TCP tunnels)
+    # Ports are used by sops.placeholder in the blueprint renderer.
+    # Domains for engineer_ssh and engineer_k8s_api are NOT declared here
+    # because they are only consumed at runtime by nix apps (via sops
+    # --decrypt + yq), not by sops-nix on the node.
+    # ------------------------------------------------------------------
+    secrets."pangolin/resources/engineer_ssh/port"         = {};
+    secrets."pangolin/resources/engineer_k8s_api/port"     = {};
+    secrets."pangolin/resources/gitlab_ssh/port"           = {};
+
+    # ------------------------------------------------------------------
     # Admin / shared
     # ------------------------------------------------------------------
     secrets."admin/base_domain" = {};

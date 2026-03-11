@@ -51,11 +51,16 @@ ${renderRules r.rules}  targets:
       value: ${config.sops.placeholder.${r.domainKey}}
 '';
 
+  proxyPortValue = r:
+    if r.proxyPortKey != null
+    then config.sops.placeholder.${r.proxyPortKey}
+    else toString r.proxyPort;
+
   renderTcpUdpResource = r: indent ''
 ${r._key}:
   name: ${r.name}
   protocol: ${r.protocol}
-  proxy-port: ${toString r.proxyPort}
+  proxy-port: ${proxyPortValue r}
   enabled: ${if r.enabled then "true" else "false"}
   targets:
     - site: ${config.sops.placeholder.${instances.${r.newtInstance}.siteIdKey}}
