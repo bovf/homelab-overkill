@@ -14,6 +14,7 @@
     ./monitoring
     ./mumble
     ./pangolin
+    ./proxy
     ./resume
   ];
 }
