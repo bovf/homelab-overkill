@@ -6,7 +6,7 @@
     ./helm.nix
     ./middleware.nix
     ./secret.nix
-    ./service.nix
+    ./vpn-secret.nix
     ./pangolin-blueprint.nix
   ];
 }

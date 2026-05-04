@@ -64,6 +64,9 @@
     secrets."qbittorrent/password_hash" = {};
     secrets."qbittorrent/password" = {};
 
+    # qBittorrent VPN sidecar (Gluetun, NordVPN NordLynx/WireGuard mode)
+    secrets."nordvpn/wireguard_private_key" = {};
+
     secrets."monitoring/grafana-admin-password" = {};
 
     secrets."media/sonarr/api_key" = {};

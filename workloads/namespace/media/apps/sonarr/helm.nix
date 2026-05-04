@@ -11,7 +11,7 @@
       spec:
         repo: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
-        version: "2.4.0"
+        version: "4.6.2"
         targetNamespace: media
         createNamespace: false
         valuesContent: |
@@ -28,17 +28,15 @@
                     PGID: "1000"
           service:
             main:
-              enabled: true
+              controller: main
               type: ClusterIP
               ports:
                 http:
                   port: 8989
-                  targetPort: 8989
                   protocol: TCP
           ingress:
             main:
-              enabled: true
-              ingressClassName: traefik
+              className: traefik
               annotations:
                 traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
                 traefik.ingress.kubernetes.io/router.middlewares: media-sonarr-headers@kubernetescrd
@@ -48,19 +46,18 @@
                     - path: /
                       pathType: Prefix
                       service:
-                        name: main
+                        identifier: main
                         port: 8989
           persistence:
             downloads:
-              enabled: true
-              mountPath: /downloads
               existingClaim: media-pvc
-              subPath: downloads
+              globalMounts:
+                - path: /downloads
             config:
-              enabled: true
-              mountPath: /config
               size: 2Gi
               accessMode: ReadWriteOnce
+              globalMounts:
+                - path: /config
     '';
     path  = "/var/lib/rancher/k3s/server/manifests/sonarr.yaml";
     owner = "root";

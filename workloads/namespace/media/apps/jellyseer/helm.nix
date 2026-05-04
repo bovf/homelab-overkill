@@ -11,7 +11,7 @@
       spec:
         repo: https://bjw-s-labs.github.io/helm-charts
         chart: app-template
-        version: "2.4.0"
+        version: "4.6.2"
         targetNamespace: media
         createNamespace: false
         valuesContent: |
@@ -33,17 +33,15 @@
                     LOG_LEVEL: "info"
           service:
             main:
-              enabled: true
+              controller: main
               type: ClusterIP
               ports:
                 http:
                   port: 5055
-                  targetPort: 5055
                   protocol: TCP
           ingress:
             main:
-              enabled: true
-              ingressClassName: traefik
+              className: traefik
               annotations:
                 traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
                 traefik.ingress.kubernetes.io/router.middlewares: media-jellyseerr-headers@kubernetescrd
@@ -53,11 +51,10 @@
                     - path: /
                       pathType: Prefix
                       service:
-                        name: main
+                        identifier: main
                         port: 5055
           persistence:
             config:
-              enabled: true
               size: 2Gi
               accessMode: ReadWriteOnce
               globalMounts:
