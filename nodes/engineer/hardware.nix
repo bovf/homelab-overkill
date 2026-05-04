@@ -10,6 +10,12 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
+  # Block the simpledrm kernel module — its phantom DRM device under
+  # /dev/dri/by-path/ collides with the Intel device plugin's container
+  # bind-mount when scheduling Jellyfin (gpu.intel.com/i915 resource).
+  # Headless server has no need for framebuffer console.
+  boot.blacklistedKernelModules = [ "simpledrm" ];
+
   swapDevices = [ ];
 
   networking.useDHCP = lib.mkDefault true;

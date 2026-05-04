@@ -58,11 +58,13 @@
               accessMode: ReadWriteOnce
             cache:
               enabled: false
+          # /dev/dri is intentionally NOT mounted as a hostPath here.
+          # The Intel device plugin (gpu.intel.com/i915: 1 resource limit) injects
+          # the specific GPU device files (card0, renderD128) into the container.
+          # Mounting /dev/dri as a directory broke after the kernel started
+          # exposing a simpledrm framebuffer under /dev/dri/by-path/ — containerd's
+          # recursive mkdir on the bind-mount tree collided with that symlink.
           volumes:
-            - name: dev-dri
-              hostPath:
-                path: /dev/dri
-                type: Directory
             - name: opengl-driver
               hostPath:
                 path: /run/opengl-driver
@@ -74,8 +76,6 @@
           volumeMounts:
             - name: opengl-driver
               mountPath: /run/opengl-driver
-            - name: dev-dri
-              mountPath: /dev/dri
             - name: nix-store
               mountPath: /nix/store
               readOnly: true

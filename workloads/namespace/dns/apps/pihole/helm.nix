@@ -45,8 +45,8 @@
 
           serviceDns:
             mixedService: true
-            type: NodePort
-            nodePort: 30053
+            type: LoadBalancer
+            loadBalancerIP: 192.0.2.10
 
           serviceDhcp:
             enabled: false
