@@ -50,6 +50,10 @@
             mixedService: false
             type: LoadBalancer
             loadBalancerIP: 192.0.2.10
+            # Cluster (not Local) so off-subnet clients get correct return routing
+            # via SNAT. Loses real client IP in pi-hole's query log for those, but
+            # that's a fair trade for this homelab.
+            externalTrafficPolicy: Cluster
 
           serviceDhcp:
             enabled: false
