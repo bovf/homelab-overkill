@@ -53,6 +53,12 @@
             # Cluster (not Local) so off-subnet clients get correct return routing
             # via SNAT. Loses real client IP in pi-hole's query log for those, but
             # that's a fair trade for this homelab.
+            #
+            # Future: replace klipper-lb with MetalLB (BGP mode if the router
+            # supports it, otherwise L2 mode) so we can flip this back to Local
+            # without breaking off-subnet clients. MetalLB also unlocks proper
+            # multi-node LB and DSR-style return paths if/when sentry-level-01
+            # joins the cluster.
             externalTrafficPolicy: Cluster
 
           serviceDhcp:
