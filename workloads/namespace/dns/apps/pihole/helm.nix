@@ -44,7 +44,10 @@
             size: 2Gi
 
           serviceDns:
-            mixedService: true
+            # Two separate Services (TCP + UDP). klipper-lb handles single-protocol
+            # Services more reliably than mixedService=true, which silently skipped
+            # creating the svclb pod and left the LAN IP unbound.
+            mixedService: false
             type: LoadBalancer
             loadBalancerIP: 192.0.2.10
 
