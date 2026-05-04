@@ -13,13 +13,13 @@
       spec:
         repo: https://jellyfin.github.io/jellyfin-helm/
         chart: jellyfin
-        version: "2.3.0"
+        version: "3.2.0"
         targetNamespace: media
         createNamespace: false
         valuesContent: |
           image:
             repository: docker.io/jellyfin/jellyfin
-            tag: '10.10.7'
+            tag: '10.11.8'
           jellyfin:
             env:
               - name: LIBVA_DRIVERS_PATH

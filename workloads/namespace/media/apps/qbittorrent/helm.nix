@@ -18,7 +18,7 @@
           qbittorrent:
             image:
               repository: ghcr.io/linuxserver/qbittorrent
-              tag: "5.1.0"
+              tag: "5.1.4"
             env:
               - name: TZ
                 value: Europe/Helsinki

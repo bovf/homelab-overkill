@@ -21,7 +21,7 @@
                 main:
                   image:
                     repository: ghcr.io/linuxserver/radarr
-                    tag: 5.27.5
+                    tag: 6.1.1
                   env:
                     TZ: "Europe/Helsinki"
                     PUID: "1000"

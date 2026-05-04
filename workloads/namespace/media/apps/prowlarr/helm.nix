@@ -21,7 +21,7 @@
                 main:
                   image:
                     repository: ghcr.io/linuxserver/prowlarr
-                    tag: 2.0.5
+                    tag: 2.3.5
                   env:
                     TZ: "Europe/Helsinki"
                     PUID: "1000"

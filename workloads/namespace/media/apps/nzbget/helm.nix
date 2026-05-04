@@ -17,7 +17,7 @@
         valuesContent: |
           image:
             repository: lscr.io/linuxserver/nzbget
-            tag: latest
+            tag: "version-v26.1"
             pullPolicy: IfNotPresent
 
           env:

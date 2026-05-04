@@ -21,7 +21,7 @@
                 main:
                   image:
                     repository: ghcr.io/linuxserver/sonarr
-                    tag: 4.0.15
+                    tag: 4.0.17
                   env:
                     TZ: "Europe/Helsinki"
                     PUID: "1000"

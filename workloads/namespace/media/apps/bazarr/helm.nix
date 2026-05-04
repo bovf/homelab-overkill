@@ -21,7 +21,7 @@
                 main:
                   image:
                     repository: ghcr.io/linuxserver/bazarr
-                    tag: 1.5.3
+                    tag: 1.5.6
                   env:
                     TZ: "Europe/Helsinki"
                     PUID: "1000"

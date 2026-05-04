@@ -15,13 +15,19 @@
         targetNamespace: media
         createNamespace: false
         valuesContent: |
+          defaultPodOptions:
+            securityContext:
+              runAsUser: 1000
+              runAsGroup: 1000
+              fsGroup: 1000
+              fsGroupChangePolicy: OnRootMismatch
           controllers:
             main:
               containers:
                 main:
                   image:
-                    repository: fallenbagel/jellyseerr
-                    tag: 2.7.3
+                    repository: seerr/seerr
+                    tag: v3.2.0
                   env:
                     TZ: "Europe/Helsinki"
                     LOG_LEVEL: "info"
