@@ -87,7 +87,7 @@
             # override sops.package explicitly with a patched derivation.
             ({ pkgs, ... }: {
               sops.package = (pkgs.callPackage (sops-nix + "/pkgs/sops-install-secrets") {
-                vendorHash = "sha256-b+yUkMeIKiozlrANOwaMY2QDWo0cZYpD9SXZuSgYUQs=";
+                vendorHash = "sha256-HgwFoMbhLmyFnym+G4B+ID7R7V4Xj1EEmil+LnCgpXg=";
               }).overrideAttrs (old: {
                 patches = (old.patches or []) ++ [ ./nix/patches/sops-always-recreate-symlink.patch ];
               });

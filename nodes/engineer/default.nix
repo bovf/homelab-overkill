@@ -20,8 +20,8 @@ with lib;
   hardware.graphics = {
     enable = true;
     extraPackages = with pkgs; [
-      vaapiIntel
-      vaapiVdpau
+      intel-vaapi-driver
+      libva-vdpau-driver
       vpl-gpu-rt          # oneVPL GPU runtime for QSV (replaces deprecated intel-media-sdk)
       intel-media-driver  # iHD VA-API driver required for QSV on 6th gen+ Intel CPUs
     ];
