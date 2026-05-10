@@ -33,6 +33,25 @@ let
     optionalString (rules != [])
       ("  rules:\n" + concatStringsSep "" (map renderRule rules));
 
+  # Indentation matters: the healthcheck block must nest INSIDE the target
+  # list item (sibling of `hostname`, `method`, `port`). In the
+  # pre-`indent` template those fields sit at 6 spaces; healthcheck:
+  # matches, children at 8.
+  # Use explicit "..." concat (not a heredoc) so Nix's indented-string
+  # whitespace-stripping rules don't silently shift the indent.
+  renderHealthcheck = r:
+    if r.healthcheck == null then ""
+    else
+      let
+        hc = r.healthcheck;
+        hostname = if hc.hostname != null then hc.hostname else r.targetHostname;
+        port     = if hc.port     != null then hc.port     else r.targetPort;
+      in
+        "      healthcheck:\n"
+        + "        hostname: ${hostname}\n"
+        + "        port: ${toString port}\n"
+        + "        path: ${hc.path}\n";
+
   renderHttpResource = r: indent ''
 ${r._key}:
   name: ${r.name}
@@ -46,7 +65,7 @@ ${renderRules r.rules}  targets:
       hostname: ${r.targetHostname}
       method: ${r.targetMethod}
       port: ${toString r.targetPort}
-  headers:
+${renderHealthcheck r}  headers:
     - name: Host
       value: ${config.sops.placeholder.${r.domainKey}}
 '';

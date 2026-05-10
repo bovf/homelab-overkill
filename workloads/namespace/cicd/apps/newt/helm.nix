@@ -21,6 +21,7 @@
     spec = {
       repo            = "https://charts.fossorial.io";
       chart           = "newt";
+      version         = "1.4.0";
       targetNamespace = "cicd";
       createNamespace = false;
       valuesContent   = ''

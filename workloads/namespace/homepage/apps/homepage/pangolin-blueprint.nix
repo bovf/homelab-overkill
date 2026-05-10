@@ -11,6 +11,11 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      hostname = "homepage.homepage.svc.cluster.local";
+      port     = 3000;
+      path     = "/";
+    };
   };
 
   sops.secrets."pangolin/resources/homepage/domain" = {};

@@ -11,6 +11,11 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      hostname = "prowlarr.media.svc.cluster.local";
+      port     = 9696;
+      path     = "/ping";
+    };
   };
 
   sops.secrets."pangolin/resources/prowlarr/domain" = {};

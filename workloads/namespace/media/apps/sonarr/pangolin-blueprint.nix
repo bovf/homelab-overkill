@@ -11,6 +11,11 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      hostname = "sonarr.media.svc.cluster.local";
+      port     = 8989;
+      path     = "/ping";
+    };
   };
 
   sops.secrets."pangolin/resources/sonarr/domain" = {};

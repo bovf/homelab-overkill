@@ -11,6 +11,11 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      hostname = "gitlab-webservice-default.cicd.svc.cluster.local";
+      port     = 8181;
+      path     = "/-/health";
+    };
   };
 
   workloads.pangolinResources.registry = {
@@ -23,6 +28,16 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      # The Distribution v2 registry's own endpoints (e.g. /v2/) always
+      # return 401 when anonymous reads are disabled — Pangolin would mark
+      # them unhealthy. Proxy the registry's liveness through GitLab's
+      # webservice instead: same Helm release, same pod lifecycle, real
+      # 200 OK. If GitLab is up the bundled registry is up too.
+      hostname = "gitlab-webservice-default.cicd.svc.cluster.local";
+      port     = 8181;
+      path     = "/-/health";
+    };
   };
 
   workloads.pangolinResources.gitlab_ssh = {

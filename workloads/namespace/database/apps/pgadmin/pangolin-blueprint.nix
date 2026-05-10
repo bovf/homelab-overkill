@@ -11,6 +11,11 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      hostname = "pgadmin-pgadmin4.database.svc.cluster.local";
+      port     = 80;
+      path     = "/misc/ping";
+    };
   };
 
   sops.secrets."pangolin/resources/pgadmin/domain" = {};

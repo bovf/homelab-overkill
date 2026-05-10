@@ -11,6 +11,11 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      hostname = "reactive-resume.resume.svc.cluster.local";
+      port     = 3000;
+      path     = "/";
+    };
   };
 
   sops.secrets."pangolin/resources/reactive_resume/domain" = {};

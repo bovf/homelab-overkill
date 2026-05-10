@@ -14,6 +14,11 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      hostname = "jellyfin.media.svc.cluster.local";
+      port     = 8096;
+      path     = "/health";
+    };
   };
 
   sops.secrets."pangolin/resources/jellyfin/domain" = {};

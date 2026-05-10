@@ -11,6 +11,11 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      hostname = "qbittorrent.media.svc.cluster.local";
+      port     = 8080;
+      path     = "/";
+    };
   };
 
   sops.secrets."pangolin/resources/qbittorrent/domain" = {};

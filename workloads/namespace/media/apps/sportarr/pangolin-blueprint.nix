@@ -11,6 +11,11 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      hostname = "sportarr.media.svc.cluster.local";
+      port     = 1867;
+      path     = "/";
+    };
   };
 
   sops.secrets."pangolin/resources/sportarr/domain" = {};

@@ -123,6 +123,29 @@ with lib;
             type        = types.str;
             description = "pangolinInstances key this resource is routed through (= node name).";
           };
+          healthcheck = mkOption {
+            type = types.nullOr (types.submodule {
+              options = {
+                hostname = mkOption {
+                  type        = types.nullOr types.str;
+                  default     = null;
+                  description = "Hostname to probe. Defaults to targetHostname when null. Pangolin's healthcheck can't set a Host header, so this typically wants to be the backend K8s service (not Traefik).";
+                };
+                port = mkOption {
+                  type        = types.nullOr types.int;
+                  default     = null;
+                  description = "Port to probe. Defaults to targetPort when null.";
+                };
+                path = mkOption {
+                  type        = types.str;
+                  default     = "/";
+                  description = "HTTP path to probe (HTTP resources only).";
+                };
+              };
+            });
+            default     = null;
+            description = "Optional target healthcheck. When null, no healthcheck is emitted.";
+          };
         };
       });
       default     = {};

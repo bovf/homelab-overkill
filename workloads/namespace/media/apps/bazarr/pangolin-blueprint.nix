@@ -11,6 +11,11 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      hostname = "bazarr.media.svc.cluster.local";
+      port     = 6767;
+      path     = "/ping";
+    };
   };
 
   sops.secrets."pangolin/resources/bazarr/domain" = {};

@@ -11,6 +11,11 @@
     targetMethod   = "https";
     targetPort     = 443;
     newtInstance   = nodeName;
+    healthcheck = {
+      hostname = "nzbget.media.svc.cluster.local";
+      port     = 6789;
+      path     = "/";
+    };
   };
 
   sops.secrets."pangolin/resources/nzbget/domain" = {};
