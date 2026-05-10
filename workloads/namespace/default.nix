@@ -2,11 +2,11 @@
 
 {
   imports = [
+    ./blog
     ./cert-manager
     ./cicd
     ./database
     ./dns
-    ./ghost
     ./homepage
     ./intel-device-plugins
     ./kube-system

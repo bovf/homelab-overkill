@@ -5,6 +5,7 @@
     ./apps/gitlab
     ./apps/argocd
     ./apps/reloader
+    ./apps/keel
     ./apps/newt
   ];
 

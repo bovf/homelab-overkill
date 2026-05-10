@@ -128,10 +128,10 @@
                       href: https://${config.sops.placeholder."pangolin/resources/argocd/domain"}
                       description: GitOps
                       icon: argo-cd.png
-                  - Ghost:
-                      href: https://${config.sops.placeholder."pangolin/resources/ghost/domain"}
-                      description: Blog
-                      icon: ghost.png
+                  - whoami:
+                      href: https://${config.sops.placeholder."pangolin/resources/whoami/domain"}
+                      description: Personal blog
+                      icon: nginx.png
                   - Reactive Resume:
                       href: https://${config.sops.placeholder."pangolin/resources/reactive_resume/domain"}
                       description: Resume builder

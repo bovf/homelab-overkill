@@ -36,27 +36,35 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 
 <div align="center">
 
-| Service           | Purpose                          | Status   |
-|-------------------|----------------------------------|:--------:|
-| GitLab            | Git, CI/CD, container registry   | Active   |
-| ArgoCD            | GitOps                           | Active   |
-| MinIO             | S3 object storage                | Active   |
-| PostgreSQL        | SQL database                     | Active   |
-| Jellyfin          | Media streaming                  | Active   |
-| Sonarr            | TV show automation               | Active   |
-| Radarr            | Movie automation                 | Active   |
-| Prowlarr          | Indexer management               | Active   |
-| Bazarr            | Subtitle automation              | Active   |
-| Jellyseerr        | Media request portal             | Active   |
-| qBittorrent       | Torrent client                   | Active   |
-| NZBGet            | Usenet client                    | Active   |
-| pgAdmin           | Postgres web admin               | Active   |
-| Grafana           | Metrics & dashboards             | Active   |
-| Pi-hole           | DNS / ad blocking                | Partial* |
-| Homepage          | Dashboard                        | Active   |
-| Ghost             | Blog                             | Active   |
-| Newt              | Private tunnel access            | Active   |
-| Reactive Resume   | Resume builder                   | Active   |
+| Service           | Purpose                                              | Status   |
+|-------------------|------------------------------------------------------|:--------:|
+| GitLab            | Git, CI/CD, container registry                       | Active   |
+| ArgoCD            | GitOps                                               | Active   |
+| Keel              | Auto-rollout on `:latest` digest change              | Active   |
+| MinIO             | S3 object storage                                    | Active   |
+| PostgreSQL        | SQL database                                         | Active   |
+| Jellyfin          | Media streaming                                      | Active   |
+| Sonarr            | TV show automation                                   | Active   |
+| Radarr            | Movie automation                                     | Active   |
+| Prowlarr          | Indexer management                                   | Active   |
+| Bazarr            | Subtitle automation                                  | Active   |
+| Jellyseerr        | Media request portal                                 | Active   |
+| qBittorrent       | Torrent client                                       | Active   |
+| NZBGet            | Usenet client                                        | Active   |
+| pgAdmin           | Postgres web admin                                   | Active   |
+| Grafana           | Metrics, logs, dashboards                            | Active   |
+| Prometheus        | Metrics store                                        | Active   |
+| Alertmanager      | Email alerts (Gmail SMTP)                            | Active   |
+| Loki + Alloy      | Log aggregation + collection (S3 → MinIO)            | Active   |
+| version-checker   | Image drift metrics                                  | Active   |
+| nova              | Helm chart drift (weekly CronJob)                    | Active   |
+| intel-gpu-exporter| Intel iGPU utilisation metrics                       | Active   |
+| local-path-du     | Per-PVC disk usage exporter (du-based)               | Active   |
+| Pi-hole           | DNS / ad blocking                                    | Partial* |
+| Homepage          | Dashboard                                            | Active   |
+| whoami            | Personal blog (auto-deploys on each main commit)     | Active   |
+| Newt              | Private tunnel access                                | Active   |
+| Reactive Resume   | Resume builder                                       | Active   |
 
 </div>
 
@@ -129,7 +137,8 @@ k9s
 | 4    | Helm          | Deploy applications with declarative config        |
 | 5    | Pangolin      | Create private tunnels to services                 |
 | 6    | Reloader      | Auto rolling-restart Newt on secret changes        |
-| 7    | GitOps        | Edit → commit → deploy. Always reproducible        |
+| 7    | Keel          | Auto-rollout deployments when their `:latest` digest changes |
+| 8    | GitOps        | Edit → commit → deploy. Always reproducible        |
 
 ---
 
@@ -208,18 +217,20 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │   ├── default.nix
 │   └── namespace/
 │       ├── kube-system/       # traefik, nfd, intel-plugins
-│       ├── database/          # postgresql, minio, pgadmin
-│       ├── cicd/              # gitlab, argocd, reloader
+│       ├── database/          # postgresql, minio (+ loki bucket init), pgadmin
+│       ├── cicd/              # gitlab, argocd, reloader, keel
 │       ├── media/             # jellyfin, sonarr, radarr, prowlarr,
 │       │                      # bazarr, jellyseerr, qbittorrent, nzbget
-│       ├── monitoring/        # kube-prometheus-stack
+│       ├── monitoring/        # kube-prometheus-stack, loki, alloy,
+│       │                      # version-checker, nova, intel-gpu-exporter,
+│       │                      # local-path-du-exporter, grafana-dashboards
 │       ├── cert-manager/      # letsencrypt cluster issuer
 │       ├── pangolin/          # newt tunnel client + blueprint aggregator
 │       ├── mumble/            # voice server
 │       ├── resume/            # Reactive Resume
 │       ├── dns/               # pihole
 │       ├── homepage/          # dashboard
-│       └── ghost/             # blog
+│       └── blog/              # whoami personal blog
 │
 ├── common/                    # Shared NixOS modules (base, services, users)
 │

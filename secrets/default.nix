@@ -119,7 +119,7 @@
 
     secrets."pangolin/resources/homepage/domain" = {};
 
-    secrets."pangolin/resources/ghost/domain" = {};
+    secrets."pangolin/resources/whoami/domain" = {};
 
     secrets."reactive_resume/chrome_token" = {};
     secrets."reactive_resume/access_token_secret" = {};
