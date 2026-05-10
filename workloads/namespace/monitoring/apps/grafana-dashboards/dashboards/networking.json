@@ -1,0 +1,279 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Cluster ingress (5m rate)",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "color": {"mode": "fixed", "fixedColor": "blue"}
+        }
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "reduceOptions": {"calcs": ["lastNotNull"]}
+      },
+      "targets": [
+        {"expr": "sum(rate(container_network_receive_bytes_total{namespace!=\"\"}[5m]))", "instant": true, "refId": "A"}
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Cluster egress (5m rate)",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "color": {"mode": "fixed", "fixedColor": "purple"}
+        }
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "reduceOptions": {"calcs": ["lastNotNull"]}
+      },
+      "targets": [
+        {"expr": "sum(rate(container_network_transmit_bytes_total{namespace!=\"\"}[5m]))", "instant": true, "refId": "A"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Dropped packets/s (5m)",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 1},
+              {"color": "red", "value": 10}
+            ]
+          },
+          "color": {"mode": "thresholds"}
+        }
+      },
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "reduceOptions": {"calcs": ["lastNotNull"]}
+      },
+      "targets": [
+        {"expr": "sum(rate(container_network_receive_packets_dropped_total[5m])) + sum(rate(container_network_transmit_packets_dropped_total[5m]))", "instant": true, "refId": "A"}
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Network errors/s (5m)",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 0.1},
+              {"color": "red", "value": 1}
+            ]
+          },
+          "color": {"mode": "thresholds"}
+        }
+      },
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "reduceOptions": {"calcs": ["lastNotNull"]}
+      },
+      "targets": [
+        {"expr": "sum(rate(container_network_receive_errors_total[5m])) + sum(rate(container_network_transmit_errors_total[5m]))", "instant": true, "refId": "A"}
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "Traffic by namespace",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 4},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true, "stacking": {"mode": "normal"}
+          }
+        },
+        "overrides": [
+          {"matcher": {"id": "byRegexp", "options": "^egress.*"}, "properties": [{"id": "custom.transform", "value": "negative-Y"}]}
+        ]
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "sum by (namespace) (rate(container_network_receive_bytes_total{namespace!=\"\"}[5m]))", "legendFormat": "ingress {{namespace}}", "refId": "A"},
+        {"expr": "sum by (namespace) (rate(container_network_transmit_bytes_total{namespace!=\"\"}[5m]))", "legendFormat": "egress {{namespace}}", "refId": "B"}
+      ]
+    },
+    {
+      "id": 20,
+      "type": "timeseries",
+      "title": "Top 10 pods — ingress",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 13},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true
+          }
+        }
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "topk(10, sum by (namespace, pod) (rate(container_network_receive_bytes_total{namespace!=\"\"}[5m])))", "legendFormat": "{{namespace}}/{{pod}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 21,
+      "type": "timeseries",
+      "title": "Top 10 pods — egress",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 13},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true
+          }
+        }
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "topk(10, sum by (namespace, pod) (rate(container_network_transmit_bytes_total{namespace!=\"\"}[5m])))", "legendFormat": "{{namespace}}/{{pod}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 30,
+      "type": "timeseries",
+      "title": "Node interface throughput",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 22},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true
+          }
+        },
+        "overrides": [
+          {"matcher": {"id": "byRegexp", "options": "^tx.*"}, "properties": [{"id": "custom.transform", "value": "negative-Y"}]}
+        ]
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "rate(node_network_receive_bytes_total{device!~\"lo|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m])", "legendFormat": "rx {{device}}", "refId": "A"},
+        {"expr": "rate(node_network_transmit_bytes_total{device!~\"lo|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m])", "legendFormat": "tx {{device}}", "refId": "B"}
+      ]
+    },
+    {
+      "id": 31,
+      "type": "timeseries",
+      "title": "Node interface packet rate",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 22},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps",
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true
+          }
+        },
+        "overrides": [
+          {"matcher": {"id": "byRegexp", "options": "^tx.*"}, "properties": [{"id": "custom.transform", "value": "negative-Y"}]}
+        ]
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "rate(node_network_receive_packets_total{device!~\"lo|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m])", "legendFormat": "rx {{device}}", "refId": "A"},
+        {"expr": "rate(node_network_transmit_packets_total{device!~\"lo|veth.*|cali.*|flannel.*|cni.*|docker.*\"}[5m])", "legendFormat": "tx {{device}}", "refId": "B"}
+      ]
+    },
+    {
+      "id": 40,
+      "type": "timeseries",
+      "title": "Pod errors + drops by namespace",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 9, "w": 24, "x": 0, "y": 31},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps",
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true
+          }
+        }
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "sum by (namespace) (rate(container_network_receive_errors_total{namespace!=\"\"}[5m]) + rate(container_network_transmit_errors_total{namespace!=\"\"}[5m]))", "legendFormat": "errors {{namespace}}", "refId": "A"},
+        {"expr": "sum by (namespace) (rate(container_network_receive_packets_dropped_total{namespace!=\"\"}[5m]) + rate(container_network_transmit_packets_dropped_total{namespace!=\"\"}[5m]))", "legendFormat": "drops {{namespace}}", "refId": "B"}
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["networking", "traffic"],
+  "templating": {"list": []},
+  "time": {"from": "now-1h", "to": "now"},
+  "timepicker": {},
+  "timezone": "",
+  "title": "Networking",
+  "uid": "networking",
+  "version": 1,
+  "weekStart": ""
+}

@@ -55,6 +55,19 @@ in
           podAnnotations:
             secret.reloader.stakater.com/reload: "${blueprintSecrets}"
 
+          # WireGuard encryption is single-threaded and CPU-bound. The chart's
+          # default CPU limit (200m) caused 15% throttling during Jellyfin
+          # streaming, capping tunnel throughput at ~7 Mbps. Raised the limit
+          # so newt can saturate whatever upload bandwidth the ISP gives us
+          # while still keeping a hard ceiling.
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 2000m
+              memory: 256Mi
+
         newtInstances:
         ${instancesYaml}
       '';

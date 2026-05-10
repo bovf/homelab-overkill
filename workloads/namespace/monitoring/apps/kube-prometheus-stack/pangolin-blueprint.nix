@@ -6,7 +6,7 @@
     name           = "Grafana Dashboard";
     protocol       = "http";
     domainKey      = "pangolin/resources/grafana/domain";
-    enabled        = false;
+    enabled        = true;
     ssoEnabled     = true;
     targetHostname = "traefik.kube-system.svc.cluster.local";
     targetMethod   = "https";
@@ -30,4 +30,19 @@
   };
 
   sops.secrets."pangolin/resources/prometheus/domain" = {};
+
+  # Alertmanager — also bundled in kube-prometheus-stack
+  workloads.pangolinResources.alertmanager = {
+    name           = "Alertmanager";
+    protocol       = "http";
+    domainKey      = "pangolin/resources/alertmanager/domain";
+    enabled        = false;
+    ssoEnabled     = true;
+    targetHostname = "traefik.kube-system.svc.cluster.local";
+    targetMethod   = "https";
+    targetPort     = 443;
+    newtInstance   = nodeName;
+  };
+
+  sops.secrets."pangolin/resources/alertmanager/domain" = {};
 }

@@ -28,6 +28,7 @@
     secrets."pangolin/resources/nzbget/domain"           = {};
     secrets."pangolin/resources/grafana/domain"          = {};
     secrets."pangolin/resources/prometheus/domain"       = {};
+    secrets."pangolin/resources/alertmanager/domain"     = {};
     secrets."pangolin/resources/minio/domain"            = {};
     secrets."pangolin/resources/minio_console/domain"    = {};
     secrets."pangolin/resources/pgadmin/domain"          = {};
@@ -68,6 +69,7 @@
     secrets."nordvpn/wireguard_private_key" = {};
 
     secrets."monitoring/grafana-admin-password" = {};
+    secrets."monitoring/alertmanager/smtp_password" = {};
 
     secrets."media/sonarr/api_key" = {};
     secrets."media/sonarr/admin_password" = {};
@@ -101,6 +103,8 @@
     secrets."database/minio/gitlab/gitlab_secret_key" = {};
     secrets."database/minio/reactive_resume/reactive_resume_access_key" = {};
     secrets."database/minio/reactive_resume/reactive_resume_secret_key" = {};
+    secrets."database/minio/loki/access_key" = {};
+    secrets."database/minio/loki/secret_key" = {};
 
     secrets."gitlab/root_password" = {};
     secrets."gitlab/runner_token" = {};

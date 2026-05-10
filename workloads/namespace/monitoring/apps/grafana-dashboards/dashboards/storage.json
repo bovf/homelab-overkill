@@ -1,0 +1,306 @@
+{
+  "annotations": {"list": []},
+  "editable": true,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 1,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Disk capacity",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 4, "w": 6, "x": 0, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {"mode": "fixed", "fixedColor": "blue"}
+        }
+      },
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "reduceOptions": {"calcs": ["lastNotNull"]}
+      },
+      "targets": [
+        {"expr": "sum(node_filesystem_size_bytes{mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"})", "instant": true, "refId": "A"}
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Disk used",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 4, "w": 6, "x": 6, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "color": {"mode": "fixed", "fixedColor": "purple"}
+        }
+      },
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "reduceOptions": {"calcs": ["lastNotNull"]}
+      },
+      "targets": [
+        {"expr": "sum(node_filesystem_size_bytes{mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"} - node_filesystem_avail_bytes{mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"})", "instant": true, "refId": "A"}
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Disk free",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 4, "w": 6, "x": 12, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "yellow", "value": 53687091200},
+              {"color": "green", "value": 107374182400}
+            ]
+          },
+          "color": {"mode": "thresholds"}
+        }
+      },
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "reduceOptions": {"calcs": ["lastNotNull"]}
+      },
+      "targets": [
+        {"expr": "sum(node_filesystem_avail_bytes{mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"})", "instant": true, "refId": "A"}
+      ]
+    },
+    {
+      "id": 4,
+      "type": "gauge",
+      "title": "Disk usage %",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 4, "w": 6, "x": 18, "y": 0},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 0.7},
+              {"color": "red", "value": 0.85}
+            ]
+          },
+          "color": {"mode": "thresholds"}
+        }
+      },
+      "options": {
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true,
+        "reduceOptions": {"calcs": ["lastNotNull"]}
+      },
+      "targets": [
+        {"expr": "1 - (sum(node_filesystem_avail_bytes{mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"}) / sum(node_filesystem_size_bytes{mountpoint=\"/\",fstype!~\"tmpfs|overlay|squashfs|ramfs\"}))", "instant": true, "refId": "A"}
+      ]
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Persistent Volume Claims",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 14, "w": 24, "x": 0, "y": 4},
+      "fieldConfig": {
+        "defaults": {
+          "custom": {"align": "auto", "filterable": true}
+        },
+        "overrides": [
+          {"matcher": {"id": "byName", "options": "Requested"}, "properties": [{"id": "unit", "value": "bytes"}]},
+          {"matcher": {"id": "byName", "options": "Used"}, "properties": [{"id": "unit", "value": "bytes"}]},
+          {"matcher": {"id": "byName", "options": "% Used"}, "properties": [
+            {"id": "unit", "value": "percentunit"},
+            {"id": "min", "value": 0},
+            {"id": "max", "value": 1},
+            {"id": "custom.cellOptions", "value": {"type": "gauge", "mode": "gradient"}},
+            {"id": "thresholds", "value": {"mode": "absolute", "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 0.7},
+              {"color": "red", "value": 0.85}
+            ]}}
+          ]}
+        ]
+      },
+      "options": {"showHeader": true, "sortBy": [{"displayName": "% Used", "desc": true}]},
+      "targets": [
+        {"expr": "max by (namespace, persistentvolumeclaim, storageclass, volumename) (kube_persistentvolumeclaim_resource_requests_storage_bytes * on (namespace, persistentvolumeclaim) group_left(storageclass, volumename) kube_persistentvolumeclaim_info)", "instant": true, "format": "table", "refId": "Requested"},
+        {"expr": "max by (namespace, persistentvolumeclaim, storageclass, volumename) (local_path_pvc_used_bytes * on (namespace, persistentvolumeclaim) group_left(storageclass, volumename) kube_persistentvolumeclaim_info)", "instant": true, "format": "table", "refId": "Used"}
+      ],
+      "transformations": [
+        {"id": "merge"},
+        {"id": "calculateField", "options": {
+          "alias": "% Used",
+          "mode": "binary",
+          "binary": {"left": "Value #Used", "operator": "/", "right": "Value #Requested"},
+          "replaceFields": false
+        }},
+        {"id": "organize", "options": {
+          "excludeByName": {
+            "Time": true, "__name__": true, "endpoint": true, "instance": true,
+            "job": true, "service": true, "node": true, "metrics_path": true,
+            "container": true, "pod": true, "prometheus": true, "uid": true,
+            "exported_namespace": true, "exported_pod": true
+          },
+          "indexByName": {
+            "namespace": 0,
+            "persistentvolumeclaim": 1,
+            "storageclass": 2,
+            "Value #Requested": 3,
+            "Value #Used": 4,
+            "% Used": 5,
+            "volumename": 6
+          },
+          "renameByName": {
+            "namespace": "Namespace",
+            "persistentvolumeclaim": "PVC",
+            "storageclass": "Storage Class",
+            "volumename": "Volume",
+            "Value #Requested": "Requested",
+            "Value #Used": "Used"
+          }
+        }}
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Disk throughput",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 18},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps",
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true
+          }
+        },
+        "overrides": [
+          {"matcher": {"id": "byRegexp", "options": "^write.*"}, "properties": [{"id": "custom.transform", "value": "negative-Y"}]}
+        ]
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "rate(node_disk_read_bytes_total{device!~\"loop.*|dm-.*\"}[5m])", "legendFormat": "read {{device}}", "refId": "A"},
+        {"expr": "rate(node_disk_written_bytes_total{device!~\"loop.*|dm-.*\"}[5m])", "legendFormat": "write {{device}}", "refId": "B"}
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Disk IOPS",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 18},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "iops",
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true
+          }
+        },
+        "overrides": [
+          {"matcher": {"id": "byRegexp", "options": "^write.*"}, "properties": [{"id": "custom.transform", "value": "negative-Y"}]}
+        ]
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "rate(node_disk_reads_completed_total{device!~\"loop.*|dm-.*\"}[5m])", "legendFormat": "read {{device}}", "refId": "A"},
+        {"expr": "rate(node_disk_writes_completed_total{device!~\"loop.*|dm-.*\"}[5m])", "legendFormat": "write {{device}}", "refId": "B"}
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Disk busy %",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 9, "w": 12, "x": 0, "y": 27},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true
+          }
+        }
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["mean", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "rate(node_disk_io_time_seconds_total{device!~\"loop.*|dm-.*\"}[5m])", "legendFormat": "{{device}}", "refId": "A"}
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Filesystem usage % (per mountpoint)",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"h": 9, "w": 12, "x": 12, "y": 27},
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "color": {"mode": "palette-classic"},
+          "custom": {
+            "drawStyle": "line", "lineInterpolation": "smooth", "fillOpacity": 10,
+            "showPoints": "never", "spanNulls": true
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 0.7},
+              {"color": "red", "value": 0.85}
+            ]
+          }
+        }
+      },
+      "options": {
+        "legend": {"displayMode": "table", "placement": "right", "showLegend": true, "calcs": ["lastNotNull", "max"]},
+        "tooltip": {"mode": "multi", "sort": "desc"}
+      },
+      "targets": [
+        {"expr": "1 - (node_filesystem_avail_bytes{fstype!~\"tmpfs|overlay|squashfs|ramfs\"} / node_filesystem_size_bytes{fstype!~\"tmpfs|overlay|squashfs|ramfs\"})", "legendFormat": "{{mountpoint}}", "refId": "A"}
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 38,
+  "tags": ["storage", "pvc"],
+  "templating": {"list": []},
+  "time": {"from": "now-6h", "to": "now"},
+  "timepicker": {},
+  "timezone": "",
+  "title": "Storage",
+  "uid": "storage",
+  "version": 2,
+  "weekStart": ""
+}

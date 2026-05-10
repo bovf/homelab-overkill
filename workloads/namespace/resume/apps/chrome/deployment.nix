@@ -67,9 +67,12 @@
                   runAsGroup = 999;
                   capabilities = { drop = [ "ALL" ]; };
                 };
+                # No CPU limit — Browserless chromium spikes to 1-2 cores
+                # while rendering a PDF and was hitting 93% throttle at 500m.
+                # Memory limit kept to bound OOM blast radius.
                 resources = {
                   requests = { cpu = "100m"; memory = "512Mi"; };
-                  limits = { cpu = "500m"; memory = "2Gi"; };
+                  limits = { memory = "2Gi"; };
                 };
               }
             ];

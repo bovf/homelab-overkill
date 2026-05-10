@@ -31,15 +31,47 @@
         fi
       }
 
+      bw_status() {
+        # Re-evaluate against a clean BW_SESSION so a stale value exported in
+        # the parent shell can't make `bw status` lie about being unlocked.
+        env -u BW_SESSION bw status 2>/dev/null | jq -r '.status' 2>/dev/null || echo unauthenticated
+      }
+
       unlockbw() {
         ensuretool bw
         ensuretool jq
-        local st
-        st="$(bw status --raw 2>/dev/null || true)"
-        if [ -z "$st" ] || [ "$(echo "$st" | jq -r '.status')" = "unauthenticated" ]; then
-          bw login >/dev/null
+
+        local status
+        status="$(bw_status)"
+
+        if [ "$status" = "unauthenticated" ]; then
+          echo "Logging into Bitwarden..." >&2
+          # Do NOT redirect stdout: bw uses inquirer prompts (email, master
+          # password, 2FA) on stdout. Suppressing them makes login appear to
+          # hang and silently fail.
+          if ! env -u BW_SESSION bw login; then
+            echo "Error: bw login failed" >&2
+            exit 1
+          fi
+          status="$(bw_status)"
         fi
-        export BW_SESSION="$(bw unlock --raw)"
+
+        if [ "$status" = "unauthenticated" ]; then
+          echo "Error: bw still reports unauthenticated after login" >&2
+          exit 1
+        fi
+
+        echo "Unlocking Bitwarden vault..." >&2
+        local session
+        session="$(env -u BW_SESSION bw unlock --raw)" || {
+          echo "Error: bw unlock failed" >&2
+          exit 1
+        }
+        if [ -z "$session" ]; then
+          echo "Error: bw unlock returned an empty session" >&2
+          exit 1
+        fi
+        export BW_SESSION="$session"
       }
 
       get_engineer_priv() { 

@@ -25,6 +25,10 @@ in
 
       export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt"
 
+      # Silence Node DEP0040 (built-in `punycode` deprecation) emitted by
+      # bitwarden-cli's transitive deps. Cosmetic only; does not affect bw.
+      export NODE_OPTIONS="''${NODE_OPTIONS:-} --disable-warning=DEP0040"
+
       SSH_CONFIG_DIR="$PWD/.cache/ssh"
       mkdir -p "$SSH_CONFIG_DIR"
       export SSH_CONFIG_FILE="$SSH_CONFIG_DIR/config"

@@ -46,6 +46,22 @@
           kubernetesGateway:
             enabled: false
 
+        # Prometheus metrics on a dedicated `metrics` entrypoint.
+        # ServiceMonitor lives in monitoring/; relaxed selectors on
+        # kube-prometheus-stack let Prometheus discover it.
+        metrics:
+          prometheus:
+            addEntryPointsLabels: true
+            addRoutersLabels: true
+            addServicesLabels: true
+            entryPoint: metrics
+            service:
+              enabled: true
+            serviceMonitor:
+              enabled: true
+              namespace: monitoring
+              interval: 30s
+
         # Keep extra flags minimal; dashboard is already enabled above
         additionalArguments:
           - "--log.level=INFO"

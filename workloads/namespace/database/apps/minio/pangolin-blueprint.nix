@@ -6,7 +6,7 @@
     name           = "MinIO Object Storage";
     protocol       = "http";
     domainKey      = "pangolin/resources/minio/domain";
-    enabled        = false;
+    enabled        = true;
     ssoEnabled     = true;
     targetHostname = "traefik.kube-system.svc.cluster.local";
     targetMethod   = "https";
