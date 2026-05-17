@@ -10,9 +10,6 @@
     ./helm.nix
     ./job.nix
     ./middleware.nix
-    ./reactive-resume-secret.nix
-    ./reactive-resume-init-job.nix
-    ./reactive-resume-configmap.nix
     ./secret.nix
     ./pangolin-blueprint.nix
   ];

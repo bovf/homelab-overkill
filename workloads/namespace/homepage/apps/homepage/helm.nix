@@ -132,10 +132,6 @@
                       href: https://${config.sops.placeholder."pangolin/resources/whoami/domain"}
                       description: Personal blog
                       icon: nginx.png
-                  - Reactive Resume:
-                      href: https://${config.sops.placeholder."pangolin/resources/reactive_resume/domain"}
-                      description: Resume builder
-                      icon: reactive-resume.png
 
               - Infrastructure:
                   - Pi-hole:

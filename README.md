@@ -64,7 +64,6 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 | Homepage          | Dashboard                                            | Active   |
 | whoami            | Personal blog (auto-deploys on each main commit)     | Active   |
 | Newt              | Private tunnel access                                | Active   |
-| Reactive Resume   | Resume builder                                       | Active   |
 
 </div>
 
@@ -227,7 +226,6 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │       ├── cert-manager/      # letsencrypt cluster issuer
 │       ├── pangolin/          # newt tunnel client + blueprint aggregator
 │       ├── mumble/            # voice server
-│       ├── resume/            # Reactive Resume
 │       ├── dns/               # pihole
 │       ├── homepage/          # dashboard
 │       └── blog/              # whoami personal blog

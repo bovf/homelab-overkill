@@ -15,6 +15,5 @@
     ./mumble
     ./pangolin
     ./proxy
-    ./resume
   ];
 }

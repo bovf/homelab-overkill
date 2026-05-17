@@ -36,7 +36,6 @@
     secrets."pangolin/resources/registry/domain"         = {};
     secrets."pangolin/resources/postgres/domain"         = {};
     secrets."pangolin/resources/mumble/domain"           = {};
-    secrets."pangolin/resources/reactive_resume/domain"  = {};
     secrets."pangolin/resources/traefik_dashboard/domain" = {};
 
     # ------------------------------------------------------------------
@@ -94,15 +93,12 @@
 
     secrets."database/postgres/password" = {};
     secrets."database/postgres/gitlab/password" = {};
-    secrets."database/postgres/reactive_resume/password" = {};
     secrets."database/pgadmin/email" = {};
     secrets."database/pgadmin/password" = {};
     secrets."database/minio/root_user" = {};
     secrets."database/minio/root_password" = {};
     secrets."database/minio/gitlab/gitlab_access_key" = {};
     secrets."database/minio/gitlab/gitlab_secret_key" = {};
-    secrets."database/minio/reactive_resume/reactive_resume_access_key" = {};
-    secrets."database/minio/reactive_resume/reactive_resume_secret_key" = {};
     secrets."database/minio/loki/access_key" = {};
     secrets."database/minio/loki/secret_key" = {};
 
@@ -120,10 +116,6 @@
     secrets."pangolin/resources/homepage/domain" = {};
 
     secrets."pangolin/resources/whoami/domain" = {};
-
-    secrets."reactive_resume/chrome_token" = {};
-    secrets."reactive_resume/access_token_secret" = {};
-    secrets."reactive_resume/refresh_token_secret" = {};
 
     secrets."ssh_keys/dobrynikolov" = {};
     secrets."ssh_keys/dobrynikolov.pub" = {};
