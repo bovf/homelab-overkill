@@ -73,7 +73,6 @@
             ;;
         esac
 
-        # --- SOPS decryption (same pattern as shells/default.nix) ---
         export SOPS_AGE_KEY_FILE="''${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}"
 
         SECRETS_FILE=""
@@ -89,7 +88,6 @@
           fi
         fi
 
-        # Helper: fetch secret or return default
         get_secret() {
           local key="$1"
           local default="$2"
@@ -106,7 +104,6 @@
           fi
         }
 
-        # --- Resolve kube_host and kube_port per node ---
         kube_host=""
         kube_port="6443"
 
@@ -130,12 +127,10 @@
         if [ -z "$kube_host" ]; then
           echo "Error: Unknown node '$node'" >&2
           list_nodes
-          # Clean up
           [ -n "$SECRETS_FILE" ] && rm -f "$SECRETS_FILE"
           exit 1
         fi
 
-        # --- Fetch kubeconfig via SSH ---
         echo "Fetching kubeconfig from $node_target..." >&2
         raw_kubeconfig="$(ssh "''${node_target}" cat /etc/rancher/k3s/k3s.yaml)" || {
           echo "Error: Failed to fetch kubeconfig via SSH from $node_target" >&2
@@ -143,19 +138,15 @@
           exit 1
         }
 
-        # --- Rewrite server address ---
         rewritten="$(echo "$raw_kubeconfig" | ${pkgs.yq-go}/bin/yq \
           ".clusters[0].cluster.server = \"https://''${kube_host}:''${kube_port}\"")"
 
-        # --- Write to cache ---
         mkdir -p .cache/kubeconfig
         kubeconfig_path="$PWD/.cache/kubeconfig/''${node}.yaml"
         echo "$rewritten" > "$kubeconfig_path"
 
-        # --- Clean up ---
         [ -n "$SECRETS_FILE" ] && rm -f "$SECRETS_FILE"
 
-        # Status to stderr, export to stdout
         echo "Kubeconfig for $node ($mode) written to $kubeconfig_path" >&2
         echo "Server: https://''${kube_host}:''${kube_port}" >&2
         echo "export KUBECONFIG=$kubeconfig_path"

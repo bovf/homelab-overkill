@@ -47,7 +47,7 @@
             command = [
               "/bin/ncps"
               "serve"
-              "--cache-hostname=192.0.2.10"
+              "--cache-hostname=192.168.2.4"
               "--cache-data-path=/storage"
               "--cache-database-url=sqlite:/storage/var/ncps/db/db.sqlite"
               "--upstream-cache=https://cache.nixos.org"

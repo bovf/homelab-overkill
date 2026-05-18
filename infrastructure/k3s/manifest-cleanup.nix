@@ -15,25 +15,19 @@ let
     set -euo pipefail
 
     cd "${manifestDir}"
-
-    # Skip if directory doesn't exist yet
     [[ -d . ]] || exit 0
 
-    # Read expected files
     EXPECTED_FILES=$(${pkgs.jq}/bin/jq -r '.[]' ${expectedFilesJson})
 
-    # Find and remove orphaned symlinks
     for file in *; do
-      # Skip non-symlinks (k3s built-in files like traefik.yaml, ccm.yaml, etc.)
+      # Skip k3s built-in files (regular files like traefik.yaml, ccm.yaml).
       [[ -L "$file" ]] || continue
 
-      # Check if this file is in our expected list
       if ! echo "$EXPECTED_FILES" | grep -qx "$file"; then
         echo "Removing orphaned manifest symlink: $file"
         rm -f "$file"
       fi
 
-      # Also remove broken symlinks (target no longer exists)
       if [[ ! -e "$file" ]]; then
         echo "Removing broken symlink: $file"
         rm -f "$file"

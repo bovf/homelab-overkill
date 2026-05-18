@@ -1,8 +1,3 @@
-# Renders the Newt credential K8s Secret for the cicd-gitops instance.
-#
-# Written to /var/lib/rancher/k3s/server/manifests/ so k3s applies it before
-# the Newt pod starts. The secret is distinct from `newt-cred` in the pangolin
-# namespace — naming it `newt-cred-cicd-gitops` avoids any cross-namespace clash.
 { config, ... }:
 
 {

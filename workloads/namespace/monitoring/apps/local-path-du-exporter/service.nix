@@ -36,13 +36,8 @@
         interval = "60s";
         path = "/metrics";
         scrapeTimeout = "30s";
-        # The exporter emits its own `namespace` label (the PVC's actual
-        # namespace), which Prometheus auto-renames to `exported_namespace`
-        # because it collides with the scrape-target's namespace label
-        # ("monitoring", where the exporter pod lives).
-        # honorLabels alone wasn't picked up under kube-prometheus-stack 84.5,
-        # so we explicitly relabel server-side: copy exported_namespace over
-        # the bogus namespace, then drop exported_namespace.
+        # Exporter's `namespace` label (the PVC's namespace) gets renamed
+        # to `exported_namespace` by Prometheus — promote it back.
         metricRelabelings = [
           {
             action = "replace";

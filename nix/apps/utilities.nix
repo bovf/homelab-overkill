@@ -6,10 +6,8 @@
     program = toString ((import nixpkgs { inherit system; }).writeShellScript "status" ''
       set -euo pipefail
 
-      # Tell sops where the age key lives
       export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt"
 
-      # Try to decrypt secrets/secrets.yaml
       SSH_SECRETS_FILE=""
       if [ -f "secrets/secrets.yaml" ] && command -v sops >/dev/null 2>&1; then
         tmpdir="${TMPDIR:-/tmp}"
@@ -23,7 +21,6 @@
         fi
       fi
 
-      # Helper: fetch secret or return default
       get_secret() {
         key="$1"
         default="$2"
@@ -53,7 +50,6 @@
             ip="${node.ip}"
             port="${localPort}"
 
-            # Always ping local if IP is configured
             if [ -n "$ip" ]; then
               echo -n "${name} (local: $ip:$port): "
               if ping -c 1 -W 3 "$ip" >/dev/null 2>&1; then
@@ -63,7 +59,6 @@
               fi
             fi
 
-            # Ping remote only if secrets provide different host/port
             default_remote_host="$ip"
             default_remote_port="$port"
             remote_host="$(get_secret "${remoteHostKey}" "$default_remote_host")"
@@ -81,7 +76,6 @@
         ''
       ) enabledNodes)}
 
-      # Clean up decrypted secrets
       if [ -n "$SSH_SECRETS_FILE" ] && [ -f "$SSH_SECRETS_FILE" ]; then
         rm -f "$SSH_SECRETS_FILE"
       fi

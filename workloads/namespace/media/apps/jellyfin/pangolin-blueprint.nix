@@ -10,15 +10,12 @@
     rules          = [
       { priority = 1; action = "allow"; match = "country"; value = "BG"; }
     ];
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      hostname = "jellyfin.media.svc.cluster.local";
-      port     = 8096;
-      path     = "/health";
-    };
+    targetHostname = "jellyfin.media.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 8096;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.40";
   };
 
   sops.secrets."pangolin/resources/jellyfin/domain" = {};

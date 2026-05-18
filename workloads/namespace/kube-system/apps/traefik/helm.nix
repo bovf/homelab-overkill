@@ -10,7 +10,6 @@
     };
     spec = {
       valuesContent = ''
-        # Expose standard HTTP/HTTPS entrypoints and map them to host 80/443
         ports:
           web:
             port: 8000
@@ -25,15 +24,21 @@
             exposedPort: 443
             protocol: TCP
 
-        # ServiceLB in k3s will bind 80/443 on the node when type is LoadBalancer
+        # Pin traefik at the bottom of the MetalLB pool so per-service
+        # `-lan` Services can claim IPs further into the range.
         service:
           type: LoadBalancer
+          annotations:
+            metallb.io/loadBalancerIPs: 192.168.2.1
 
-        # Enable dashboard (served at port 9000 internally)
+        # `insecure: true` exposes dashboard+api on :8080 without auth.
+        # Required for the pangolin-kwg path that DNATs directly to the
+        # pod, bypassing any IngressRoute Host-routing. Pangolin SSO
+        # sits in front.
         api:
           dashboard: true
+          insecure: true
 
-        # Providers; publishedService helps external clients form URLs
         providers:
           kubernetesIngress:
             publishedService:
@@ -41,14 +46,10 @@
           kubernetesCRD:
             allowCrossNamespace: true
 
-        # If not using Gateway API yet, keep it disabled to avoid CRD collisions
         experimental:
           kubernetesGateway:
             enabled: false
 
-        # Prometheus metrics on a dedicated `metrics` entrypoint.
-        # ServiceMonitor lives in monitoring/; relaxed selectors on
-        # kube-prometheus-stack let Prometheus discover it.
         metrics:
           prometheus:
             addEntryPointsLabels: true
@@ -62,7 +63,14 @@
               namespace: monitoring
               interval: 30s
 
-        # Keep extra flags minimal; dashboard is already enabled above
+        # cert-manager-issued *.dobryops.com wildcard cert. Every TLS
+        # request that doesn't match a more-specific cert lands here.
+        # See certificate.nix for the Certificate CR.
+        tlsStore:
+          default:
+            defaultCertificate:
+              secretName: wildcard-dobryops-com-tls
+
         additionalArguments:
           - "--log.level=INFO"
       '';

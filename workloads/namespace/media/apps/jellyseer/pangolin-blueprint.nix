@@ -7,16 +7,12 @@
     domainKey      = "pangolin/resources/jellyseerr/domain";
     enabled        = true;
     ssoEnabled     = true;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      # Service port is 5055 (matches the app's internal listener), not 80.
-      hostname = "jellyseerr.media.svc.cluster.local";
-      port     = 5055;
-      path     = "/";
-    };
+    targetHostname = "jellyseerr.media.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 5055;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.41";
   };
 
   sops.secrets."pangolin/resources/jellyseerr/domain" = {};

@@ -18,20 +18,15 @@
           versionChecker:
             imageCacheTimeout: 30m
             logLevel: info
-            # Scan every container in the cluster. Opt-out per pod with
-            # annotation `enable.version-checker.io: "false"`.
             testAllContainers: true
 
-          # Chart's ServiceMonitor doesn't expose metricRelabelings, and the
-          # version-checker labels (namespace/pod/container of the WATCHED
-          # workload) collide with Prometheus's own scrape-target labels
-          # (the version-checker pod itself). We ship a custom ServiceMonitor
-          # in ./servicemonitor.nix that fixes this.
+          # Chart's ServiceMonitor lacks metricRelabelings; the WATCHED
+          # workload's labels collide with Prometheus's scrape-target
+          # labels. Custom ServiceMonitor in ./servicemonitor.nix.
           serviceMonitor:
             enabled: false
 
-          # Built-in dashboard requires Grafana Operator; we ship our own
-          # ConfigMap-based dashboard separately.
+          # Built-in dashboard requires Grafana Operator.
           dashboards:
             enabled: false
 

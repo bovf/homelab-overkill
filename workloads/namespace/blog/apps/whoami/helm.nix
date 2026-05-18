@@ -15,14 +15,8 @@
         targetNamespace: blog
         createNamespace: false
         valuesContent: |
-          # Keel watches this Deployment for new digests under :latest and
-          # triggers a rolling update when CI republishes the image.
-          # Polled every 1 minute.
-          #
-          # match-tag: "true" pins Keel to the *current* tag (`latest`).
-          # Without it Keel picks "newer-looking" sibling tags in the registry
-          # (e.g. it would silently rewrite tag → 7c5a45fe and never update
-          # again). With it, Keel only triggers when :latest's digest changes.
+          # match-tag pins Keel to the running tag (:latest). Without it,
+          # Keel picks "newer-looking" sibling tags from the registry.
           controllers:
             main:
               annotations:
@@ -33,19 +27,11 @@
               containers:
                 main:
                   image:
-                    # External URL — the in-cluster registry service hostname
-                    # can't be resolved by the kubelet (pulls happen at host
-                    # level, before cluster DNS), and port 5000 is plain HTTP.
-                    # Using the external hostname costs a small bit of egress
-                    # but avoids a node-level k3s registries.yaml + extraHosts
-                    # + insecure_skip_verify dance. Worth revisiting if the
-                    # blog ever ships large images.
-                    # Requires the GitLab project's Container Registry visibility
-                    # to be set to Public so kubelet + Keel can pull anonymously.
+                    # External URL — kubelet pulls happen before cluster DNS,
+                    # so the in-cluster registry hostname isn't resolvable.
+                    # GitLab Container Registry must be set to Public.
                     repository: registry.dobryops.com/bovf/whoami-blog
                     tag: latest
-                    # Always re-pull so a fresh digest under :latest replaces
-                    # the running image once Keel triggers a rollout.
                     pullPolicy: Always
                   resources:
                     requests:
@@ -78,6 +64,8 @@
             main:
               controller: main
               type: ClusterIP
+              externalIPs:
+                - "100.89.128.16"
               ports:
                 http:
                   port: 80

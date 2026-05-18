@@ -25,15 +25,8 @@
               admin.enabled: true
               url: https://${config.sops.placeholder."pangolin/resources/argocd/domain"}
               exec.enabled: true
-              # CI account – token is generated on-demand and stored as
-              # ARGOCD_AUTH_TOKEN in GitLab CI masked variables. Never stored here.
-              # To (re-)generate after deploy:
-              #   kubectl exec -n cicd deploy/argocd-server -- \
-              #     argocd account generate-token \
-              #       --account ci \
-              #       --server argocd-server.cicd.svc.cluster.local \
-              #       --plaintext \
-              #       --grpc-web
+              # CI account; token regenerated on-demand and stored as
+              # ARGOCD_AUTH_TOKEN in GitLab CI masked variables.
               accounts.ci: apiKey
             secret:
               createSecret: true
@@ -99,6 +92,12 @@
             replicas: 1
             extraArgs:
               - --insecure
+            # Service port bumped to clear the tunnel-side port-80 collision.
+            service:
+              servicePortHttp: 8090
+              servicePortHttps: 443
+              externalIPs:
+                - "100.89.128.16"
             resources:
               requests:
                 cpu: 100m

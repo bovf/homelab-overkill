@@ -7,15 +7,12 @@
     domainKey      = "pangolin/resources/sportarr/domain";
     enabled        = true;
     ssoEnabled     = true;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      hostname = "sportarr.media.svc.cluster.local";
-      port     = 1867;
-      path     = "/";
-    };
+    targetHostname = "sportarr.media.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 1867;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.46";
   };
 
   sops.secrets."pangolin/resources/sportarr/domain" = {};

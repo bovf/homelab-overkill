@@ -1,5 +1,13 @@
-{ config, ... }:
+{ config, lib, ... }:
 
+let
+  inherit (lib) mapAttrsToList concatStringsSep;
+
+  hostEntries = mapAttrsToList
+    (_: r: "${r.ip} ${r.host}")
+    config.workloads.localDnsRecords;
+  dnsHosts = concatStringsSep ";" hostEntries;
+in
 {
   sops.templates."helm/pihole.yaml" = {
     content = ''
@@ -27,6 +35,9 @@
 
           serviceType: ClusterIP
 
+          serviceWeb:
+            type: ClusterIP
+
           ingress:
             enabled: true
             ingressClassName: traefik
@@ -44,27 +55,26 @@
             size: 2Gi
 
           serviceDns:
-            # Two separate Services (TCP + UDP). klipper-lb handles single-protocol
-            # Services more reliably than mixedService=true, which silently skipped
-            # creating the svclb pod and left the LAN IP unbound.
+            # MetalLB requires matching `allow-shared-ip` on both TCP
+            # and UDP Services to permit them to share an IP.
             mixedService: false
             type: LoadBalancer
-            loadBalancerIP: 192.0.2.10
-            # Cluster (not Local) so off-subnet clients get correct return routing
-            # via SNAT. Loses real client IP in pi-hole's query log for those, but
-            # that's a fair trade for this homelab.
-            #
-            # Future: replace klipper-lb with MetalLB (BGP mode if the router
-            # supports it, otherwise L2 mode) so we can flip this back to Local
-            # without breaking off-subnet clients. MetalLB also unlocks proper
-            # multi-node LB and DSR-style return paths if/when sentry-level-01
-            # joins the cluster.
-            externalTrafficPolicy: Cluster
+            loadBalancerIP: 192.168.2.2
+            annotations:
+              metallb.io/allow-shared-ip: "pihole-dns"
+            # Local preserves the real client IP in the query log.
+            # Earlier this looked broken cross-subnet; the actual cause
+            # was dnsmasq's listeningMode=LOCAL rejecting "non-local"
+            # sources. With listeningMode=ALL the rejection is gone, and
+            # UDP DNS tolerates the asymmetric reply path.
+            externalTrafficPolicy: Local
 
           serviceDhcp:
             enabled: false
 
-          webHttp: "80"
+          # Bumped from 80 to clear the tunnel-side externalIPs port
+          # collision with whoami/pgadmin/argocd.
+          webHttp: "8089"
           webHttps: "443"
 
           resources:
@@ -79,15 +89,26 @@
             existingSecret: pihole-web-password
             passwordKey: password
 
-          env:
-            - name: TZ
-              value: "Europe/Sofia"
-            - name: FTLCONF_dns_upstreams
-              value: "8.8.8.8;8.8.4.4"
-            - name: FTLCONF_query_logging
-              value: "true"
-            - name: FTLCONF_database_maxdbdays
-              value: "7"
+          # Chart ignores a top-level `env:` key; only extraEnvVars /
+          # extraEnvVarsSecret / ftl are wired through.
+          extraEnvVars:
+            TZ: "Europe/Sofia"
+            FTLCONF_query_logging: "true"
+            FTLCONF_database_maxdbdays: "7"
+            FTLCONF_dns_hosts: "${dnsHosts}"
+            # Accept queries from any source — required so cluster pods
+            # (10.42/16) and LAN clients on 192.168.1/24 can both query
+            # the .2.2 listener. Default LOCAL rejects with "ignoring
+            # query from non-local network".
+            FTLCONF_dns_listeningMode: "ALL"
+            # Cloudflare benchmarked ~4x faster than Google from this LAN.
+            FTLCONF_dns_upstreams: "1.1.1.1;1.0.0.1"
+
+          # Blocks DNS-over-HTTPS endpoint hostnames so DoH-by-default
+          # browsers fall back to system DNS (= pihole). Doesn't catch
+          # apps with hardcoded DoH IPs or iCloud Private Relay.
+          adlists:
+            - https://raw.githubusercontent.com/dibdot/DoH-IP-blocklists/master/doh-domains_overall.txt
 
           podDnsConfig:
             enabled: true

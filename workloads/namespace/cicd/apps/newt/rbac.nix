@@ -1,13 +1,5 @@
-# RBAC for the Pangolin blueprint aggregator Job.
-#
-# The aggregator Job runs as ServiceAccount `pangolin-blueprint-aggregator`
-# in the cicd namespace. It needs to:
-#   - list/get all ConfigMaps with label pangolin.dobryops.com/resource=true
-#   - get/create/update the master blueprint ConfigMap
-#
-# CI pipeline jobs (gitlab-runner SA) also need to delete+apply the Job
-# manifest itself — that is covered by the existing gitlab-runner ClusterRole
-# in aetherflow-backend/infra/argocd/rbac.yaml.
+# SA / Role for the pangolin blueprint aggregator CronJob. CI's
+# gitlab-runner SA has its own ClusterRole to manage the Job itself.
 { ... }:
 
 {

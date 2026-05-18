@@ -1,23 +1,9 @@
-# Pangolin blueprint aggregator.
-#
-# Auto-discovers every workloads.pangolinResources entry, groups them by
-# newtInstance, and renders one K8s Secret per instance.  Each secret is
-# written to /var/lib/rancher/k3s/server/manifests/ so k3s applies it
-# automatically before the newt pod starts.
-#
-# Domain values and the site ID are injected via sops.placeholder — they
-# are never written to the Nix store or the Git repository in plain text.
-{ config, lib, ... }:
+# Shared blueprint YAML renderer. Consumed by both the newt blueprint
+# aggregator and the pangolin-kwg blueprint sync.
+{ config, lib, instances }:
 
 let
-  inherit (lib) concatStringsSep mapAttrsToList groupBy optionalString;
-
-  resources  = config.workloads.pangolinResources;
-  instances  = config.workloads.pangolinInstances;
-
-  byInstance =
-    groupBy (r: r.newtInstance)
-      (mapAttrsToList (key: v: v // { _key = key; }) resources);
+  inherit (lib) concatStringsSep optionalString;
 
   indent = str:
     let lines = lib.splitString "\n" str;
@@ -33,12 +19,8 @@ let
     optionalString (rules != [])
       ("  rules:\n" + concatStringsSep "" (map renderRule rules));
 
-  # Indentation matters: the healthcheck block must nest INSIDE the target
-  # list item (sibling of `hostname`, `method`, `port`). In the
-  # pre-`indent` template those fields sit at 6 spaces; healthcheck:
-  # matches, children at 8.
-  # Use explicit "..." concat (not a heredoc) so Nix's indented-string
-  # whitespace-stripping rules don't silently shift the indent.
+  # Hand-built string (not '' '') so Nix's whitespace stripping doesn't
+  # shift the indent — healthcheck must nest inside the target list item.
   renderHealthcheck = r:
     if r.healthcheck == null then ""
     else
@@ -94,30 +76,12 @@ ${r._key}:
 
   resourcesYaml = rs: concatStringsSep "\n" (map renderResource rs);
 
-  renderInstanceTemplate = instanceName: instanceResources: {
-    "pangolin/blueprint-${instanceName}.yaml" = {
-      content = ''
-        apiVersion: v1
-        kind: Secret
-        metadata:
-          name: pangolin-blueprint-${instanceName}
-          namespace: pangolin
-        type: Opaque
-        stringData:
-          blueprint.yaml: |
-            public-resources:
-        ${resourcesYaml instanceResources}
-      '';
-      path  = "/var/lib/rancher/k3s/server/manifests/pangolin-blueprint-${instanceName}.yaml";
-      owner = "root";
-      group = "root";
-      mode  = "0644";
-    };
-  };
-
-in
-{
-  sops.templates =
-    lib.mkMerge
-      (mapAttrsToList renderInstanceTemplate byInstance);
+in {
+  inherit
+    indent
+    renderRule renderRules
+    renderHealthcheck
+    proxyPortValue
+    renderHttpResource renderTcpUdpResource
+    renderResource resourcesYaml;
 }

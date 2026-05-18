@@ -16,7 +16,6 @@
 
   outputs = { self, nixpkgs, flake-utils, nixos-anywhere, disko, sops-nix, home-manager, ... }:
     let
-      # Node schema with secret placeholders and optional identity/user
       nodes = {
         engineer = {
           hostname = "engineer";
@@ -25,15 +24,12 @@
           ip = "192.0.2.10";
           localPort = 22;
 
-          # SSH remote access (Pangolin resource secrets)
           remoteHostSecretKey = "pangolin.resources.engineer_ssh.domain";
           remotePortSecretKey = "pangolin.resources.engineer_ssh.port";
 
-          # K8s API remote access (Pangolin resource secrets)
           k8sApiDomainSecretKey = "pangolin.resources.engineer_k8s_api.domain";
           k8sApiPortSecretKey   = "pangolin.resources.engineer_k8s_api.port";
 
-          # Optional per-node SSH identity (any path: ~/, ./, etc.)
           identityFile = "~/.ssh/id_homelab";
           sshUser = "root";
 
@@ -80,11 +76,10 @@
             ./secrets
             ./workloads
             { networking.hostName = nodeConfig.hostname; }
-            # Patch sops-install-secrets to always recreate symlinks so that
-            # k3s detects mtime changes on every nixos-rebuild switch.
-            # sops-nix builds sops-install-secrets via pkgs.callPackage directly
-            # from its own source tree, bypassing nixpkgs overlays. We must
-            # override sops.package explicitly with a patched derivation.
+            # Force sops to recreate symlinks every activation — k3s
+            # watches mtime to detect manifest changes. sops-nix builds
+            # sops-install-secrets directly via callPackage so we have
+            # to override sops.package, not the overlay.
             ({ pkgs, ... }: {
               sops.package = (pkgs.callPackage (sops-nix + "/pkgs/sops-install-secrets") {
                 vendorHash = "sha256-HgwFoMbhLmyFnym+G4B+ID7R7V4Xj1EEmil+LnCgpXg=";

@@ -7,15 +7,12 @@
     domainKey      = "pangolin/resources/nzbget/domain";
     enabled        = false;
     ssoEnabled     = true;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      hostname = "nzbget.media.svc.cluster.local";
-      port     = 6789;
-      path     = "/";
-    };
+    targetHostname = "nzbget.media.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 6789;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.47";
   };
 
   sops.secrets."pangolin/resources/nzbget/domain" = {};

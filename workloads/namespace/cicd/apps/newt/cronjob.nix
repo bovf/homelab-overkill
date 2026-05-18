@@ -1,20 +1,5 @@
-# CronJob: pangolin-blueprint-aggregator
-#
-# Runs once per hour (and can be triggered on-demand by CI via
-# `kubectl create job --from=cronjob/pangolin-blueprint-aggregator`).
-#
-# What it does:
-#   1. Lists all ConfigMaps in the cicd namespace labelled
-#      pangolin.dobryops.com/resource=true
-#   2. Concatenates each ConfigMap's data.resource.yaml field under a
-#      `public-resources:` key
-#   3. Writes (create-or-update) the result into the
-#      `pangolin-blueprint-cicd-gitops` ConfigMap
-#
-# Reloader (stakater/reloader) then detects the ConfigMap change and
-# rolls the Newt pod automatically — no manual intervention needed.
-#
-# RBAC for the ServiceAccount is in rbac.nix.
+# Aggregates pangolin-resource ConfigMaps in cicd into a single
+# blueprint ConfigMap. Reloader rolls the cicd newt pod when it changes.
 { ... }:
 
 {
@@ -26,7 +11,6 @@
       namespace = "cicd";
     };
     spec = {
-      # Run hourly; CI also triggers on-demand after each deploy
       schedule                   = "0 * * * *";
       concurrencyPolicy          = "Replace";
       successfulJobsHistoryLimit = 3;
@@ -64,7 +48,6 @@
                           echo "  processing $CM"
                           RESOURCE=$(kubectl get configmap "$CM" -n "$NAMESPACE" \
                             -o jsonpath='{.data.resource\.yaml}')
-                          # Indent each line of the resource block by 2 spaces
                           BLUEPRINT="$BLUEPRINT
 $(echo "$RESOURCE" | sed 's/^/  /')"
                         done

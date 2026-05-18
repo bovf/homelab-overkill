@@ -27,6 +27,13 @@
               enabled: true
               class: traefik
               configureCertmanager: false
+              # TLS terminates at traefik (with the *.dobryops.com
+              # wildcard from cert-manager). Disabling tls on gitlab's
+              # own Ingresses stops the chart from auto-generating a
+              # self-signed wildcard secret and pulling it into traefik's
+              # cert pool — which would override our real wildcard.
+              tls:
+                enabled: false
               annotations:
                 traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
 
@@ -84,6 +91,8 @@
               annotations:
                 traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
                 traefik.ingress.kubernetes.io/router.middlewares: cicd-registry-headers@kubernetescrd
+            # Tunnel-side ingress via sibling Service in external-services.nix;
+            # the chart doesn't propagate externalIPs.
             storage:
               secret: gitlab-registry-storage
               key: config
@@ -152,10 +161,9 @@
             webservice:
               minReplicas: 1
               maxReplicas: 1
-              # Single Puma worker: baseline RSS ~1.2 GB, well within 4 Gi limit.
-              # With 2 workers (default) RSS at boot was ~2.4 GB leaving <100 MB
-              # headroom against the old 2.5 Gi limit, causing OOMKill under load.
-              # The node has 62 Gi total; 4 Gi limit is safe and generous.
+              # Tunnel-side ingress via sibling Service (external-services.nix).
+              # 1 Puma worker = ~1.2 GB RSS; the chart default 2 workers
+              # OOMKilled at the old 2.5 Gi limit.
               puma:
                 workers: 1
               resources:

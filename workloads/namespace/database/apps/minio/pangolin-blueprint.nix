@@ -8,15 +8,12 @@
     domainKey      = "pangolin/resources/minio/domain";
     enabled        = true;
     ssoEnabled     = true;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      hostname = "minio.database.svc.cluster.local";
-      port     = 9000;
-      path     = "/minio/health/live";
-    };
+    targetHostname = "minio.database.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 9000;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.11";
   };
 
   sops.secrets."pangolin/resources/minio/domain" = {};
@@ -28,18 +25,12 @@
     domainKey      = "pangolin/resources/minio_console/domain";
     enabled        = false;
     ssoEnabled     = true;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      # The console runs on its own Service (`minio-console`, not the
-      # `minio` API service). It has no dedicated health endpoint but
-      # /login returns the SPA shell with 200 OK.
-      hostname = "minio-console.database.svc.cluster.local";
-      port     = 9001;
-      path     = "/login";
-    };
+    targetHostname = "minio-console.database.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 9001;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.12";
   };
 
   sops.secrets."pangolin/resources/minio_console/domain" = {};

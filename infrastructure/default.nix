@@ -3,6 +3,8 @@ with lib;
 {
   imports = [
     ./k3s
+    ./metallb
+    ./pangolin-kwg
   ];
   
   options.infrastructure = {

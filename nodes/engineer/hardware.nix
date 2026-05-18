@@ -1,5 +1,3 @@
-# Copy the content of your current hardware-configuration.nix here
-# This is the same file, just moved to the new location
 { config, lib, modulesPath, ... }:
 
 {
@@ -10,10 +8,8 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
-  # Block the simpledrm kernel module — its phantom DRM device under
-  # /dev/dri/by-path/ collides with the Intel device plugin's container
-  # bind-mount when scheduling Jellyfin (gpu.intel.com/i915 resource).
-  # Headless server has no need for framebuffer console.
+  # simpledrm's phantom DRM device collides with the Intel device
+  # plugin's bind-mount for Jellyfin's gpu.intel.com/i915 resource.
   boot.blacklistedKernelModules = [ "simpledrm" ];
 
   swapDevices = [ ];

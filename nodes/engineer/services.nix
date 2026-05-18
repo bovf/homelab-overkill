@@ -1,21 +1,11 @@
 { ... }:
 
 {
-  # Tailscale, something is messing with initial nixos-anywhere.
-  services.tailscale = {
-    enable = true;
-    openFirewall = true;
-    useRoutingFeatures = "both";
-    # TODO Manage it with secret
-    authKeyFile = "/etc/tailscale/authkey";
-    extraUpFlags = [
-      "--advertise-exit-node"
-      "--accept-routes"
-      "--advertise-routes=192.168.1.0/24"
-    ];
-  };
+  # Point the host (and inherited by CoreDNS via dnsPolicy=Default) at
+  # pihole so every cluster pod's external query shows up in pihole's
+  # log. 1.1.1.1 is the resolver-of-last-resort if pihole is down.
+  networking.nameservers = [ "192.168.2.2" "1.1.1.1" ];
 
-  # Virtualization
   virtualisation.containers.enable = true;
   virtualisation = {
     podman = {

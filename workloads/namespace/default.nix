@@ -13,7 +13,6 @@
     ./media
     ./monitoring
     ./mumble
-    ./pangolin
     ./proxy
   ];
 }

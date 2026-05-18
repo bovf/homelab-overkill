@@ -1,13 +1,5 @@
-# Deploys a dedicated Newt instance for CI/CD-managed services in the cicd namespace.
-#
-# Key design decisions:
-# - Mounts a ConfigMap (not a Secret) as the blueprint — domains are not secrets,
-#   and using a ConfigMap allows Reloader to watch it via the configmap annotation.
-# - The blueprint ConfigMap `pangolin-blueprint-cicd-gitops` is populated by the
-#   aggregator Job (job.nix), NOT by sops-nix. Nix only provisions the tunnel
-#   credentials (secret.nix). The blueprint content is fully CI-managed.
-# - Reloader annotation: configmap.reloader.stakater.com/reload triggers a pod
-#   restart whenever the master blueprint ConfigMap changes.
+# Dedicated newt instance for CI-managed services. Blueprint is in a
+# ConfigMap aggregated from labelled resource CMs (not via sops).
 { ... }:
 
 {
@@ -27,19 +19,14 @@
       valuesContent   = ''
         global:
           podAnnotations:
-            # Reloader watches this ConfigMap and rolls the pod when it changes.
-            # The aggregator job updates this ConfigMap on every CI deploy that
-            # adds or modifies a pangolin resource.
             configmap.reloader.stakater.com/reload: "pangolin-blueprint-cicd-gitops"
 
         newtInstances:
           - name: cicd-gitops
             enabled: true
 
-            # This Newt connects outbound to Pangolin — no inbound WireGuard
-            # ports need to be exposed on the host. Disabling the Service
-            # prevents klipper-ServiceLB from trying to claim ports 51820/51821,
-            # which are already held by the engineer Newt in the pangolin namespace.
+            # Outbound-only — disable the chart's Service to avoid
+            # klipper-ServiceLB claiming ports the engineer newt holds.
             service:
               enabled: false
 

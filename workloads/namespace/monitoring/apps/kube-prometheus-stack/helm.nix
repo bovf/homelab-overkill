@@ -15,11 +15,9 @@
         targetNamespace: monitoring
         createNamespace: true
         valuesContent: |
-          # k3s embeds kube-controller-manager, kube-scheduler, and kube-proxy
-          # inside the k3s server binary. The chart's separate ServiceMonitors
-          # for them never find targets, producing permanent
-          # KubeControllerManagerDown / KubeSchedulerDown / KubeProxyDown
-          # false alerts. Disable them.
+          # k3s bundles these components into the server binary, so the
+          # chart's ServiceMonitors find no targets and fire permanent
+          # *Down alerts.
           kubeControllerManager:
             enabled: false
           kubeScheduler:
@@ -27,17 +25,17 @@
           kubeProxy:
             enabled: false
 
-          # Suppress chart-bundled alerts we don't want shipped at all:
-          #   - Watchdog: dead-man's-switch heartbeat (we don't use one externally)
-          #   - InfoInhibitor: meta-alert used by chart's inhibit_rules
-          # Removing the rule is cleaner than routing-to-null; nothing fires,
-          # nothing to ignore.
           defaultRules:
             disabled:
               Watchdog: true
               InfoInhibitor: true
 
           alertmanager:
+            service:
+              type: ClusterIP
+              # Tunnel-side ingress on a sibling Service (external-services.nix);
+              # attaching externalIPs here would also claim the
+              # config-reloader's :8080 and collide with qbittorrent.
             ingress:
               enabled: true
               ingressClassName: traefik
@@ -49,9 +47,7 @@
               hosts:
                 - ${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
             alertmanagerSpec:
-              # Without this Alertmanager advertises its in-cluster service URL
-              # in emails ("View in Alertmanager" link). Setting it here makes
-              # the link in notifications resolve to the public hostname.
+              # Makes the "View in Alertmanager" link in emails public.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}"
             config:
               global:
@@ -67,9 +63,7 @@
                 repeat_interval: 24h
                 receiver: email-warnings
               receivers:
-                # Scaffold receiver — kept even though nothing routes to it
-                # right now, so the chart's auto-injected inhibit_rules /
-                # any future alert routing has a black-hole sink available.
+                # Black-hole sink for the chart's auto-injected inhibit_rules.
                 - name: "null"
                 - name: email-warnings
                   email_configs:
@@ -79,14 +73,14 @@
                         Subject: "[homelab] {{ .Status | toUpper }} {{ .GroupLabels.alertname }}"
 
           prometheus:
+            service:
+              type: ClusterIP
+              # Tunnel-side ingress on a sibling Service — see alertmanager above.
             prometheusSpec:
               enableFeatures:
                 - otlp-write-receiver
               enableRemoteWriteReceiver: true
-              # Discover ServiceMonitors / PodMonitors / PrometheusRules / Probes
-              # from any namespace and any release, not just kube-prometheus-stack's
-              # own. Required so Loki, version-checker, intel-gpu-exporter, etc.
-              # are scraped without per-workload `release` labels.
+              # Discover monitors from any namespace/release, not just this chart's.
               serviceMonitorSelectorNilUsesHelmValues: false
               podMonitorSelectorNilUsesHelmValues: false
               ruleSelectorNilUsesHelmValues: false
@@ -96,13 +90,13 @@
             service:
               type: ClusterIP
               port: 32000
+              externalIPs:
+                - "100.89.128.16"
             admin:
               existingSecret: grafana-admin-password
               userKey: admin-user
               passwordKey: admin-password
-            # Tell Grafana its external URL so share links / OAuth callbacks
-            # / generated absolute URLs use the public hostname instead of
-            # the in-cluster service:port.
+            # External URL for share links / OAuth callbacks.
             grafana.ini:
               server:
                 root_url: "https://${config.sops.placeholder."pangolin/resources/grafana/domain"}"

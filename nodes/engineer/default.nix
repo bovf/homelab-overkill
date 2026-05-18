@@ -6,6 +6,9 @@ with lib;
     ./hardware.nix
     ./services.nix
     ./disko.nix
+    ./pangolin-kwg.nix
+    ./pangolin-resources.nix
+    ./metallb.nix
   ];
         
   # Keyboard US

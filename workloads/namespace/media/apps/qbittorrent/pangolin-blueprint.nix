@@ -7,15 +7,12 @@
     domainKey      = "pangolin/resources/qbittorrent/domain";
     enabled        = false;
     ssoEnabled     = true;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      hostname = "qbittorrent.media.svc.cluster.local";
-      port     = 8080;
-      path     = "/";
-    };
+    targetHostname = "qbittorrent.media.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 8080;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.48";
   };
 
   sops.secrets."pangolin/resources/qbittorrent/domain" = {};

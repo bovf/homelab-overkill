@@ -7,15 +7,12 @@
     domainKey      = "pangolin/resources/sonarr/domain";
     enabled        = true;
     ssoEnabled     = true;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      hostname = "sonarr.media.svc.cluster.local";
-      port     = 8989;
-      path     = "/ping";
-    };
+    targetHostname = "sonarr.media.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 8989;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.45";
   };
 
   sops.secrets."pangolin/resources/sonarr/domain" = {};

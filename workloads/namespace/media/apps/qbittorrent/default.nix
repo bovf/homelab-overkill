@@ -8,5 +8,6 @@
     ./secret.nix
     ./vpn-secret.nix
     ./pangolin-blueprint.nix
+    ./local-dns.nix
   ];
 }

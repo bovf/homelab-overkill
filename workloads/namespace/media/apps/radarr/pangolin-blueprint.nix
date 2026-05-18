@@ -7,15 +7,12 @@
     domainKey      = "pangolin/resources/radarr/domain";
     enabled        = true;
     ssoEnabled     = true;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      hostname = "radarr.media.svc.cluster.local";
-      port     = 7878;
-      path     = "/ping";
-    };
+    targetHostname = "radarr.media.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 7878;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.44";
   };
 
   sops.secrets."pangolin/resources/radarr/domain" = {};

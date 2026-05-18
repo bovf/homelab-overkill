@@ -7,15 +7,12 @@
     domainKey      = "pangolin/resources/bazarr/domain";
     enabled        = true;
     ssoEnabled     = true;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      hostname = "bazarr.media.svc.cluster.local";
-      port     = 6767;
-      path     = "/ping";
-    };
+    targetHostname = "bazarr.media.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 6767;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.42";
   };
 
   sops.secrets."pangolin/resources/bazarr/domain" = {};

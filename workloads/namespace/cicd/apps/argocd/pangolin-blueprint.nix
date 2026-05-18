@@ -5,17 +5,15 @@
     name           = "ArgoCD";
     protocol       = "http";
     domainKey      = "pangolin/resources/argocd/domain";
-    enabled        = true;
+    enabled        = false;
     ssoEnabled     = true;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      hostname = "argocd-server.cicd.svc.cluster.local";
-      port     = 80;
-      path     = "/healthz";
-    };
+    # Service port bumped to clear the tunnel-side port-80 collision.
+    targetHostname = "argocd-server.cicd.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 8090;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.20";
   };
 
   sops.secrets."pangolin/resources/argocd/domain" = {};

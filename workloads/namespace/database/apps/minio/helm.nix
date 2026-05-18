@@ -40,10 +40,17 @@
           service:
             type: ClusterIP
             port: 9000
+            # Tunnel-side ingress for pangolin-kwg. S3 API at
+            # 100.89.128.16:9000 → kube-proxy externalIPs → minio pod.
+            externalIPs:
+              - "100.89.128.16"
 
           consoleService:
             type: ClusterIP
             port: 9001
+            # Same pattern for the console (port 9001).
+            externalIPs:
+              - "100.89.128.16"
 
           ingress:
             enabled: true

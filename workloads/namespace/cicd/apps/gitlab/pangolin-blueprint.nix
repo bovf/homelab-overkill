@@ -1,4 +1,4 @@
-{ nodeName, ... }:
+{ ... }:
 
 {
   workloads.pangolinResources.gitlab = {
@@ -7,15 +7,12 @@
     domainKey      = "pangolin/resources/gitlab/domain";
     enabled        = true;
     ssoEnabled     = false;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      hostname = "gitlab-webservice-default.cicd.svc.cluster.local";
-      port     = 8181;
-      path     = "/-/health";
-    };
+    targetHostname = "gitlab-webservice-default.cicd.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 8181;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.21";
   };
 
   workloads.pangolinResources.registry = {
@@ -24,20 +21,12 @@
     domainKey      = "pangolin/resources/registry/domain";
     enabled        = true;
     ssoEnabled     = false;
-    targetHostname = "traefik.kube-system.svc.cluster.local";
-    targetMethod   = "https";
-    targetPort     = 443;
-    newtInstance   = nodeName;
-    healthcheck = {
-      # The Distribution v2 registry's own endpoints (e.g. /v2/) always
-      # return 401 when anonymous reads are disabled — Pangolin would mark
-      # them unhealthy. Proxy the registry's liveness through GitLab's
-      # webservice instead: same Helm release, same pod lifecycle, real
-      # 200 OK. If GitLab is up the bundled registry is up too.
-      hostname = "gitlab-webservice-default.cicd.svc.cluster.local";
-      port     = 8181;
-      path     = "/-/health";
-    };
+    targetHostname = "gitlab-registry.cicd.svc.cluster.local";
+    targetMethod   = "http";
+    targetPort     = 5000;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
+    lanIP          = "192.168.2.22";
   };
 
   workloads.pangolinResources.gitlab_ssh = {
@@ -45,12 +34,17 @@
     protocol       = "tcp";
     proxyPortKey   = "pangolin/resources/gitlab_ssh/port";
     enabled        = true;
+    # An arbitrary tunnel-side port — kept distinct from the user-facing
+    # proxy-port (which lives in sops) so the port number isn't leaked
+    # in the nix store / git. gitlab-shell-extip's Service catches
+    # 100.89.128.16:22022 and DNATs to the pod.
     targetHostname = "gitlab-gitlab-shell.cicd.svc.cluster.local";
-    targetPort     = 22;
-    newtInstance   = nodeName;
+    targetPort     = 22022;
+    newtInstance   = "engineer-kernel";
+    viaKernelWg    = true;
   };
 
-  sops.secrets."pangolin/resources/gitlab/domain" = {};
-  sops.secrets."pangolin/resources/registry/domain" = {};
-  sops.secrets."pangolin/resources/gitlab_ssh/port" = {};
+  sops.secrets."pangolin/resources/gitlab/domain"     = {};
+  sops.secrets."pangolin/resources/registry/domain"   = {};
+  sops.secrets."pangolin/resources/gitlab_ssh/port"   = {};
 }

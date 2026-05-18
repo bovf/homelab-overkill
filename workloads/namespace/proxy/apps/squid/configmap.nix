@@ -10,7 +10,7 @@
     };
     data."squid.conf" = ''
       # Source IP ACLs are ineffective behind k8s pod NAT.
-      # Network-level restriction is enforced by the LoadBalancer binding to 192.0.2.10.
+      # Network-level restriction is enforced by the LoadBalancer binding to 192.168.2.3.
       http_access allow all
 
       http_port 3128

@@ -1,8 +1,6 @@
 { config, ... }:
 
 {
-  # Jellyfin HelmChart — rendered via sops.templates so the ingress host
-  # is never stored in the Nix store or git repo in plain text.
   sops.templates."helm/jellyfin.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -35,6 +33,8 @@
             type: ClusterIP
             port: 8096
             portName: http
+            externalIPs:
+              - "100.89.128.16"
           ingress:
             enabled: true
             className: traefik
@@ -58,12 +58,10 @@
               accessMode: ReadWriteOnce
             cache:
               enabled: false
-          # /dev/dri is intentionally NOT mounted as a hostPath here.
-          # The Intel device plugin (gpu.intel.com/i915: 1 resource limit) injects
-          # the specific GPU device files (card0, renderD128) into the container.
-          # Mounting /dev/dri as a directory broke after the kernel started
-          # exposing a simpledrm framebuffer under /dev/dri/by-path/ — containerd's
-          # recursive mkdir on the bind-mount tree collided with that symlink.
+          # /dev/dri is injected by the Intel device plugin via the
+          # gpu.intel.com/i915 resource — don't hostPath-mount it. The
+          # simpledrm framebuffer under /dev/dri/by-path/ collides with
+          # containerd's recursive mkdir on bind-mounted dirs.
           volumes:
             - name: opengl-driver
               hostPath:

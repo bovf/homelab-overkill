@@ -45,7 +45,12 @@
 
           service:
             type: ClusterIP
-            port: 80
+            # Bumped from 80 to avoid the tunnel-side externalIPs port
+            # collision (whoami/pgadmin/pihole-web/argocd all defaulted
+            # to 80). targetPort defaults to the container's `http` port.
+            port: 8088
+            externalIPs:
+              - "100.89.128.16"
 
           ingress:
             enabled: true

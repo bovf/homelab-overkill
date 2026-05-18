@@ -1,12 +1,7 @@
 { config, ... }:
 
 {
-  # Gluetun consumes these as env vars via envFrom.secretRef.
   # Keys MUST match Gluetun's documented env var names.
-  # NordVPN NordLynx (WireGuard) — the private key is extracted once from
-  # the official NordVPN client and stored in SOPS at nordvpn/wireguard_private_key.
-  # Gluetun fetches WireGuard server pubkeys/addresses from NordVPN's API at runtime,
-  # so only the private key is needed.
   sops.templates."qbittorrent/qbittorrent-vpn-creds.yaml" = {
     content = ''
       apiVersion: v1

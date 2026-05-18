@@ -3,6 +3,7 @@ with lib;
 {
   imports = [
     ./namespace
+    ./lib/lan-services.nix
   ];
 
   options.workloads = {
@@ -64,7 +65,7 @@ with lib;
           proxyPortKey = mkOption {
             type        = types.nullOr types.str;
             default     = null;
-            description = "SOPS key path for the proxy port (TCP/UDP). Mutually exclusive with proxyPort. E.g. 'pangolin/resources/gitlab_ssh/port'.";
+            description = "SOPS key path for the proxy port (TCP/UDP). Mutually exclusive with proxyPort.";
           };
           domainKey = mkOption {
             type        = types.nullOr types.str;
@@ -123,13 +124,28 @@ with lib;
             type        = types.str;
             description = "pangolinInstances key this resource is routed through (= node name).";
           };
+          lanIP = mkOption {
+            type        = types.nullOr types.str;
+            default     = null;
+            description = "MetalLB-pinned LAN IP for the generated <key>-lan LoadBalancer Service.";
+          };
+          lanNamespace = mkOption {
+            type        = types.str;
+            default     = "kube-system";
+            description = "Namespace for the generated <key>-lan Service.";
+          };
+          viaKernelWg = mkOption {
+            type        = types.bool;
+            default     = false;
+            description = "Route this resource via the host-side kernel-WG client instead of the in-cluster newt pod.";
+          };
           healthcheck = mkOption {
             type = types.nullOr (types.submodule {
               options = {
                 hostname = mkOption {
                   type        = types.nullOr types.str;
                   default     = null;
-                  description = "Hostname to probe. Defaults to targetHostname when null. Pangolin's healthcheck can't set a Host header, so this typically wants to be the backend K8s service (not Traefik).";
+                  description = "Defaults to targetHostname. Pangolin can't set a Host header so this should usually be the backend service, not traefik.";
                 };
                 port = mkOption {
                   type        = types.nullOr types.int;
@@ -150,6 +166,25 @@ with lib;
       });
       default     = {};
       description = "Map of services exposed through Pangolin, keyed by resource identifier.";
+    };
+
+    # Each app declares its entry in a per-workload local-dns.nix file;
+    # the pihole chart aggregates them into FTLCONF_dns_hosts.
+    localDnsRecords = mkOption {
+      type = types.attrsOf (types.submodule {
+        options = {
+          host = mkOption {
+            type        = types.str;
+            description = "FQDN to publish. Usually a sops.placeholder.";
+          };
+          ip = mkOption {
+            type        = types.str;
+            description = "IPv4 address to resolve `host` to on the LAN.";
+          };
+        };
+      });
+      default     = {};
+      description = "LAN-side DNS A records published by pihole.";
     };
   };
 }

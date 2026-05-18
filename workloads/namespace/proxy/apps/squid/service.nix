@@ -11,7 +11,7 @@
     };
     spec = {
       type = "LoadBalancer";
-      loadBalancerIP = "192.0.2.10";
+      loadBalancerIP = "192.168.2.3";
       ports = [{
         port = 3128;
         targetPort = 3128;

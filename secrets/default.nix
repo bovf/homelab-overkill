@@ -6,18 +6,7 @@
     age.sshKeyPaths = [ "/root/.ssh/id_ed25519" ];
     age.generateKey = true;
 
-    # ------------------------------------------------------------------
-    # Pangolin instances (one block per node / newt deployment)
-    # ------------------------------------------------------------------
-    # engineer node
-    secrets."pangolin/instances/engineer/endpoint"    = {};
-    secrets."pangolin/instances/engineer/newt_id"     = {};
-    secrets."pangolin/instances/engineer/newt_secret" = {};
-    secrets."pangolin/instances/engineer/site_id"     = {};
-
-    # ------------------------------------------------------------------
-    # Pangolin resource domains (one per exposed service)
-    # ------------------------------------------------------------------
+    # Pangolin resource domains
     secrets."pangolin/resources/jellyfin/domain"         = {};
     secrets."pangolin/resources/sonarr/domain"           = {};
     secrets."pangolin/resources/radarr/domain"           = {};
@@ -38,33 +27,27 @@
     secrets."pangolin/resources/mumble/domain"           = {};
     secrets."pangolin/resources/traefik_dashboard/domain" = {};
 
-    # ------------------------------------------------------------------
-    # Pangolin resource ports (TCP tunnels)
-    # Ports are used by sops.placeholder in the blueprint renderer.
-    # Domains for engineer_ssh and engineer_k8s_api are NOT declared here
-    # because they are only consumed at runtime by nix apps (via sops
-    # --decrypt + yq), not by sops-nix on the node.
-    # ------------------------------------------------------------------
-    secrets."pangolin/resources/engineer_ssh/port"         = {};
-    secrets."pangolin/resources/engineer_k8s_api/port"     = {};
-    secrets."pangolin/resources/gitlab_ssh/port"           = {};
+    # Pangolin TCP tunnel ports. The matching domain keys are consumed
+    # at runtime by nix apps (not sops-nix on the node) so they're not
+    # declared here.
+    secrets."pangolin/resources/engineer_ssh/port"     = {};
+    secrets."pangolin/resources/engineer_k8s_api/port" = {};
+    secrets."pangolin/resources/gitlab_ssh/port"       = {};
 
-    # ------------------------------------------------------------------
-    # Admin / shared
-    # ------------------------------------------------------------------
     secrets."admin/base_domain" = {};
     secrets."admin/email"       = {};
 
-    # ------------------------------------------------------------------
-    # NZBGet credentials
-    # ------------------------------------------------------------------
+    # Cloudflare API token scoped to Zone:Read + Zone.DNS:Edit on the
+    # dobryops.com zone. Used by cert-manager's DNS-01 solver for the
+    # wildcard *.dobryops.com cert.
+    secrets."cloudflare/api_token" = {};
+
     secrets."media/nzbget/username" = {};
     secrets."media/nzbget/password" = {};
 
     secrets."qbittorrent/password_hash" = {};
     secrets."qbittorrent/password" = {};
 
-    # qBittorrent VPN sidecar (Gluetun, NordVPN NordLynx/WireGuard mode)
     secrets."nordvpn/wireguard_private_key" = {};
 
     secrets."monitoring/grafana-admin-password" = {};

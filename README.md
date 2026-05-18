@@ -60,14 +60,17 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 | nova              | Helm chart drift (weekly CronJob)                    | Active   |
 | intel-gpu-exporter| Intel iGPU utilisation metrics                       | Active   |
 | local-path-du     | Per-PVC disk usage exporter (du-based)               | Active   |
-| Pi-hole           | DNS / ad blocking                                    | Partial* |
+| Pi-hole           | DNS / ad blocking + auto-aggregated LAN A records    | Active*  |
 | Homepage          | Dashboard                                            | Active   |
 | whoami            | Personal blog (auto-deploys on each main commit)     | Active   |
-| Newt              | Private tunnel access                                | Active   |
+| pangolin-kwg      | Host-side kernel WG client (engineer ↔ pangolin VPS) | Active   |
+| newt-cicd         | In-cluster userspace WG for CI-managed gitops flow   | Active   |
+| MetalLB           | L2-mode LoadBalancer for per-service LAN IPs         | Active   |
+| cert-manager      | Wildcard `*.dobryops.com` via Let's Encrypt DNS-01   | Active   |
 
 </div>
 
-> \* Pi-hole is deployed and functional for ad blocking, but not yet configured as the network's central DNS server.
+> \* Pi-hole serves DNS for the cluster's domains via per-workload `local-dns.nix` declarations aggregated into `FTLCONF_dns_hosts`. Setting it as the LAN's upstream DNS is a router-side change.
 
 ---
 
@@ -77,7 +80,7 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 
 - NixOS (or Linux with Nix)
 - Basic familiarity with Nix and Kubernetes
-- A VPS running Pangolin to connect Newt with
+- A VPS running Pangolin (this flake's `engineer-kernel` site connects via Basic-WireGuard)
 
 ### Setup
 
@@ -121,23 +124,33 @@ k9s
 │  (IaC defn) │    │(encrypted│    │(k8s layer)│    │ (app deploy) │
 └─────────────┘    │ secrets) │    └───────────┘    └──────────────┘
                    └──────────┘           │
-                                          v
-                               ┌──────────────────┐
-                               │    Pangolin       │
-                               │ (private tunnels) │
-                               └──────────────────┘
+                  ┌───────────────────────┴─────────────────────┐
+                  │                                             │
+                  v                                             v
+       ┌────────────────────────────┐         ┌─────────────────────────┐
+       │ Pangolin (off-LAN access)  │         │ MetalLB (LAN-direct)    │
+       │ • pangolin-kwg site        │         │ • Per-service LAN IPs   │
+       │   (kernel WG, host-side)   │         │ • Pi-hole local DNS     │
+       │ • olm clients              │         └─────────────────────────┘
+       │   (WG VPN for Mac/iOS)     │
+       │ • newt-cicd (CI gitops)    │
+       └────────────────────────────┘
 ```
 
-| Step | Component     | Role                                               |
-|------|---------------|----------------------------------------------------|
-| 1    | Nix Flakes    | Describe your entire infrastructure as code        |
-| 2    | SOPS          | Encrypt secrets before version control             |
-| 3    | k3s           | Run a lightweight Kubernetes cluster               |
-| 4    | Helm          | Deploy applications with declarative config        |
-| 5    | Pangolin      | Create private tunnels to services                 |
-| 6    | Reloader      | Auto rolling-restart Newt on secret changes        |
-| 7    | Keel          | Auto-rollout deployments when their `:latest` digest changes |
-| 8    | GitOps        | Edit → commit → deploy. Always reproducible        |
+| Step | Component     | Role                                                         |
+|------|---------------|--------------------------------------------------------------|
+| 1    | Nix Flakes    | Describe the entire infrastructure as code                   |
+| 2    | SOPS          | Encrypt secrets before version control                       |
+| 3    | k3s           | Lightweight Kubernetes runtime                               |
+| 4    | Helm          | Application packaging + deploy                               |
+| 5    | pangolin-kwg  | Host-side kernel-WireGuard tunnel to the pangolin VPS        |
+| 6    | Olm clients   | WG VPN replacing Tailscale; direct access to tunnel IPs      |
+| 7    | MetalLB       | L2 LoadBalancer for per-service LAN IPs                      |
+| 8    | Pi-hole       | Cluster DNS upstream; LAN A records + DoH adlist             |
+| 9    | cert-manager  | Wildcard `*.dobryops.com` via Let's Encrypt DNS-01           |
+| 10   | Reloader      | Rolling-restarts pods when watched ConfigMaps/Secrets change |
+| 11   | Keel          | Rolls deployments on `:latest` digest change                 |
+| 12   | GitOps        | Edit → commit → deploy. Always reproducible                  |
 
 ---
 
@@ -164,11 +177,13 @@ secrets/secrets.yaml  (SOPS encrypted)
 
 ### Pangolin Blueprint System
 
-Each workload self-registers via a `pangolin-blueprint.nix` file. The `newt` aggregator collects all registrations and renders one **blueprint Secret** per Pangolin instance - fully declarative, no central ConfigMap required.
+Each workload self-registers via a `pangolin-blueprint.nix` file. On `nixos-rebuild switch`, `pangolin-kwg-blueprint-sync.service` renders the full org blueprint and PUTs it to Pangolin's REST API — no manual UI changes, no in-cluster aggregator pod for engineer-side resources.
+
+The cicd-gitops site keeps the legacy ConfigMap aggregator (cronjob in `cicd/apps/newt/`) because its blueprint is CI-managed, not nix-managed.
 
 Supports:
-- **HTTP resources** - SSO, custom rules, headers
-- **Raw TCP/UDP resources** - non-HTTP services like SSH
+- **HTTP resources** — SSO, custom rules, headers
+- **Raw TCP/UDP resources** — SSH, k8s API, gitlab-shell, etc.
 
 ### sops-nix Symlink Patch
 
@@ -203,14 +218,19 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │   ├── engineer/              # Main node config
 │   │   ├── hardware.nix
 │   │   ├── disko.nix
-│   │   └── services.nix
+│   │   ├── services.nix
+│   │   ├── pangolin-kwg.nix         # kwg client + blueprint-sync wiring
+│   │   ├── pangolin-resources.nix   # Host-level TCP resources (ssh, k8s API)
+│   │   └── metallb.nix              # MetalLB pool config
 │   └── sentry-level-01/       # Future nodes
 │
-├── infrastructure/            # k3s cluster setup
-│   └── k3s/
-│       ├── cluster.nix
-│       ├── networking.nix
-│       └── server/
+├── infrastructure/            # Host-level cluster + tunnel modules
+│   ├── k3s/                   # Cluster server config
+│   │   ├── cluster.nix
+│   │   ├── networking.nix
+│   │   └── server/
+│   ├── metallb/               # L2 LoadBalancer (helm + IPAddressPool + L2Advertisement)
+│   └── pangolin-kwg/          # Host-side kernel WireGuard + REST blueprint sync
 │
 ├── workloads/                 # Kubernetes namespaces & apps
 │   ├── default.nix
@@ -224,7 +244,6 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │       │                      # version-checker, nova, intel-gpu-exporter,
 │       │                      # local-path-du-exporter, grafana-dashboards
 │       ├── cert-manager/      # letsencrypt cluster issuer
-│       ├── pangolin/          # newt tunnel client + blueprint aggregator
 │       ├── mumble/            # voice server
 │       ├── dns/               # pihole
 │       ├── homepage/          # dashboard
@@ -247,12 +266,51 @@ Every app follows a consistent, predictable structure:
 workloads/namespace/<ns>/apps/<app>/
 ├── default.nix              # imports list
 ├── helm.nix                 # HelmChart manifest  (via sops.templates)
-├── middleware.nix            # Traefik Middleware  (via sops.templates)
+├── middleware.nix           # Traefik Middleware  (via sops.templates)
 ├── secret.nix               # K8s Secrets with injected credentials
-└── pangolin-blueprint.nix   # Registers app as a Pangolin resource
+├── pangolin-blueprint.nix   # Registers app as a Pangolin resource
+├── local-dns.nix            # (optional) Pi-hole LAN A record
+└── external-services.nix    # (optional) Sibling Service for charts whose
+                             #   `service.externalIPs` doesn't propagate
 ```
 
 > All `helm.nix` and `middleware.nix` files use `sops.templates` - domain names and credentials are **never present in git**.
+
+### Three access paths
+
+A resource is reachable via one or more of:
+
+| Path | Hostname | Goes through | Used when |
+|---|---|---|---|
+| **Pangolin public** | `*.dobryops.com` | Public IP → pangolin VPS → kwg tunnel → backend | Off-LAN, no VPN. SSO-gated for HTTP. |
+| **Pangolin client (olm)** | Tunnel IP (`100.89.128.x`) or DNS | Mac/iOS olm WG → pangolin VPS → kwg tunnel → backend | Off-LAN with VPN installed. No public ports needed. |
+| **LAN-direct** | LAN IP (`192.168.2.x`), resolved via Pi-hole | MetalLB L2 announce → traefik → backend | On-LAN. No round-trip via the VPS. |
+
+`viaKernelWg = true` (the default for every workload now) routes the resource through the host-side `pangolin-kwg` tunnel — kube-proxy externalIPs on each Service catches the matching `100.89.128.16:<port>` and DNATs to the backend pod. The blueprint sync service PUTs the rendered YAML to Pangolin's REST API on every `nixos-rebuild switch`, so resources rebind without manual UI work.
+
+### Local DNS aggregation
+
+Each workload's `local-dns.nix` declares one `{ host, ip }` entry under `workloads.localDnsRecords`. Pi-hole's helm chart collapses the attrset into `FTLCONF_dns_hosts`, which v6 reads into `dns.hosts[]` (UI-visible). Adding a new LAN-resolvable service is one file in the owning workload — no central registry edit.
+
+### DNS topology
+
+Pi-hole is the single resolver for both LAN clients and cluster pods:
+
+```
+LAN clients  ───┐
+                ├──> 192.168.2.2 (pihole) ──> 1.1.1.1 (Cloudflare upstream)
+Cluster pods ───┤
+                └──> 10.43.0.10 (CoreDNS) ──> 192.168.2.2 (pihole)
+```
+
+`networking.nameservers = [ "192.168.2.2" "1.1.1.1" ]` on engineer makes the host point at pihole; CoreDNS inherits the node's `/etc/resolv.conf` via `dnsPolicy: Default`, so every pod's external DNS gets logged in pihole too. `1.1.1.1` is the failover if pihole is down. Pi-hole's own pod uses `8.8.8.8/8.8.4.4` via `podDnsConfig` to avoid the chicken-and-egg.
+
+### TLS
+
+Two terminators handle TLS, depending on the access path:
+
+- **Public path** — Cloudflare-fronted pangolin VPS terminates TLS at the edge with its own `*.dobryops.com` cert. Tunnel-internal traffic to engineer is plain HTTP. No cluster cert needed.
+- **LAN-direct path** — cert-manager issues a wildcard `*.dobryops.com` cert from Let's Encrypt via the **DNS-01** solver against the Cloudflare zone (the only way LE issues wildcards). Traefik picks it up as `tlsStore.default.defaultCertificate`, so every LAN-side HTTPS request to `*.dobryops.com` is served with a publicly-trusted cert — no per-device root-CA install.
 
 ---
 

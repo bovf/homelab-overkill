@@ -1,4 +1,3 @@
-# Traefik app entrypoint
 { ... }:
 
 {
@@ -7,5 +6,8 @@
     ./ingress.nix
     ./middleware.nix
     ./service.nix
+    ./pangolin-blueprint.nix
+    ./local-dns.nix
+    ./certificate.nix
   ];
 }

@@ -85,6 +85,8 @@
             main:
               controller: main
               type: ClusterIP
+              externalIPs:
+                - "100.89.128.16"
               ports:
                 http:
                   port: 6789
