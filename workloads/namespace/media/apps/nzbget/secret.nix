@@ -63,6 +63,23 @@
           KeepHistory=30
 
           AuthorizedIP=127.0.0.1
+
+          Server1.Active=yes
+          Server1.Name=Easy News
+          Server1.Level=0
+          Server1.Optional=no
+          Server1.Group=0
+          Server1.Host=${config.sops.placeholder."media/nzbget/news_server/host"}
+          Server1.Port=563
+          Server1.Username=${config.sops.placeholder."media/nzbget/news_server/username"}
+          Server1.Password=${config.sops.placeholder."media/nzbget/news_server/password"}
+          Server1.JoinGroup=no
+          Server1.Encryption=yes
+          Server1.Cipher=
+          Server1.Connections=30
+          Server1.Retention=0
+          Server1.IpVersion=auto
+          Server1.Notes=
     '';
     path  = "/var/lib/rancher/k3s/server/manifests/nzbget-conf.yaml";
     owner = "root";

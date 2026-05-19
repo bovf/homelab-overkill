@@ -18,6 +18,7 @@
           defaultPodOptions:
             annotations:
               k3s.cattle.io/config-version: "2"
+              secret.reloader.stakater.com/reload: "nzbget-conf"
             securityContext:
               fsGroup: 1000
 

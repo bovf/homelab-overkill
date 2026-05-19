@@ -44,6 +44,9 @@
 
     secrets."media/nzbget/username" = {};
     secrets."media/nzbget/password" = {};
+    secrets."media/nzbget/news_server/host"     = {};
+    secrets."media/nzbget/news_server/username" = {};
+    secrets."media/nzbget/news_server/password" = {};
 
     secrets."qbittorrent/password_hash" = {};
     secrets."qbittorrent/password" = {};
