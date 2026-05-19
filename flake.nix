@@ -82,7 +82,7 @@
             # to override sops.package, not the overlay.
             ({ pkgs, ... }: {
               sops.package = (pkgs.callPackage (sops-nix + "/pkgs/sops-install-secrets") {
-                vendorHash = "sha256-HgwFoMbhLmyFnym+G4B+ID7R7V4Xj1EEmil+LnCgpXg=";
+                vendorHash = "sha256-PAq52bWVHqjBsPuWB86L+N0EYSUwmTUef8IFJTtRUVo=";
               }).overrideAttrs (old: {
                 patches = (old.patches or []) ++ [ ./nix/patches/sops-always-recreate-symlink.patch ];
               });
