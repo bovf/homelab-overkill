@@ -107,6 +107,18 @@
     secrets."database/postgres/ezbookkeeping/password" = {};
     secrets."finance/ezbookkeeping/secret_key" = {};
 
+    # Matrix (Synapse homeserver + Element Web + coturn).
+    secrets."pangolin/resources/matrix/domain" = {};
+    secrets."pangolin/resources/element/domain" = {};
+    secrets."pangolin/resources/turn/domain" = {};
+    secrets."pangolin/resources/coturn/port" = {};
+    secrets."database/postgres/synapse/password" = {};
+    secrets."matrix/synapse/signing_key" = {};
+    secrets."matrix/synapse/registration_shared_secret" = {};
+    secrets."matrix/synapse/macaroon_secret_key" = {};
+    secrets."matrix/synapse/form_secret" = {};
+    secrets."matrix/turn_shared_secret" = {};
+
     secrets."ssh_keys/dobrynikolov" = {};
     secrets."ssh_keys/dobrynikolov.pub" = {};
     secrets."ssh_keys/engineer" = {};

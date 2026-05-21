@@ -64,6 +64,7 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 | Homepage          | Dashboard                                            | Active   |
 | whoami            | Personal blog (auto-deploys on each main commit)     | Active   |
 | ezBookkeeping     | Personal finance / bookkeeping (Postgres-backed)     | Active   |
+| Matrix            | Private Synapse homeserver + Element Web + coturn    | Active   |
 | pangolin-kwg      | Host-side kernel WG client (engineer ↔ pangolin VPS) | Active   |
 | newt-cicd         | In-cluster userspace WG for CI-managed gitops flow   | Active   |
 | MetalLB           | L2-mode LoadBalancer for per-service LAN IPs         | Active   |
@@ -248,6 +249,7 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │       ├── mumble/            # voice server
 │       ├── dns/               # pihole
 │       ├── finance/           # ezbookkeeping
+│       ├── matrix/            # synapse, element, coturn
 │       ├── homepage/          # dashboard
 │       └── blog/              # whoami personal blog
 │

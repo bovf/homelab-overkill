@@ -10,5 +10,7 @@
     ./gitlab-init-job.nix
     ./ezbookkeeping-secret.nix
     ./ezbookkeeping-init-job.nix
+    ./synapse-secret.nix
+    ./synapse-init-job.nix
   ];
 }

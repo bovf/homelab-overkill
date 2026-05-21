@@ -11,6 +11,7 @@
     ./homepage
     ./intel-device-plugins
     ./kube-system
+    ./matrix
     ./media
     ./monitoring
     ./mumble
