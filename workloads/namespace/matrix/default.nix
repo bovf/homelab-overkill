@@ -7,6 +7,7 @@
     ./apps/synapse
     ./apps/coturn
     ./apps/element
+    ./apps/synapse-admin
   ];
 
   services.k3s.manifests.matrix-ns.content = {

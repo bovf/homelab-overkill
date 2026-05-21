@@ -118,6 +118,7 @@
     secrets."matrix/synapse/macaroon_secret_key" = {};
     secrets."matrix/synapse/form_secret" = {};
     secrets."matrix/turn_shared_secret" = {};
+    secrets."pangolin/resources/synapse_admin/domain" = {};
 
     secrets."ssh_keys/dobrynikolov" = {};
     secrets."ssh_keys/dobrynikolov.pub" = {};
