@@ -6,7 +6,7 @@
       apiVersion: traefik.io/v1alpha1
       kind: Middleware
       metadata:
-        name: matrix-element-headers
+        name: element-headers
         namespace: matrix
       spec:
         headers:

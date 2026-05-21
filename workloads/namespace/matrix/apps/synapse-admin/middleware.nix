@@ -6,7 +6,7 @@
       apiVersion: traefik.io/v1alpha1
       kind: Middleware
       metadata:
-        name: matrix-synapse-admin-headers
+        name: synapse-admin-headers
         namespace: matrix
       spec:
         headers:

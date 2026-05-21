@@ -1,7 +1,9 @@
 { nodeName, ... }:
 
 {
-  workloads.pangolinResources.synapse_admin = {
+  # Hyphen, not underscore: the lan-services lib derives a Kubernetes
+  # Service name (`<key>-lan`) from this key, and `_` is illegal there.
+  workloads.pangolinResources."synapse-admin" = {
     name           = "Synapse Admin";
     protocol       = "http";
     domainKey      = "pangolin/resources/synapse_admin/domain";
