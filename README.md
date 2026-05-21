@@ -63,6 +63,7 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 | Pi-hole           | DNS / ad blocking + auto-aggregated LAN A records    | Active*  |
 | Homepage          | Dashboard                                            | Active   |
 | whoami            | Personal blog (auto-deploys on each main commit)     | Active   |
+| ezBookkeeping     | Personal finance / bookkeeping (Postgres-backed)     | Active   |
 | pangolin-kwg      | Host-side kernel WG client (engineer ↔ pangolin VPS) | Active   |
 | newt-cicd         | In-cluster userspace WG for CI-managed gitops flow   | Active   |
 | MetalLB           | L2-mode LoadBalancer for per-service LAN IPs         | Active   |
@@ -246,6 +247,7 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │       ├── cert-manager/      # letsencrypt cluster issuer
 │       ├── mumble/            # voice server
 │       ├── dns/               # pihole
+│       ├── finance/           # ezbookkeeping
 │       ├── homepage/          # dashboard
 │       └── blog/              # whoami personal blog
 │

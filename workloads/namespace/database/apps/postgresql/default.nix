@@ -8,5 +8,7 @@
     ./secret.nix
     ./gitlab-secret.nix
     ./gitlab-init-job.nix
+    ./ezbookkeeping-secret.nix
+    ./ezbookkeeping-init-job.nix
   ];
 }

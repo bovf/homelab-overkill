@@ -103,6 +103,10 @@
 
     secrets."pangolin/resources/whoami/domain" = {};
 
+    secrets."pangolin/resources/ezbookkeeping/domain" = {};
+    secrets."database/postgres/ezbookkeeping/password" = {};
+    secrets."finance/ezbookkeeping/secret_key" = {};
+
     secrets."ssh_keys/dobrynikolov" = {};
     secrets."ssh_keys/dobrynikolov.pub" = {};
     secrets."ssh_keys/engineer" = {};

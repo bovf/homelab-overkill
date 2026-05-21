@@ -7,6 +7,7 @@
     ./cicd
     ./database
     ./dns
+    ./finance
     ./homepage
     ./intel-device-plugins
     ./kube-system
