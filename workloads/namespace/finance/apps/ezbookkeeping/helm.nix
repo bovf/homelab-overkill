@@ -92,7 +92,11 @@
                 - "100.89.128.16"
               ports:
                 http:
-                  port: 8080
+                  # Unique tunnel-IP port — every kwg-routed service shares
+                  # the 100.89.128.16 externalIP, so ports must not collide
+                  # (8080 clashed with qbittorrent). Pod still listens 8080.
+                  port: 8093
+                  targetPort: 8080
                   protocol: TCP
 
           ingress:

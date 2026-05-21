@@ -10,7 +10,7 @@
     ssoEnabled     = false;
     targetHostname = "element.matrix.svc.cluster.local";
     targetMethod   = "http";
-    targetPort     = 80;
+    targetPort     = 8091;          # matches the Service's tunnel-IP port
     newtInstance   = "engineer-kernel";
     viaKernelWg    = true;
     lanIP          = "192.168.2.61";

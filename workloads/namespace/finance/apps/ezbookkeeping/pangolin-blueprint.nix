@@ -10,7 +10,7 @@
     ssoEnabled     = true;
     targetHostname = "ezbookkeeping.finance.svc.cluster.local";
     targetMethod   = "http";
-    targetPort     = 8080;
+    targetPort     = 8093;          # matches the Service's tunnel-IP port
     newtInstance   = "engineer-kernel";
     viaKernelWg    = true;
     lanIP          = "192.168.2.50";

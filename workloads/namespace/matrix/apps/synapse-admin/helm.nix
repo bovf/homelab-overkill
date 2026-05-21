@@ -61,7 +61,10 @@
                 - "100.89.128.16"
               ports:
                 http:
-                  port: 80
+                  # Unique tunnel-IP port — every kwg-routed service shares
+                  # the 100.89.128.16 externalIP, so ports must not collide.
+                  port: 8092
+                  targetPort: 80
                   protocol: TCP
 
           ingress:
