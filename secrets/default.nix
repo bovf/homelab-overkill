@@ -107,11 +107,11 @@
     secrets."database/postgres/ezbookkeeping/password" = {};
     secrets."finance/ezbookkeeping/secret_key" = {};
 
-    # Matrix (Synapse homeserver + Element Web + coturn).
+    # Matrix (Synapse homeserver + Element Web). coturn/VoIP runs on the
+    # Pangolin VPS; turn_shared_secret is shared with it.
     secrets."pangolin/resources/matrix/domain" = {};
     secrets."pangolin/resources/element/domain" = {};
     secrets."pangolin/resources/turn/domain" = {};
-    secrets."pangolin/resources/coturn/port" = {};
     secrets."database/postgres/synapse/password" = {};
     secrets."matrix/synapse/signing_key" = {};
     secrets."matrix/synapse/registration_shared_secret" = {};

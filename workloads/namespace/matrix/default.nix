@@ -1,11 +1,10 @@
-# Matrix namespace — private Synapse homeserver, Element Web client,
-# and a coturn TURN server for voice/video calls.
+# Matrix namespace — private Synapse homeserver, Element Web client, and
+# synapse-admin. VoIP (coturn) runs on the Pangolin VPS, not in-cluster.
 { ... }:
 
 {
   imports = [
     ./apps/synapse
-    ./apps/coturn
     ./apps/element
     ./apps/synapse-admin
   ];
