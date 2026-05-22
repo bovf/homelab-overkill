@@ -3,6 +3,7 @@
 let
   matrixDomain  = config.sops.placeholder."pangolin/resources/matrix/domain";
   turnDomain    = config.sops.placeholder."pangolin/resources/turn/domain";
+  lkJwtDomain   = config.sops.placeholder."pangolin/resources/livekit_jwt/domain";
 in
 {
   # Full Synapse config + server signing key, rendered on the node so no
@@ -71,6 +72,14 @@ in
           turn_shared_secret: "${config.sops.placeholder."matrix/turn_shared_secret"}"
           turn_user_lifetime: 86400000
           turn_allow_guests: false
+
+          # Element Call / MatrixRTC — advertised in /.well-known/matrix/client
+          # so Element X and Element Web discover the LiveKit SFU. The
+          # lk-jwt-service runs on the Pangolin VPS (pangolin-vps repo).
+          extra_well_known_client_content:
+            "org.matrix.msc4143.rtc_foci":
+              - type: "livekit"
+                livekit_service_url: "https://${lkJwtDomain}"
         log.config: |
           version: 1
           formatters:

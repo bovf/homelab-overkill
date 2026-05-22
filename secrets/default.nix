@@ -119,6 +119,7 @@
     secrets."matrix/synapse/form_secret" = {};
     secrets."matrix/turn_shared_secret" = {};
     secrets."pangolin/resources/synapse_admin/domain" = {};
+    secrets."pangolin/resources/livekit_jwt/domain" = {};
 
     secrets."ssh_keys/dobrynikolov" = {};
     secrets."ssh_keys/dobrynikolov.pub" = {};
