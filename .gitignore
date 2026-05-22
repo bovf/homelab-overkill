@@ -4,6 +4,10 @@
 
 # Never commit actual secrets (only encrypted SOPS files allowed)
 secrets/secrets.yaml.dec
+# Scratch decrypts of secrets.yaml (e.g. `sops -d secrets/secrets.yaml > a.yaml`)
+/a.yaml
+*.dec.yaml
+*.decrypted
 secrets/*.key
 secrets/*.pem
 *.age-key
