@@ -49,6 +49,12 @@ in
           media_store_path: /data/media
           max_upload_size: 100M
 
+          # Purge cached remote media after 90d to bound /data/media growth.
+          # Local uploads are kept (no local_media_lifetime) so chat history
+          # never loses its attachments.
+          media_retention:
+            remote_media_lifetime: 90d
+
           # Private homeserver: registration is closed (admins create
           # accounts via register_new_matrix_user, which uses the shared
           # secret below) and federation is disabled entirely.
