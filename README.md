@@ -61,10 +61,9 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 | intel-gpu-exporter| Intel iGPU utilisation metrics                       | Active   |
 | local-path-du     | Per-PVC disk usage exporter (du-based)               | Active   |
 | Pi-hole           | DNS / ad blocking + auto-aggregated LAN A records    | Active*  |
-| Homepage          | Dashboard                                            | Active   |
 | whoami            | Personal blog (auto-deploys on each main commit)     | Active   |
 | ezBookkeeping     | Personal finance / bookkeeping (Postgres-backed)     | Active   |
-| Matrix            | Private Synapse homeserver + Element Web + coturn    | Active   |
+| Matrix            | Private Synapse homeserver + Element Web             | Active   |
 | pangolin-kwg      | Host-side kernel WG client (engineer ↔ pangolin VPS) | Active   |
 | newt-cicd         | In-cluster userspace WG for CI-managed gitops flow   | Active   |
 | MetalLB           | L2-mode LoadBalancer for per-service LAN IPs         | Active   |
@@ -246,11 +245,9 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │       │                      # version-checker, nova, intel-gpu-exporter,
 │       │                      # local-path-du-exporter, grafana-dashboards
 │       ├── cert-manager/      # letsencrypt cluster issuer
-│       ├── mumble/            # voice server
 │       ├── dns/               # pihole
 │       ├── finance/           # ezbookkeeping
-│       ├── matrix/            # synapse, element, coturn
-│       ├── homepage/          # dashboard
+│       ├── matrix/            # synapse, element, synapse-admin
 │       └── blog/              # whoami personal blog
 │
 ├── common/                    # Shared NixOS modules (base, services, users)

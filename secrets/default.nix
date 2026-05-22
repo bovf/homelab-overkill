@@ -24,7 +24,6 @@
     secrets."pangolin/resources/gitlab/domain"           = {};
     secrets."pangolin/resources/registry/domain"         = {};
     secrets."pangolin/resources/postgres/domain"         = {};
-    secrets."pangolin/resources/mumble/domain"           = {};
     secrets."pangolin/resources/traefik_dashboard/domain" = {};
 
     # Pangolin TCP tunnel ports. The matching domain keys are consumed
@@ -98,8 +97,6 @@
 
     secrets."pihole/web_password" = {};
     secrets."pangolin/resources/pihole/domain" = {};
-
-    secrets."pangolin/resources/homepage/domain" = {};
 
     secrets."pangolin/resources/whoami/domain" = {};
 

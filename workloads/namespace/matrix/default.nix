@@ -1,5 +1,5 @@
 # Matrix namespace — private Synapse homeserver, Element Web client, and
-# synapse-admin. VoIP (coturn) runs on the Pangolin VPS, not in-cluster.
+# synapse-admin. Voice/video is Element Call (LiveKit SFU on the Pangolin VPS).
 { ... }:
 
 {
