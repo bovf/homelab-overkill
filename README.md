@@ -51,6 +51,7 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 | Jellyseerr        | Media request portal                                 | Active   |
 | qBittorrent       | Torrent client                                       | Active   |
 | NZBGet            | Usenet client                                        | Active   |
+| Sportarr          | Sports event automation (*arr-style)                 | Active   |
 | pgAdmin           | Postgres web admin                                   | Active   |
 | Grafana           | Metrics, logs, dashboards                            | Active   |
 | Prometheus        | Metrics store                                        | Active   |
@@ -59,11 +60,14 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 | version-checker   | Image drift metrics                                  | Active   |
 | nova              | Helm chart drift (weekly CronJob)                    | Active   |
 | intel-gpu-exporter| Intel iGPU utilisation metrics                       | Active   |
+| intel-gpu-plugin  | Exposes the Intel iGPU to pods (QuickSync transcode) | Active   |
 | local-path-du     | Per-PVC disk usage exporter (du-based)               | Active   |
 | Pi-hole           | DNS / ad blocking + auto-aggregated LAN A records    | Active*  |
 | whoami            | Personal blog (auto-deploys on each main commit)     | Active   |
 | ezBookkeeping     | Personal finance / bookkeeping (Postgres-backed)     | Active   |
-| Matrix            | Private Synapse homeserver + Element Web             | Active   |
+| Matrix            | Synapse homeserver + Element Web + synapse-admin     | Active   |
+| Squid             | HTTP forward proxy (LAN egress)                      | Active   |
+| ncps              | Nix binary cache proxy (caches `cache.nixos.org`)    | Active   |
 | pangolin-kwg      | Host-side kernel WG client (engineer ↔ pangolin VPS) | Active   |
 | newt-cicd         | In-cluster userspace WG for CI-managed gitops flow   | Active   |
 | MetalLB           | L2-mode LoadBalancer for per-service LAN IPs         | Active   |
@@ -81,14 +85,14 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 
 - NixOS (or Linux with Nix)
 - Basic familiarity with Nix and Kubernetes
-- A VPS running Pangolin (this flake's `engineer-kernel` site connects via Basic-WireGuard)
+- A VPS running Pangolin (this flake's `pangolin-kwg` site connects via kernel WireGuard)
 
 ### Setup
 
 **1. Clone the repo**
 ```bash
-git clone https://github.com/dobryops/homelab.git
-cd homelab
+git clone https://github.com/bovf/homelab-overkill.git
+cd homelab-overkill
 ```
 
 **2. Pull secrets from Bitwarden**
@@ -217,30 +221,35 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │
 ├── nodes/                     # NixOS machines
 │   ├── engineer/              # Main node config
+│   │   ├── default.nix
 │   │   ├── hardware.nix
 │   │   ├── disko.nix
 │   │   ├── services.nix
 │   │   ├── pangolin-kwg.nix         # kwg client + blueprint-sync wiring
 │   │   ├── pangolin-resources.nix   # Host-level TCP resources (ssh, k8s API)
 │   │   └── metallb.nix              # MetalLB pool config
-│   └── sentry-level-01/       # Future nodes
+│   └── sentry-level-01/       # Future worker node (scaffolded, disabled)
 │
 ├── infrastructure/            # Host-level cluster + tunnel modules
-│   ├── k3s/                   # Cluster server config
+│   ├── k3s/                   # Cluster config (server + agent roles)
 │   │   ├── cluster.nix
 │   │   ├── networking.nix
-│   │   └── server/
+│   │   ├── manifest-cleanup.nix     # Prunes orphaned manifest symlinks
+│   │   ├── server/
+│   │   └── worker/
 │   ├── metallb/               # L2 LoadBalancer (helm + IPAddressPool + L2Advertisement)
 │   └── pangolin-kwg/          # Host-side kernel WireGuard + REST blueprint sync
 │
 ├── workloads/                 # Kubernetes namespaces & apps
 │   ├── default.nix
+│   ├── lib/                   # lan-services + pangolin-blueprint generators
 │   └── namespace/
-│       ├── kube-system/       # traefik, nfd, intel-plugins
+│       ├── kube-system/       # traefik, node-feature-discovery
+│       ├── intel-device-plugins/  # Intel GPU device plugin + operator
 │       ├── database/          # postgresql, minio (+ loki bucket init), pgadmin
-│       ├── cicd/              # gitlab, argocd, reloader, keel
-│       ├── media/             # jellyfin, sonarr, radarr, prowlarr,
-│       │                      # bazarr, jellyseerr, qbittorrent, nzbget
+│       ├── cicd/              # gitlab, argocd, reloader, keel, newt
+│       ├── media/             # jellyfin, sonarr, radarr, prowlarr, bazarr,
+│       │                      # jellyseerr, qbittorrent, nzbget, sportarr
 │       ├── monitoring/        # kube-prometheus-stack, loki, alloy,
 │       │                      # version-checker, nova, intel-gpu-exporter,
 │       │                      # local-path-du-exporter, grafana-dashboards
@@ -248,6 +257,7 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │       ├── dns/               # pihole
 │       ├── finance/           # ezbookkeeping
 │       ├── matrix/            # synapse, element, synapse-admin
+│       ├── proxy/             # squid, ncps
 │       └── blog/              # whoami personal blog
 │
 ├── common/                    # Shared NixOS modules (base, services, users)
@@ -269,7 +279,7 @@ workloads/namespace/<ns>/apps/<app>/
 ├── helm.nix                 # HelmChart manifest  (via sops.templates)
 ├── middleware.nix           # Traefik Middleware  (via sops.templates)
 ├── secret.nix               # K8s Secrets with injected credentials
-├── pangolin-blueprint.nix   # Registers app as a Pangolin resource
+├── pangolin-blueprint.nix   # (optional) Registers app as a Pangolin resource
 ├── local-dns.nix            # (optional) Pi-hole LAN A record
 └── external-services.nix    # (optional) Sibling Service for charts whose
                              #   `service.externalIPs` doesn't propagate
