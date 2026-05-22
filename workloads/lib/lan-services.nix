@@ -16,14 +16,15 @@ let
   };
 
   # Resource keys may contain underscores (e.g. minio_console) since they
-  # double as Pangolin niceIds — but Kubernetes Service names must be
-  # DNS-1035 labels (no underscores). Sanitise before deriving the name,
-  # otherwise the manifest silently fails to apply and the LAN IP is dead.
+  # double as Pangolin niceIds — but neither a Kubernetes Service name nor
+  # the k3s Addon name (derived from the manifest key) may contain one.
+  # Sanitise both, otherwise k3s rejects the manifest and the LAN IP is dead.
   mkLanService = name: r:
   let
-    svc = "${replaceStrings [ "_" ] [ "-" ] name}-lan";
+    safeName = replaceStrings [ "_" ] [ "-" ] name;
+    svc      = "${safeName}-lan";
   in {
-    name  = "${name}-lan-service";
+    name  = "${safeName}-lan-service";
     value.content = {
       apiVersion = "v1";
       kind       = "Service";
