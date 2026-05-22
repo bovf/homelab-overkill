@@ -30,6 +30,9 @@ in
             "show_labs_settings": false,
             "room_directory": {
               "servers": ["${matrixDomain}"]
+            },
+            "element_call": {
+              "use_exclusively": true
             }
           }
     '';
