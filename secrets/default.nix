@@ -107,17 +107,15 @@
     secrets."database/postgres/ezbookkeeping/password" = {};
     secrets."finance/ezbookkeeping/secret_key" = {};
 
-    # Matrix (Synapse homeserver + Element Web). coturn/VoIP runs on the
-    # Pangolin VPS; turn_shared_secret is shared with it.
+    # Matrix (Synapse homeserver + Element Web). VoIP (Element Call / LiveKit)
+    # runs on the Pangolin VPS; livekit_jwt/domain points clients at it.
     secrets."pangolin/resources/matrix/domain" = {};
     secrets."pangolin/resources/element/domain" = {};
-    secrets."pangolin/resources/turn/domain" = {};
     secrets."database/postgres/synapse/password" = {};
     secrets."matrix/synapse/signing_key" = {};
     secrets."matrix/synapse/registration_shared_secret" = {};
     secrets."matrix/synapse/macaroon_secret_key" = {};
     secrets."matrix/synapse/form_secret" = {};
-    secrets."matrix/turn_shared_secret" = {};
     secrets."pangolin/resources/synapse_admin/domain" = {};
     secrets."pangolin/resources/livekit_jwt/domain" = {};
 

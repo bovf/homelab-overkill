@@ -2,7 +2,6 @@
 
 let
   matrixDomain  = config.sops.placeholder."pangolin/resources/matrix/domain";
-  turnDomain    = config.sops.placeholder."pangolin/resources/turn/domain";
   lkJwtDomain   = config.sops.placeholder."pangolin/resources/livekit_jwt/domain";
 in
 {
@@ -62,16 +61,6 @@ in
 
           macaroon_secret_key: "${config.sops.placeholder."matrix/synapse/macaroon_secret_key"}"
           form_secret: "${config.sops.placeholder."matrix/synapse/form_secret"}"
-
-          # VoIP — coturn runs directly on the Pangolin VPS (pangolin-vps
-          # repo), so media is friend->VPS->friend instead of detouring
-          # through this cluster over the tunnel.
-          turn_uris:
-            - "turn:${turnDomain}:3478?transport=udp"
-            - "turn:${turnDomain}:3478?transport=tcp"
-          turn_shared_secret: "${config.sops.placeholder."matrix/turn_shared_secret"}"
-          turn_user_lifetime: 86400000
-          turn_allow_guests: false
 
           # Element Call / MatrixRTC — advertised in /.well-known/matrix/client
           # so Element X and Element Web discover the LiveKit SFU. The
