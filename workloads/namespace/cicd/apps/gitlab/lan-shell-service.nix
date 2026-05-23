@@ -13,7 +13,7 @@
         name: gitlab-shell-lan
         namespace: cicd
         annotations:
-          metallb.io/allow-shared-ip: "gitlab"
+          metallb.io/allow-shared-ip: "gitlab-lan"
         labels:
           app: gitlab-shell-lan
           homelab.dobryops.com/lan-target: gitlab-gitlab-shell
