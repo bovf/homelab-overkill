@@ -1,0 +1,204 @@
+{
+  "name": "home",
+  "isPublic": false,
+  "pageTitle": "Home",
+  "metaTitle": "Home — dobryops",
+  "primaryColor": "#fa5252",
+  "secondaryColor": "#fd7e14",
+  "opacity": 60,
+  "customCss": "",
+  "logoImageUrl": null,
+  "backgroundImageUrl": null,
+  "faviconImageUrl": null,
+  "iconColor": null,
+  "columnCount": 12,
+  "sections": [
+    {
+      "kind": "category",
+      "name": "Quick search",
+      "position": 0,
+      "items": [
+        {
+          "kind": "widget",
+          "type": "search",
+          "options": {
+            "engines": [
+              { "name": "DuckDuckGo", "url": "https://duckduckgo.com/?q=%s", "shortcut": "ddg" },
+              { "name": "Google", "url": "https://www.google.com/search?q=%s", "shortcut": "g" },
+              { "name": "Brave", "url": "https://search.brave.com/search?q=%s", "shortcut": "b" }
+            ],
+            "defaultEngine": "DuckDuckGo",
+            "openInNewTab": false,
+            "bangs": true
+          },
+          "x": 0, "y": 0, "width": 12, "height": 1,
+          "integrationIds": []
+        }
+      ]
+    },
+    {
+      "kind": "category",
+      "name": "At a glance",
+      "position": 1,
+      "items": [
+        {
+          "kind": "widget",
+          "type": "weather",
+          "options": {
+            "displayInFahrenheit": false,
+            "location": "Sofia,BG",
+            "showCity": true,
+            "forecastDays": 3
+          },
+          "x": 0, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "clock",
+          "options": {
+            "timezones": [
+              { "label": "Sofia",   "timezone": "Europe/Sofia" },
+              { "label": "Helsinki","timezone": "Europe/Helsinki" }
+            ],
+            "format24h": true,
+            "showDate": true
+          },
+          "x": 3, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "calendar",
+          "options": {
+            "firstDayOfWeek": "monday",
+            "showWeekNumber": false
+          },
+          "x": 6, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "dnsHoleSummary",
+          "options": {
+            "usePiHoleColors": true,
+            "showTotalDnsQueries": true,
+            "showAdsBlockedTodayPercentage": true
+          },
+          "x": 9, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        }
+      ]
+    },
+    {
+      "kind": "category",
+      "name": "Node",
+      "position": 2,
+      "items": [
+        {
+          "kind": "widget",
+          "type": "iframe",
+          "options": {
+            "embedUrl": "https://grafana.dobryops.com/d/node-overview/node-overview?kiosk=tv&theme=dark&from=now-1h&to=now&refresh=30s",
+            "allowFullScreen": true,
+            "allowAutoPlay": false,
+            "allowTransparency": true,
+            "allowScrolling": false,
+            "allowPayment": false,
+            "allowAutoPay": false,
+            "allowCamera": false,
+            "allowMicrophone": false,
+            "allowGeolocation": false
+          },
+          "x": 0, "y": 0, "width": 12, "height": 5,
+          "integrationIds": []
+        }
+      ]
+    },
+    {
+      "kind": "category",
+      "name": "Bookmarks",
+      "position": 3,
+      "items": [
+        {
+          "kind": "app",
+          "options": {
+            "name": "GitHub",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/github.png",
+            "internalUrl": null,
+            "externalUrl": "https://github.com",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 0, "y": 0, "width": 2, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Cloudflare",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/cloudflare.png",
+            "internalUrl": null,
+            "externalUrl": "https://dash.cloudflare.com",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 2, "y": 0, "width": 2, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Hetzner",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/hetzner.png",
+            "internalUrl": null,
+            "externalUrl": "https://console.hetzner.cloud",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 4, "y": 0, "width": 2, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Gmail",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/google-mail.png",
+            "internalUrl": null,
+            "externalUrl": "https://mail.google.com",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 6, "y": 0, "width": 2, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Reddit",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/reddit.png",
+            "internalUrl": null,
+            "externalUrl": "https://www.reddit.com",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 8, "y": 0, "width": 2, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "YouTube",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/youtube.png",
+            "internalUrl": null,
+            "externalUrl": "https://www.youtube.com",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 10, "y": 0, "width": 2, "height": 2,
+          "integrationIds": []
+        }
+      ]
+    }
+  ]
+}

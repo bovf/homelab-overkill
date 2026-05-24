@@ -8,6 +8,7 @@
     ./database
     ./dns
     ./finance
+    ./homarr
     ./intel-device-plugins
     ./kube-system
     ./matrix

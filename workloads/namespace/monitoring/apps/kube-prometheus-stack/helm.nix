@@ -96,6 +96,16 @@
               existingSecret: grafana-admin-password
               userKey: admin-user
               passwordKey: admin-password
+            # Point Grafana at the sibling grafana-image-renderer Service
+            # so `/render/...` URLs return PNGs at a fixed desktop viewport
+            # (defeats responsive single-column stacking for iOS widgets).
+            # RENDERER_TOKEN must be any non-default string or Grafana 10+
+            # refuses to start. Renderer side doesn't enforce AUTH_TOKEN,
+            # both endpoints are ClusterIP-only.
+            env:
+              GF_RENDERING_SERVER_URL: "http://grafana-image-renderer.monitoring.svc.cluster.local:8081/render"
+              GF_RENDERING_CALLBACK_URL: "http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local:32000/"
+              GF_RENDERING_RENDERER_TOKEN: "${config.sops.placeholder."monitoring/grafana/renderer_token"}"
             # External URL for share links / OAuth callbacks.
             grafana.ini:
               server:

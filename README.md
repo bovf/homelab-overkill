@@ -65,7 +65,10 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 | Pi-hole           | DNS / ad blocking + auto-aggregated LAN A records    | Active*  |
 | whoami            | Personal blog (auto-deploys on each main commit)     | Active   |
 | ezBookkeeping     | Personal finance / bookkeeping (Postgres-backed)     | Active   |
-| Matrix            | Synapse homeserver + Element Web + synapse-admin     | Active   |
+| Matrix            | Synapse + Element Web + synapse-admin (fed-whitelist)| Active   |
+| Element Call      | LiveKit SFU + lk-jwt — Matrix RTC (runs on VPS)      | Active   |
+| Homarr            | Self-hosted homepage / launcher (`home.dobryops.com`)| Active   |
+| grafana-image-renderer | Headless-chromium PNG renderer for Grafana panels | Active   |
 | Squid             | HTTP forward proxy (LAN egress)                      | Active   |
 | ncps              | Nix binary cache proxy (caches `cache.nixos.org`)    | Active   |
 | pangolin-kwg      | Host-side kernel WG client (engineer ↔ pangolin VPS) | Active   |
@@ -251,20 +254,27 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │       ├── media/             # jellyfin, sonarr, radarr, prowlarr, bazarr,
 │       │                      # jellyseerr, qbittorrent, nzbget, sportarr
 │       ├── monitoring/        # kube-prometheus-stack, loki, alloy,
-│       │                      # version-checker, nova, intel-gpu-exporter,
+│       │                      # grafana-image-renderer, version-checker,
+│       │                      # nova, intel-gpu-exporter,
 │       │                      # local-path-du-exporter, grafana-dashboards
+│       │                      #   (incl. node-overview desktop +
+│       │                      #    node-overview-mobile-{s,m,l})
 │       ├── cert-manager/      # letsencrypt cluster issuer
 │       ├── dns/               # pihole
 │       ├── finance/           # ezbookkeeping
 │       ├── matrix/            # synapse, element, synapse-admin
+│       ├── homarr/            # homepage / launcher (home.dobryops.com)
 │       ├── proxy/             # squid, ncps
 │       └── blog/              # whoami personal blog
 │
 ├── common/                    # Shared NixOS modules (base, services, users)
 │
-└── secrets/                   # SOPS-encrypted secrets
-    ├── secrets.yaml           # Encrypted values (age)
-    └── default.nix            # sops.secrets declarations
+├── secrets/                   # SOPS-encrypted secrets
+│   ├── secrets.yaml           # Encrypted values (age)
+│   └── default.nix            # sops.secrets declarations
+│
+└── scripts/                   # One-shot ops helpers
+    └── homarr-seed-boards.sh  # Reseeds Homarr boards via SQLite
 ```
 
 ---

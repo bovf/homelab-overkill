@@ -1,0 +1,285 @@
+{
+  "name": "infrastructure",
+  "isPublic": false,
+  "pageTitle": "Infrastructure",
+  "metaTitle": "Infrastructure — dobryops",
+  "primaryColor": "#37b24d",
+  "secondaryColor": "#0ca678",
+  "opacity": 60,
+  "customCss": "",
+  "logoImageUrl": null,
+  "backgroundImageUrl": null,
+  "faviconImageUrl": null,
+  "iconColor": null,
+  "columnCount": 12,
+  "sections": [
+    {
+      "kind": "category",
+      "name": "Observability",
+      "position": 0,
+      "items": [
+        {
+          "kind": "app",
+          "options": {
+            "name": "Grafana",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/grafana.png",
+            "internalUrl": "http://kube-prometheus-stack-grafana.monitoring.svc.cluster.local",
+            "externalUrl": "https://grafana.dobryops.com",
+            "openInNewTab": true,
+            "description": "Dashboards"
+          },
+          "x": 0, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Prometheus",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/prometheus.png",
+            "internalUrl": null,
+            "externalUrl": "https://prometheus.dobryops.com",
+            "openInNewTab": true,
+            "description": "Metrics"
+          },
+          "x": 3, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Alertmanager",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/prometheus.png",
+            "internalUrl": null,
+            "externalUrl": "https://alertmanager.dobryops.com",
+            "openInNewTab": true,
+            "description": "Alerts"
+          },
+          "x": 6, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Traefik",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/traefik.png",
+            "internalUrl": null,
+            "externalUrl": "https://traefik.dobryops.com",
+            "openInNewTab": true,
+            "description": "Ingress"
+          },
+          "x": 9, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "iframe",
+          "options": {
+            "embedUrl": "https://grafana.dobryops.com/d/node-overview/node-overview?kiosk=tv&theme=dark&from=now-1h&to=now",
+            "allowFullScreen": true,
+            "allowScrolling": false
+          },
+          "x": 0, "y": 2, "width": 12, "height": 5,
+          "integrationIds": []
+        }
+      ]
+    },
+    {
+      "kind": "category",
+      "name": "Source control & CD",
+      "position": 1,
+      "items": [
+        {
+          "kind": "app",
+          "options": {
+            "name": "GitLab",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/gitlab.png",
+            "internalUrl": "http://gitlab-webservice-default.cicd.svc.cluster.local:8181",
+            "externalUrl": "https://gitlab.dobryops.com",
+            "openInNewTab": true,
+            "description": "Repos + CI"
+          },
+          "x": 0, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Container Registry",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/docker.png",
+            "internalUrl": null,
+            "externalUrl": "https://registry.dobryops.com",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 3, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "ArgoCD",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/argo-cd.png",
+            "internalUrl": null,
+            "externalUrl": "https://argocd.dobryops.com",
+            "openInNewTab": true,
+            "description": "GitOps"
+          },
+          "x": 6, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        }
+      ]
+    },
+    {
+      "kind": "category",
+      "name": "Storage & DB",
+      "position": 2,
+      "items": [
+        {
+          "kind": "app",
+          "options": {
+            "name": "MinIO",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/minio.png",
+            "internalUrl": null,
+            "externalUrl": "https://minio.dobryops.com",
+            "openInNewTab": true,
+            "description": "Object store"
+          },
+          "x": 0, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "MinIO Console",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/minio.png",
+            "internalUrl": null,
+            "externalUrl": "https://minio-console.dobryops.com",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 3, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "pgAdmin",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/pgadmin.png",
+            "internalUrl": null,
+            "externalUrl": "https://pgadmin.dobryops.com",
+            "openInNewTab": true,
+            "description": "Postgres UI"
+          },
+          "x": 6, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        }
+      ]
+    },
+    {
+      "kind": "category",
+      "name": "Network & edge",
+      "position": 3,
+      "items": [
+        {
+          "kind": "app",
+          "options": {
+            "name": "Pi-hole",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/pi-hole.png",
+            "internalUrl": "http://pihole-web.dns.svc.cluster.local",
+            "externalUrl": "https://pihole.dobryops.com",
+            "openInNewTab": true,
+            "description": "DNS / blocking"
+          },
+          "x": 0, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Pangolin",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/cloudflare-tunnel.png",
+            "internalUrl": null,
+            "externalUrl": "https://pangolin.dobryops.com",
+            "openInNewTab": true,
+            "description": "VPS reverse proxy"
+          },
+          "x": 3, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "dnsHoleControls",
+          "options": {},
+          "x": 6, "y": 0, "width": 6, "height": 2,
+          "integrationIds": []
+        }
+      ]
+    },
+    {
+      "kind": "category",
+      "name": "Matrix / Identity",
+      "position": 4,
+      "items": [
+        {
+          "kind": "app",
+          "options": {
+            "name": "Element",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/element.png",
+            "internalUrl": null,
+            "externalUrl": "https://element.dobryops.com",
+            "openInNewTab": true,
+            "description": "Matrix client"
+          },
+          "x": 0, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Synapse-admin",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/matrix.png",
+            "internalUrl": null,
+            "externalUrl": "https://synapse-admin.dobryops.com",
+            "openInNewTab": true,
+            "description": "Homeserver admin"
+          },
+          "x": 3, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        }
+      ]
+    },
+    {
+      "kind": "category",
+      "name": "Apps",
+      "position": 5,
+      "items": [
+        {
+          "kind": "app",
+          "options": {
+            "name": "ezBookkeeping",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/firefly-iii.png",
+            "internalUrl": null,
+            "externalUrl": "https://ezbookkeeping.dobryops.com",
+            "openInNewTab": true,
+            "description": "Finance"
+          },
+          "x": 0, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Sportarr",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/sonarr.png",
+            "internalUrl": null,
+            "externalUrl": "https://sportarr.dobryops.com",
+            "openInNewTab": true,
+            "description": "Sports recordings"
+          },
+          "x": 3, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        }
+      ]
+    }
+  ]
+}
