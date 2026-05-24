@@ -57,11 +57,13 @@ in
 
           # Private homeserver: registration is closed (admins create
           # accounts via register_new_matrix_user, which uses the shared
-          # secret below) and federation is disabled entirely.
+          # secret below) and federation is restricted to an explicit
+          # whitelist of peer homeservers.
           enable_registration: false
           registration_shared_secret: "${config.sops.placeholder."matrix/synapse/registration_shared_secret"}"
           report_stats: false
-          federation_domain_whitelist: []
+          federation_domain_whitelist:
+            - matrix.kedarlab.com
           trusted_key_servers: []
           suppress_key_server_warning: true
 
