@@ -53,6 +53,7 @@
     secrets."nordvpn/wireguard_private_key" = {};
 
     secrets."monitoring/grafana-admin-password" = {};
+    secrets."monitoring/grafana/renderer_token" = {};
     secrets."monitoring/alertmanager/smtp_password" = {};
 
     secrets."media/sonarr/api_key" = {};
@@ -115,6 +116,23 @@
     secrets."matrix/synapse/form_secret" = {};
     secrets."pangolin/resources/synapse_admin/domain" = {};
     secrets."pangolin/resources/livekit_jwt/domain" = {};
+
+    # Homarr — homepage / launcher. Integration API keys are entered via
+    # the Homarr web UI on first boot (stored in SQLite on the appdata PVC);
+    # they're declared here so a single `sops -d` reveals everything Homarr
+    # ever needs in one place.
+    secrets."homarr/auth_secret" = {};
+    secrets."homarr/db_encryption_key" = {};   # `openssl rand -hex 32` — 64-char hex
+    secrets."homarr/admin_password" = {};
+    secrets."homarr/integrations/openweathermap_key" = {};
+    secrets."homarr/integrations/jellyfin_key" = {};
+    secrets."homarr/integrations/jellyseerr_key" = {};
+    secrets."homarr/integrations/sonarr_key" = {};
+    secrets."homarr/integrations/radarr_key" = {};
+    secrets."homarr/integrations/bazarr_key" = {};
+    secrets."homarr/integrations/prowlarr_key" = {};
+    secrets."homarr/integrations/pihole_app_password" = {};
+    secrets."monitoring/grafana/embed_api_token" = {};
 
     secrets."ssh_keys/dobrynikolov" = {};
     secrets."ssh_keys/dobrynikolov.pub" = {};

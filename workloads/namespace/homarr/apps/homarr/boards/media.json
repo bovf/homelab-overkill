@@ -1,0 +1,177 @@
+{
+  "name": "media",
+  "isPublic": false,
+  "pageTitle": "Media",
+  "metaTitle": "Media — dobryops",
+  "primaryColor": "#9775fa",
+  "secondaryColor": "#5c7cfa",
+  "opacity": 60,
+  "customCss": "",
+  "logoImageUrl": null,
+  "backgroundImageUrl": null,
+  "faviconImageUrl": null,
+  "iconColor": null,
+  "columnCount": 12,
+  "sections": [
+    {
+      "kind": "category",
+      "name": "Watching",
+      "position": 0,
+      "items": [
+        {
+          "kind": "app",
+          "options": {
+            "name": "Jellyfin",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/jellyfin.png",
+            "internalUrl": "http://jellyfin.media.svc.cluster.local:8096",
+            "externalUrl": "https://jellyfin.dobryops.com",
+            "openInNewTab": true,
+            "description": "Movies and shows"
+          },
+          "x": 0, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "mediaServer",
+          "options": {},
+          "x": 3, "y": 0, "width": 6, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Jellyseerr",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/jellyseerr.png",
+            "internalUrl": "http://jellyseerr.media.svc.cluster.local:5055",
+            "externalUrl": "https://jellyseerr.dobryops.com",
+            "openInNewTab": true,
+            "description": "Requests"
+          },
+          "x": 9, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "mediaRequests-requestList",
+          "options": { "linksTargetNewTab": true },
+          "x": 0, "y": 2, "width": 12, "height": 3,
+          "integrationIds": []
+        }
+      ]
+    },
+    {
+      "kind": "category",
+      "name": "Library (*arr)",
+      "position": 1,
+      "items": [
+        {
+          "kind": "app",
+          "options": {
+            "name": "Sonarr",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/sonarr.png",
+            "internalUrl": "http://sonarr.media.svc.cluster.local:8989",
+            "externalUrl": "https://sonarr.dobryops.com",
+            "openInNewTab": true,
+            "description": "TV"
+          },
+          "x": 0, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Radarr",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/radarr.png",
+            "internalUrl": "http://radarr.media.svc.cluster.local:7878",
+            "externalUrl": "https://radarr.dobryops.com",
+            "openInNewTab": true,
+            "description": "Movies"
+          },
+          "x": 3, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Bazarr",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/bazarr.png",
+            "internalUrl": "http://bazarr.media.svc.cluster.local:6767",
+            "externalUrl": "https://bazarr.dobryops.com",
+            "openInNewTab": true,
+            "description": "Subtitles"
+          },
+          "x": 6, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Prowlarr",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/prowlarr.png",
+            "internalUrl": "http://prowlarr.media.svc.cluster.local:9696",
+            "externalUrl": "https://prowlarr.dobryops.com",
+            "openInNewTab": true,
+            "description": "Indexers"
+          },
+          "x": 9, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "calendar",
+          "options": { "firstDayOfWeek": "monday", "showWeekNumber": false },
+          "x": 0, "y": 2, "width": 12, "height": 3,
+          "integrationIds": []
+        }
+      ]
+    },
+    {
+      "kind": "category",
+      "name": "Downloaders",
+      "position": 2,
+      "items": [
+        {
+          "kind": "app",
+          "options": {
+            "name": "qBittorrent",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/qbittorrent.png",
+            "internalUrl": "http://qbittorrent.media.svc.cluster.local:8080",
+            "externalUrl": "https://qbittorrent.dobryops.com",
+            "openInNewTab": true,
+            "description": "Torrents"
+          },
+          "x": 0, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "torrents-status",
+          "options": { "displayCompletedTorrents": false },
+          "x": 3, "y": 0, "width": 6, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "NZBGet",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/nzbget.png",
+            "internalUrl": "http://nzbget.media.svc.cluster.local:6789",
+            "externalUrl": "https://nzbget.dobryops.com",
+            "openInNewTab": true,
+            "description": "Usenet"
+          },
+          "x": 9, "y": 0, "width": 3, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "usenet-history",
+          "options": {},
+          "x": 0, "y": 2, "width": 12, "height": 3,
+          "integrationIds": []
+        }
+      ]
+    }
+  ]
+}

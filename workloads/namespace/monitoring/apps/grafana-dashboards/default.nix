@@ -9,6 +9,8 @@
     ./storage.nix
     ./traefik.nix
     ./networking.nix
+    ./node-overview.nix
+    ./node-overview-mobile.nix
     ./version-checker.nix
   ];
 }

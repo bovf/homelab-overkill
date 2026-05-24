@@ -1,0 +1,130 @@
+{
+  "name": "read",
+  "isPublic": false,
+  "pageTitle": "Read",
+  "metaTitle": "Read — dobryops",
+  "primaryColor": "#f76707",
+  "secondaryColor": "#e8590c",
+  "opacity": 60,
+  "customCss": "",
+  "logoImageUrl": null,
+  "backgroundImageUrl": null,
+  "faviconImageUrl": null,
+  "iconColor": null,
+  "columnCount": 12,
+  "sections": [
+    {
+      "kind": "category",
+      "name": "Tech news",
+      "position": 0,
+      "items": [
+        {
+          "kind": "widget",
+          "type": "rss",
+          "options": {
+            "feedUrls": ["https://hnrss.org/frontpage"],
+            "refreshInterval": 600,
+            "displayItemCount": 12,
+            "feedTitle": "Hacker News"
+          },
+          "x": 0, "y": 0, "width": 4, "height": 5,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "rss",
+          "options": {
+            "feedUrls": ["https://lobste.rs/rss"],
+            "refreshInterval": 600,
+            "displayItemCount": 12,
+            "feedTitle": "Lobsters"
+          },
+          "x": 4, "y": 0, "width": 4, "height": 5,
+          "integrationIds": []
+        },
+        {
+          "kind": "widget",
+          "type": "rss",
+          "options": {
+            "feedUrls": ["https://www.phoronix.com/rss.php"],
+            "refreshInterval": 1800,
+            "displayItemCount": 10,
+            "feedTitle": "Phoronix"
+          },
+          "x": 8, "y": 0, "width": 4, "height": 5,
+          "integrationIds": []
+        }
+      ]
+    },
+    {
+      "kind": "category",
+      "name": "Personal",
+      "position": 1,
+      "items": [
+        {
+          "kind": "widget",
+          "type": "notebook",
+          "options": {
+            "showToolbar": true,
+            "allowReadOnlyCheck": false,
+            "content": "## Scratchpad\n\n- "
+          },
+          "x": 0, "y": 0, "width": 8, "height": 4,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Calendar",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/google-calendar.png",
+            "internalUrl": null,
+            "externalUrl": "https://calendar.google.com",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 8, "y": 0, "width": 2, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Gmail",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/google-mail.png",
+            "internalUrl": null,
+            "externalUrl": "https://mail.google.com",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 10, "y": 0, "width": 2, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Drive",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/google-drive.png",
+            "internalUrl": null,
+            "externalUrl": "https://drive.google.com",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 8, "y": 2, "width": 2, "height": 2,
+          "integrationIds": []
+        },
+        {
+          "kind": "app",
+          "options": {
+            "name": "Photos",
+            "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/google-photos.png",
+            "internalUrl": null,
+            "externalUrl": "https://photos.google.com",
+            "openInNewTab": true,
+            "description": null
+          },
+          "x": 10, "y": 2, "width": 2, "height": 2,
+          "integrationIds": []
+        }
+      ]
+    }
+  ]
+}

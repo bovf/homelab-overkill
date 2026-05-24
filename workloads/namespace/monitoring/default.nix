@@ -7,6 +7,7 @@
     ./apps/kube-prometheus-stack
     ./apps/loki
     ./apps/alloy
+    ./apps/grafana-image-renderer
     ./apps/intel-gpu-exporter
     ./apps/local-path-du-exporter
     ./apps/version-checker
