@@ -11,6 +11,7 @@
     ./homarr
     ./intel-device-plugins
     ./kube-system
+    ./mail
     ./matrix
     ./media
     ./monitoring

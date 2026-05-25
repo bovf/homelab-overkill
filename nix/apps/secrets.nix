@@ -13,7 +13,11 @@
       SECRETS_ENC="$ENC_DIR/secrets.yaml"
 
       # Bitwarden config
-      BITWARDEN_NOTE_NAME="homelab-secrets-plain"
+      # The new layout: one folder, one secure note per top-level yaml key.
+      # `pull` concatenates all notes in this folder (alphabetical) into
+      # bitwarden/secrets.yaml, then appends ssh_keys: synthesized from
+      # the SSH folder below. `push` splits the local file the other way.
+      BW_SECRETS_FOLDER_NAME="homelab-secrets"
       BW_SSH_FOLDER_ID="b29e40dd-d155-4bc8-beca-b3750069219a"
 
       # sops/age local identity derived from engineer SSH key
@@ -74,7 +78,28 @@
         export BW_SESSION="$session"
       }
 
-      get_engineer_priv() { 
+      # Resolve the homelab-secrets folder name to its Bitwarden folder ID.
+      # Cached on first call; subsequent calls are free.
+      get_secrets_folder_id() {
+        if [ -n "''${SECRETS_FOLDER_ID:-}" ]; then
+          echo "$SECRETS_FOLDER_ID"
+          return
+        fi
+        ensuretool bw
+        ensuretool jq
+        local id
+        id=$(bw list folders | jq -r --arg n "$BW_SECRETS_FOLDER_NAME" \
+              '.[] | select(.name==$n) | .id')
+        if [ -z "$id" ] || [ "$id" = "null" ]; then
+          echo "Error: BW folder '$BW_SECRETS_FOLDER_NAME' not found." >&2
+          echo "       Create it in Bitwarden first, then re-run." >&2
+          exit 1
+        fi
+        SECRETS_FOLDER_ID="$id"
+        echo "$id"
+      }
+
+      get_engineer_priv() {
         [ -f "$BW_SSH_DIR/engineer" ] && echo "$BW_SSH_DIR/engineer" || echo ""
       }
       
@@ -211,15 +236,39 @@ EOF
 
         pull)
           unlockbw
-          
-          # Pull secrets note
-          if ! bw get item "$BITWARDEN_NOTE_NAME" | jq -r '.notes' > "$SECRETS_PLAIN"; then
-            echo "Error: could not pull Bitwarden note $BITWARDEN_NOTE_NAME"
+          ensuretool jq
+
+          # Concatenate every note in the homelab-secrets folder (alphabetical
+          # by name) into bitwarden/secrets.yaml. Each note is a self-contained
+          # mini-yaml rooted at its top-level key (e.g. note `admin` body
+          # starts with `admin:`), so plain concatenation produces one valid
+          # multi-key yaml.
+          folder_id=$(get_secrets_folder_id)
+          items=$(bw list items --folderid "$folder_id")
+          note_count=$(echo "$items" | jq '[.[] | select(.type==2)] | length')
+          if [ "$note_count" -eq 0 ]; then
+            echo "Error: BW folder '$BW_SECRETS_FOLDER_NAME' is empty." >&2
+            echo "       Populate it (see scripts/migrate-bw-secrets-split.sh)." >&2
             exit 1
           fi
-          echo "Wrote $SECRETS_PLAIN"
 
-          # Pull SSH keys from folder
+          # Build the whole concatenated file in one jq pass — shells can't
+          # read multi-line "notes" payloads with a single-line read loop.
+          # Each note becomes "# --- <name> ---\n<body>\n\n".
+          echo "$items" \
+            | jq -r '
+                sort_by(.name | ascii_downcase)
+                | map(select(.type == 2))
+                | map("# --- " + .name + " ---\n" + (.notes // "") + "\n\n")
+                | join("")
+              ' > "$SECRETS_PLAIN"
+
+          # Progress: list the notes that landed in the file.
+          echo "$items" \
+            | jq -r 'sort_by(.name | ascii_downcase) | .[] | select(.type==2) | "  + " + .name'
+          echo "Wrote $SECRETS_PLAIN ($note_count notes concatenated)"
+
+          # Pull SSH keys from the dedicated SSH folder (unchanged).
           if [ -n "$BW_SSH_FOLDER_ID" ]; then
             items="$(bw list items --folderid "$BW_SSH_FOLDER_ID")"
           else
@@ -241,36 +290,11 @@ EOF
             esac
           done
           echo "Synced SSH keys to $BW_SSH_DIR"
-          
-          # Auto-sync SSH keys into secrets.yaml
+
+          # Auto-append ssh_keys: section into the assembled file.
           sync_ssh_to_yaml
           ;;
 
-        push)
-          unlockbw
-          ensuretool jq
-          
-          if [ ! -f "$SECRETS_PLAIN" ]; then
-            echo "Missing $SECRETS_PLAIN; run pull or decrypt first"
-            exit 1
-          fi
-          
-          # Remove ssh_keys section before pushing (keys stay in bitwarden/ssh/)
-          tmp="$(mktemp)"
-          yq 'del(.ssh_keys)' "$SECRETS_PLAIN" > "$tmp"
-          
-          item="$(bw get item "$BITWARDEN_NOTE_NAME")"
-          tmp_item="$(mktemp)"
-          notes="$(cat "$tmp")"
-          echo "$item" \
-            | jq --arg notes "$notes" '.notes=$notes' \
-            | bw encode \
-            > "$tmp_item"
-          bw edit item "$BITWARDEN_NOTE_NAME" "$tmp_item" >/dev/null
-          
-          rm -f "$tmp" "$tmp_item"
-          echo "Updated Bitwarden note $BITWARDEN_NOTE_NAME (SSH keys remain separate)"
-          ;;
 
         sync)
           ensuretool sops
@@ -387,8 +411,8 @@ Usage: nix run .#secrets -- <command> [args]
 
 Commands:
   init        Setup age identity from engineer SSH key (requires pull first).
-  pull        Pull secrets + SSH keys from Bitwarden, auto-sync to secrets.yaml.
-  push        Push secrets back to Bitwarden (excludes SSH keys section).
+  pull        Pull all notes in BW folder '$BW_SECRETS_FOLDER_NAME' + SSH
+              keys, assemble bitwarden/secrets.yaml.
   sync        Sync SSH keys to secrets.yaml and encrypt to $SECRETS_ENC.
   encrypt     Encrypt $SECRETS_ENC (syncs SSH keys first if plaintext exists).
   decrypt     Decrypt $SECRETS_ENC to plaintext.
@@ -396,18 +420,24 @@ Commands:
   rekey       Re-encrypt for all recipients in .sops.yaml.
   bootstrap   Prepare a new host for nixos-anywhere install with secrets.
 
-Workflow:
-  1. nix run .#secrets -- pull          # Download from Bitwarden
-  2. nix run .#secrets -- init          # Setup age key from engineer SSH
-  3. Edit bitwarden/secrets.yaml        # Make changes
-  4. nix run .#secrets -- sync          # Encrypt with SSH keys included
-  5. nix run .#secrets -- bootstrap engineer  # Prepare for deploy
-  6. nix run .#deploy -- install engineer     # Install with secrets
+Workflow (edits live in Bitwarden UI):
+  1. Edit the relevant note(s) in the BW '$BW_SECRETS_FOLDER_NAME' folder.
+  2. nix run .#secrets -- pull           # Re-assemble bitwarden/secrets.yaml
+  3. nix run .#secrets -- sync           # Encrypt to $SECRETS_ENC for git
+  4. nix run .#secrets -- bootstrap engineer  # (only when adding a new host)
+  5. nix run .#deploy -- update engineer-local
+
+Bitwarden layout:
+- Folder '$BW_SECRETS_FOLDER_NAME': one secure note per top-level yaml key.
+  Each note body is a self-contained mini-yaml rooted at its key.
+  EDIT NOTES DIRECTLY IN BITWARDEN — this script only reads, never writes.
+- Separate SSH folder: one note per SSH key (engineer, engineer.pub, ...).
+- The 'sops' section is encryption metadata and never lands in BW.
+- The 'ssh_keys' section is synthesized from the SSH folder on pull.
 
 Notes:
-- SSH keys are stored in bitwarden/ssh/ and merged into secrets.yaml
+- Local plaintext lives in bitwarden/ (gitignored).
 - Target must use: sops.age.sshKeyPaths = [ "/root/.ssh/id_ed25519" ]
-- Keep bitwarden/ in .gitignore
 EOF
           ;;
       esac
