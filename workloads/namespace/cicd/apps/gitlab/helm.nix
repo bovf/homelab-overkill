@@ -56,25 +56,29 @@
             appConfig:
               object_store:
                 enabled: true
-                proxy_download: false
+                # MinIO endpoint is cluster-internal DNS — browser-facing
+                # presigned URLs can't resolve it. proxy_download streams the
+                # bytes through the gitlab-webservice pod instead, keeping
+                # the URL on gitlab.dobryops.com.
+                proxy_download: true
                 connection:
                   secret: gitlab-minio-connection
                   key: connection
               lfs:
                 enabled: true
-                proxy_download: false
+                proxy_download: true
                 bucket: gitlab-lfs
               artifacts:
                 enabled: true
-                proxy_download: false
+                proxy_download: true
                 bucket: gitlab-artifacts
               uploads:
                 enabled: true
-                proxy_download: false
+                proxy_download: true
                 bucket: gitlab-uploads
               packages:
                 enabled: true
-                proxy_download: false
+                proxy_download: true
                 bucket: gitlab-packages
               externalDiffs:
                 enabled: false

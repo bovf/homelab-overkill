@@ -28,6 +28,10 @@
               # CI account; token regenerated on-demand and stored as
               # ARGOCD_AUTH_TOKEN in GitLab CI masked variables.
               accounts.ci: apiKey
+              # Enable kustomize `helmCharts:` block — argocd-repo-server
+              # invokes `kustomize build --enable-helm` so manifests that
+              # inflate a helm chart inline render correctly.
+              kustomize.buildOptions: "--enable-helm"
             secret:
               createSecret: true
               argocdServerAdminPassword: "${config.sops.placeholder."argocd/admin_password"}"
