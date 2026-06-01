@@ -324,7 +324,7 @@
         }
       ],
       "targets": [
-        {"expr": "topk(10, sum by (namespace, pod) (kube_pod_container_status_restarts_total) > 0)", "instant": true, "refId": "A", "format": "table"}
+        {"expr": "topk(10, sum by (namespace, pod) (increase(kube_pod_container_status_restarts_total[$__range])) > 0)", "instant": true, "refId": "A", "format": "table"}
       ]
     }
   ]
