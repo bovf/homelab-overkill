@@ -26,6 +26,19 @@
     secrets."pangolin/resources/postgres/domain"         = {};
     secrets."pangolin/resources/traefik_dashboard/domain" = {};
     secrets."pangolin/resources/cam/domain"              = {};
+    secrets."pangolin/resources/uptime/domain"           = {};
+    secrets."pangolin/resources/search/domain"           = {};
+    secrets."pangolin/resources/speedtest/domain"        = {};
+
+    # SearXNG session/image-proxy signing key — `openssl rand -hex 32`.
+    secrets."searxng/secret" = {};
+    # Laravel APP_KEY for speedtest-tracker — must be `base64:<32 random
+    # bytes base64'd>`. Generate: echo "base64:$(openssl rand -base64 32)"
+    secrets."speedtest/app_key" = {};
+    # GitLab project-access token with read_repository scope on both
+    # bovf/homelab-overkill and bovf/pl-badwater. Consumed by the Glance
+    # dashboard (next commit) to render the nixpkgs-unstable drift widget.
+    secrets."gitlab/glance_read_token" = {};
 
     # Pangolin TCP tunnel ports. The matching domain keys are consumed
     # at runtime by nix apps (not sops-nix on the node) so they're not
