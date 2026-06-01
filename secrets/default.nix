@@ -38,9 +38,6 @@
     # Laravel APP_KEY for speedtest-tracker — must be `base64:<32 random
     # bytes base64'd>`. Generate: echo "base64:$(openssl rand -base64 32)"
     secrets."speedtest/app_key" = {};
-    # Sanctum bearer token for speedtest-tracker v1.14+ API. Generate in
-    # the UI: Settings → API Tokens → Create. Plain string, no prefix.
-    secrets."speedtest/api_token" = {};
     # GitLab project-access token with read_repository scope on both
     # bovf/homelab-overkill and bovf/pl-badwater. Consumed by the Glance
     # dashboard (next commit) to render the nixpkgs-unstable drift widget.
