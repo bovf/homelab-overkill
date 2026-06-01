@@ -103,7 +103,7 @@ in
       namespace = "monitoring";
       annotations = {
         # Bump on script changes to force re-run (delete old Job + apply new).
-        "homelab.dobryops.com/bootstrap-version" = "2";
+        "homelab.dobryops.com/bootstrap-version" = "3";
       };
     };
     spec = {
@@ -122,7 +122,10 @@ in
           image   = "python:3.11-slim";
           envFrom = [{ secretRef.name = "uptime-kuma-bootstrap-creds"; }];
           env = [
-            { name = "KUMA_URL"; value = "http://uptime-kuma.monitoring.svc.cluster.local:3001"; }
+            # Service port (8097), NOT the pod-side targetPort (3001).
+            # The ClusterIP only exposes 8097 — pod port 3001 isn't
+            # reachable via the Service.
+            { name = "KUMA_URL"; value = "http://uptime-kuma.monitoring.svc.cluster.local:8097"; }
           ];
           volumeMounts = [{
             name      = "monitors";
@@ -209,8 +212,11 @@ in
             ''
           ];
           resources = {
-            requests = { cpu = "50m"; memory = "128Mi"; };
-            limits   = { cpu = "500m"; memory = "256Mi"; };
+            requests = { cpu = "100m"; memory = "128Mi"; };
+            # pip install + uptime-kuma-api's socket.io connect both burst
+            # close to 1 core. Generous limit per the "raise, don't
+            # remove" rule (see memory).
+            limits   = { cpu = "2000m"; memory = "512Mi"; };
           };
         }];
       };
