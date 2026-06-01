@@ -13,9 +13,10 @@
     group     = "Ops";
   };
 
+  # Alertmanager's Pangolin resource is disabled — probe cluster-internal.
   workloads.uptimeMonitors.alertmanager = {
-    name      = "Alertmanager";
-    domainKey = "pangolin/resources/alertmanager/domain";
-    group     = "Ops";
+    name  = "Alertmanager";
+    url   = "http://kube-prometheus-stack-alertmanager-extip.monitoring.svc.cluster.local:9093";
+    group = "Private";
   };
 }
