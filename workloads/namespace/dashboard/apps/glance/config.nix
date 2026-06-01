@@ -348,6 +348,8 @@ in
                           title: 9to5Linux
                         - url: https://www.bleepingcomputer.com/feed/
                           title: Bleeping
+                        - url: https://media.rss.com/linkarzu/feed.xml
+                          title: Linkarzu
 
                 # ── right sidebar ─────────────────────────────────────
                 - size: small
@@ -671,6 +673,8 @@ in
                           title: 9to5Linux
                         - url: https://www.bleepingcomputer.com/feed/
                           title: Bleeping
+                        - url: https://media.rss.com/linkarzu/feed.xml
+                          title: Linkarzu
     '';
     path  = "/var/lib/rancher/k3s/server/manifests/glance-config.yaml";
     owner = "root";
