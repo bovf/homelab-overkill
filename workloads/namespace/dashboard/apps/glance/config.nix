@@ -79,25 +79,43 @@ in
                         uptime:
                           url: ${promQuery "node_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D-node_boot_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D"}
                       template: |
-                        {{ $ram    := .Subrequest "ram" }}
-                        {{ $disk   := .Subrequest "disk" }}
-                        {{ $uptime := .Subrequest "uptime" }}
-                        <div class="flex flex-column gap-7">
+                        {{ $ram     := .Subrequest "ram" }}
+                        {{ $disk    := .Subrequest "disk" }}
+                        {{ $uptime  := .Subrequest "uptime" }}
+                        {{ $cpuVal  := .JSON.Float "data.result.0.value.1" }}
+                        {{ $ramVal  := $ram.JSON.Float "data.result.0.value.1" }}
+                        {{ $diskVal := $disk.JSON.Float "data.result.0.value.1" }}
+                        <div class="flex flex-column gap-10">
                           <div>
-                            <p class="size-h6 color-paragraph">CPU</p>
-                            <p class="size-h3">{{ printf "%.1f" (.JSON.Float "data.result.0.value.1") }}%</p>
+                            <div class="flex justify-between">
+                              <span class="size-h6 color-paragraph">CPU</span>
+                              <span class="size-h5">{{ printf "%.1f" $cpuVal }}%</span>
+                            </div>
+                            <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:4px">
+                              <div style="width:{{ printf "%.1f" $cpuVal }}%;height:100%;background:var(--color-primary);border-radius:2px"></div>
+                            </div>
                           </div>
                           <div>
-                            <p class="size-h6 color-paragraph">RAM</p>
-                            <p class="size-h3">{{ printf "%.1f" ($ram.JSON.Float "data.result.0.value.1") }}%</p>
+                            <div class="flex justify-between">
+                              <span class="size-h6 color-paragraph">RAM</span>
+                              <span class="size-h5">{{ printf "%.1f" $ramVal }}%</span>
+                            </div>
+                            <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:4px">
+                              <div style="width:{{ printf "%.1f" $ramVal }}%;height:100%;background:var(--color-primary);border-radius:2px"></div>
+                            </div>
                           </div>
                           <div>
-                            <p class="size-h6 color-paragraph">Disk /</p>
-                            <p class="size-h3">{{ printf "%.1f" ($disk.JSON.Float "data.result.0.value.1") }}%</p>
+                            <div class="flex justify-between">
+                              <span class="size-h6 color-paragraph">Disk /</span>
+                              <span class="size-h5">{{ printf "%.1f" $diskVal }}%</span>
+                            </div>
+                            <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:4px">
+                              <div style="width:{{ printf "%.1f" $diskVal }}%;height:100%;background:var(--color-primary);border-radius:2px"></div>
+                            </div>
                           </div>
-                          <div>
-                            <p class="size-h6 color-paragraph">Uptime</p>
-                            <p class="size-base">{{ printf "%.0f hours" (div ($uptime.JSON.Float "data.result.0.value.1") 3600) }}</p>
+                          <div class="flex justify-between">
+                            <span class="size-h6 color-paragraph">Uptime</span>
+                            <span class="size-base">{{ printf "%.0fh" (div ($uptime.JSON.Float "data.result.0.value.1") 3600) }}</span>
                           </div>
                         </div>
 
@@ -656,25 +674,43 @@ in
                         uptime:
                           url: ${promQuery "node_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D-node_boot_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D"}
                       template: |
-                        {{ $ram    := .Subrequest "ram" }}
-                        {{ $disk   := .Subrequest "disk" }}
-                        {{ $uptime := .Subrequest "uptime" }}
-                        <div class="flex flex-column gap-7">
+                        {{ $ram     := .Subrequest "ram" }}
+                        {{ $disk    := .Subrequest "disk" }}
+                        {{ $uptime  := .Subrequest "uptime" }}
+                        {{ $cpuVal  := .JSON.Float "data.result.0.value.1" }}
+                        {{ $ramVal  := $ram.JSON.Float "data.result.0.value.1" }}
+                        {{ $diskVal := $disk.JSON.Float "data.result.0.value.1" }}
+                        <div class="flex flex-column gap-10">
                           <div>
-                            <p class="size-h6 color-paragraph">CPU</p>
-                            <p class="size-h3">{{ printf "%.1f" (.JSON.Float "data.result.0.value.1") }}%</p>
+                            <div class="flex justify-between">
+                              <span class="size-h6 color-paragraph">CPU</span>
+                              <span class="size-h5">{{ printf "%.1f" $cpuVal }}%</span>
+                            </div>
+                            <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:4px">
+                              <div style="width:{{ printf "%.1f" $cpuVal }}%;height:100%;background:var(--color-primary);border-radius:2px"></div>
+                            </div>
                           </div>
                           <div>
-                            <p class="size-h6 color-paragraph">RAM</p>
-                            <p class="size-h3">{{ printf "%.1f" ($ram.JSON.Float "data.result.0.value.1") }}%</p>
+                            <div class="flex justify-between">
+                              <span class="size-h6 color-paragraph">RAM</span>
+                              <span class="size-h5">{{ printf "%.1f" $ramVal }}%</span>
+                            </div>
+                            <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:4px">
+                              <div style="width:{{ printf "%.1f" $ramVal }}%;height:100%;background:var(--color-primary);border-radius:2px"></div>
+                            </div>
                           </div>
                           <div>
-                            <p class="size-h6 color-paragraph">Disk /</p>
-                            <p class="size-h3">{{ printf "%.1f" ($disk.JSON.Float "data.result.0.value.1") }}%</p>
+                            <div class="flex justify-between">
+                              <span class="size-h6 color-paragraph">Disk /</span>
+                              <span class="size-h5">{{ printf "%.1f" $diskVal }}%</span>
+                            </div>
+                            <div style="height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-top:4px">
+                              <div style="width:{{ printf "%.1f" $diskVal }}%;height:100%;background:var(--color-primary);border-radius:2px"></div>
+                            </div>
                           </div>
-                          <div>
-                            <p class="size-h6 color-paragraph">Uptime</p>
-                            <p class="size-base">{{ printf "%.0f hours" (div ($uptime.JSON.Float "data.result.0.value.1") 3600) }}</p>
+                          <div class="flex justify-between">
+                            <span class="size-h6 color-paragraph">Uptime</span>
+                            <span class="size-base">{{ printf "%.0fh" (div ($uptime.JSON.Float "data.result.0.value.1") 3600) }}</span>
                           </div>
                         </div>
 
