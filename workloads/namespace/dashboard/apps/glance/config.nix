@@ -376,7 +376,15 @@ in
                             {{ if eq $pinSha $headSha }}
                               <div class="flex justify-between"><span>status</span><span class="color-positive">in sync</span></div>
                             {{ else }}
-                              <div class="flex justify-between"><span>status</span><span class="color-negative">behind</span></div>
+                              {{ $pinTs    := .JSON.Int "nodes.nixpkgs.locked.lastModified" }}
+                              {{ $headTime := parseTime "2006-01-02T15:04:05Z" ($head.JSON.String "commit.committer.date") }}
+                              {{ $headTs   := $headTime.Unix }}
+                              {{ $daysBehind := div (sub $headTs $pinTs) 86400 }}
+                              {{ if gt $daysBehind 15 }}
+                                <div class="flex justify-between"><span>behind</span><span class="color-negative">{{ printf "%v" $daysBehind }}d</span></div>
+                              {{ else }}
+                                <div class="flex justify-between"><span>behind</span><span>{{ printf "%v" $daysBehind }}d</span></div>
+                              {{ end }}
                             {{ end }}
                           </div>
                         {{ end }}
@@ -404,7 +412,15 @@ in
                             {{ if eq $pinSha $headSha }}
                               <div class="flex justify-between"><span>status</span><span class="color-positive">in sync</span></div>
                             {{ else }}
-                              <div class="flex justify-between"><span>status</span><span class="color-negative">behind</span></div>
+                              {{ $pinTs    := .JSON.Int "nodes.nixpkgs.locked.lastModified" }}
+                              {{ $headTime := parseTime "2006-01-02T15:04:05Z" ($head.JSON.String "commit.committer.date") }}
+                              {{ $headTs   := $headTime.Unix }}
+                              {{ $daysBehind := div (sub $headTs $pinTs) 86400 }}
+                              {{ if gt $daysBehind 15 }}
+                                <div class="flex justify-between"><span>behind</span><span class="color-negative">{{ printf "%v" $daysBehind }}d</span></div>
+                              {{ else }}
+                                <div class="flex justify-between"><span>behind</span><span>{{ printf "%v" $daysBehind }}d</span></div>
+                              {{ end }}
                             {{ end }}
                           </div>
                         {{ end }}
@@ -479,21 +495,47 @@ in
                           </ul>
                         {{ end }}
 
+                # ── center ────────────────────────────────────────────
+                - size: full
+                  widgets:
+                    # All media app links in one widget at the top so the
+                    # rest of the column is data, not bookmarks.
                     - type: bookmarks
-                      title: Library
+                      title: Apps
                       groups:
-                        - title: ""
+                        - title: Library
                           links:
                             - title: Jellyfin
                               url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}
                               icon: si:jellyfin
                             - title: Jellyseerr
                               url: https://${config.sops.placeholder."pangolin/resources/jellyseerr/domain"}
-                              icon: si:jellyseerr
+                              icon: di:jellyseerr
+                        - title: Stack
+                          links:
+                            - title: Sonarr
+                              url: https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}
+                              icon: si:sonarr
+                            - title: Radarr
+                              url: https://${config.sops.placeholder."pangolin/resources/radarr/domain"}
+                              icon: si:radarr
+                            - title: Sportarr
+                              url: https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
+                            - title: Prowlarr
+                              url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}
+                              icon: di:prowlarr
+                            - title: Bazarr
+                              url: https://${config.sops.placeholder."pangolin/resources/bazarr/domain"}
+                              icon: di:bazarr
+                        - title: Queues
+                          links:
+                            - title: qBittorrent
+                              url: https://${config.sops.placeholder."pangolin/resources/qbittorrent/domain"}
+                              icon: si:qbittorrent
+                            - title: NZBGet
+                              url: https://${config.sops.placeholder."pangolin/resources/nzbget/domain"}
+                              icon: di:nzbget
 
-                # ── center ────────────────────────────────────────────
-                - size: full
-                  widgets:
                     # Sonarr upcoming episodes
                     - type: custom-api
                       title: Upcoming — TV
@@ -574,43 +616,9 @@ in
                           <div class="flex justify-between"><span>declined</span><span class="size-h4 color-paragraph">{{ .JSON.Int "declined" }}</span></div>
                         </div>
 
-                    # *arr stack — Sportarr folded in alongside the others.
-                    - type: bookmarks
-                      title: Stack
-                      groups:
-                        - title: ""
-                          links:
-                            - title: Sonarr
-                              url: https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}
-                              icon: si:sonarr
-                            - title: Radarr
-                              url: https://${config.sops.placeholder."pangolin/resources/radarr/domain"}
-                              icon: si:radarr
-                            - title: Sportarr
-                              url: https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
-                              icon: di:sonarr
-                            - title: Prowlarr
-                              url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}
-                              icon: si:prowlarr
-                            - title: Bazarr
-                              url: https://${config.sops.placeholder."pangolin/resources/bazarr/domain"}
-                              icon: di:bazarr
-
                 # ── right ─────────────────────────────────────────────
                 - size: small
                   widgets:
-                    - type: bookmarks
-                      title: Queues
-                      groups:
-                        - title: ""
-                          links:
-                            - title: qBittorrent
-                              url: https://${config.sops.placeholder."pangolin/resources/qbittorrent/domain"}
-                              icon: si:qbittorrent
-                            - title: NZBGet
-                              url: https://${config.sops.placeholder."pangolin/resources/nzbget/domain"}
-                              icon: di:nzbget
-
                     # *arr health from Prowlarr's perspective — Prowlarr
                     # pings every connected indexer + downloader on
                     # /api/v1/health and returns issue list.
