@@ -27,7 +27,7 @@
                 main:
                   image:
                     repository: glanceapp/glance
-                    tag: "v0.8.6"
+                    tag: "v0.8.5"
                     pullPolicy: IfNotPresent
                   envFrom:
                     - secretRef:
