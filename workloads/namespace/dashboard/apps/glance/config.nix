@@ -204,30 +204,30 @@ in
                           links:
                             - title: GitLab
                               url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}
-                              icon: sh:gitlab
+                              icon: si:gitlab
                             - title: ArgoCD
                               url: https://${config.sops.placeholder."pangolin/resources/argocd/domain"}
-                              icon: sh:argo-cd
+                              icon: si:argo
                             - title: pgAdmin
                               url: https://${config.sops.placeholder."pangolin/resources/pgadmin/domain"}
-                              icon: sh:pgadmin
+                              icon: si:postgresql
                         - title: Ops
                           links:
                             - title: Grafana
                               url: https://${config.sops.placeholder."pangolin/resources/grafana/domain"}
-                              icon: sh:grafana
+                              icon: si:grafana
                             - title: Prometheus
                               url: https://${config.sops.placeholder."pangolin/resources/prometheus/domain"}
-                              icon: sh:prometheus
+                              icon: si:prometheus
                             - title: Alertmanager
                               url: https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
-                              icon: sh:prometheus-alertmanager
+                              icon: di:alertmanager
                             - title: Pi-hole
                               url: https://${config.sops.placeholder."pangolin/resources/pihole/domain"}
-                              icon: sh:pi-hole
+                              icon: si:pihole
                             - title: MinIO
                               url: https://${config.sops.placeholder."pangolin/resources/minio_console/domain"}
-                              icon: sh:minio
+                              icon: si:minio
                         - title: Social
                           links:
                             - title: YouTube
@@ -243,19 +243,19 @@ in
                           links:
                             - title: Matrix
                               url: https://${config.sops.placeholder."pangolin/resources/element/domain"}
-                              icon: sh:element
+                              icon: si:element
                             - title: Synapse Admin
                               url: https://${config.sops.placeholder."pangolin/resources/synapse_admin/domain"}
-                              icon: sh:matrix
+                              icon: si:matrix
                             - title: Mail
                               url: https://${config.sops.placeholder."pangolin/resources/mailadmin/domain"}
-                              icon: sh:stalwart
+                              icon: di:stalwart
                             - title: ezBookkeeping
                               url: https://${config.sops.placeholder."pangolin/resources/ezbookkeeping/domain"}
-                              icon: sh:ezbookkeeping
+                              icon: di:ezbookkeeping
                             - title: Blog
                               url: https://${config.sops.placeholder."pangolin/resources/whoami/domain"}
-                              icon: sh:whoogle-search
+                              icon: di:hashnode
 
                     # SERVICES — Uptime Kuma's status-page heartbeat JSON.
                     # The bootstrap Job creates a status page slugged
@@ -274,8 +274,8 @@ in
                           {{ range .Array "monitorList" }}
                             {{ $id := .String "id" }}
                             {{ $name := .String "name" }}
-                            {{ $statusPath := printf "heartbeatList.%s.-1.status" $id }}
-                            {{ $pingPath   := printf "heartbeatList.%s.-1.ping"   $id }}
+                            {{ $statusPath := printf "heartbeatList.%s|@reverse|0.status" $id }}
+                            {{ $pingPath   := printf "heartbeatList.%s|@reverse|0.ping"   $id }}
                             {{ $status := $hb.JSON.Int $statusPath }}
                             {{ $ping   := $hb.JSON.Int $pingPath }}
                             <div class="card flex flex-column">
@@ -358,10 +358,10 @@ in
                           links:
                             - title: Pangolin
                               url: https://pangolin.dobryops.com
-                              icon: sh:cloudflared
+                              icon: di:pangolin
                             - title: Traefik
                               url: https://${config.sops.placeholder."pangolin/resources/traefik_dashboard/domain"}
-                              icon: sh:traefik
+                              icon: si:traefikproxy
 
                     # SPEEDTEST — latest result from speedtest-tracker v1.14+
                     # Requires a Sanctum bearer token. Generate one in the
@@ -438,10 +438,10 @@ in
                           links:
                             - title: Jellyfin
                               url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}
-                              icon: sh:jellyfin
+                              icon: si:jellyfin
                             - title: Jellyseerr
                               url: https://${config.sops.placeholder."pangolin/resources/jellyseerr/domain"}
-                              icon: sh:jellyseerr
+                              icon: si:jellyseerr
 
                 # ── center ────────────────────────────────────────────
                 - size: full
@@ -456,13 +456,16 @@ in
                           links:
                             - title: Open Sportarr
                               url: https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
-                              icon: sh:sonarr
+                              icon: di:sonarr
 
                     # Sonarr upcoming episodes
                     - type: custom-api
                       title: Upcoming — TV
                       cache: 10m
-                      url: https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}/api/v3/calendar?apikey=''${SONARR_KEY}&start=${arrStart}&end=${arrEnd}&includeSeries=true&unmonitored=false
+                      url: https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}/api/v3/calendar?start=${arrStart}&end=${arrEnd}&includeSeries=true&unmonitored=false
+                      headers:
+                        X-Api-Key: ''${SONARR_KEY}
+                        Accept: application/json
                       template: |
                         {{ $now := now }}
                         {{ $items := .JSON.Array "" }}
@@ -487,7 +490,10 @@ in
                     - type: custom-api
                       title: Coming Soon — Movies
                       cache: 10m
-                      url: https://${config.sops.placeholder."pangolin/resources/radarr/domain"}/api/v3/calendar?apikey=''${RADARR_KEY}&start=${arrStart}&end=${arrEnd}&unmonitored=false
+                      url: https://${config.sops.placeholder."pangolin/resources/radarr/domain"}/api/v3/calendar?start=${arrStart}&end=${arrEnd}&unmonitored=false
+                      headers:
+                        X-Api-Key: ''${RADARR_KEY}
+                        Accept: application/json
                       template: |
                         {{ $now := now }}
                         {{ $items := .JSON.Array "" }}
@@ -511,28 +517,26 @@ in
                           </ul>
                         {{ end }}
 
-                    # Jellyseerr pending requests
+                    # Jellyseerr request counts. The Global API key in
+                    # Settings → General authenticates but lacks user
+                    # context — /api/v1/request returns 403 because
+                    # requests are per-user. /api/v1/request/count is
+                    # the system-level endpoint that works with just
+                    # the global key.
                     - type: custom-api
-                      title: Pending Requests
+                      title: Requests
                       cache: 5m
-                      url: https://${config.sops.placeholder."pangolin/resources/jellyseerr/domain"}/api/v1/request?filter=pending&take=10&sort=added
+                      url: https://${config.sops.placeholder."pangolin/resources/jellyseerr/domain"}/api/v1/request/count
                       headers:
                         X-Api-Key: ''${JELLYSEERR_KEY}
+                        Accept: application/json
                       template: |
-                        {{ $reqs := .JSON.Array "results" }}
-                        {{ if eq (len $reqs) 0 }}
-                          <p class="color-positive">No pending requests</p>
-                        {{ else }}
-                          <ul class="list">
-                            {{ range $reqs }}
-                              <li>
-                                <span class="color-highlight">{{ .String "media.title" }}</span>
-                                · <span class="color-paragraph">{{ .String "type" }}</span>
-                                · {{ .String "requestedBy.displayName" }}
-                              </li>
-                            {{ end }}
-                          </ul>
-                        {{ end }}
+                        <div class="flex flex-column gap-5">
+                          <div class="flex justify-between"><span>pending</span><span class="size-h4 color-highlight">{{ .JSON.Int "pending" }}</span></div>
+                          <div class="flex justify-between"><span>processing</span><span class="size-h4">{{ .JSON.Int "processing" }}</span></div>
+                          <div class="flex justify-between"><span>available</span><span class="size-h4 color-positive">{{ .JSON.Int "available" }}</span></div>
+                          <div class="flex justify-between"><span>declined</span><span class="size-h4 color-paragraph">{{ .JSON.Int "declined" }}</span></div>
+                        </div>
 
                     - type: bookmarks
                       groups:
@@ -540,16 +544,16 @@ in
                           links:
                             - title: Sonarr
                               url: https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}
-                              icon: sh:sonarr
+                              icon: si:sonarr
                             - title: Radarr
                               url: https://${config.sops.placeholder."pangolin/resources/radarr/domain"}
-                              icon: sh:radarr
+                              icon: si:radarr
                             - title: Prowlarr
                               url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}
-                              icon: sh:prowlarr
+                              icon: si:prowlarr
                             - title: Bazarr
                               url: https://${config.sops.placeholder."pangolin/resources/bazarr/domain"}
-                              icon: sh:bazarr
+                              icon: di:bazarr
 
                 # ── right ─────────────────────────────────────────────
                 - size: small
@@ -560,10 +564,10 @@ in
                           links:
                             - title: qBittorrent
                               url: https://${config.sops.placeholder."pangolin/resources/qbittorrent/domain"}
-                              icon: sh:qbittorrent
+                              icon: si:qbittorrent
                             - title: NZBGet
                               url: https://${config.sops.placeholder."pangolin/resources/nzbget/domain"}
-                              icon: sh:nzbget
+                              icon: di:nzbget
 
                     # *arr health from Prowlarr's perspective — Prowlarr
                     # pings every connected indexer + downloader on
@@ -574,6 +578,7 @@ in
                       url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}/api/v1/health
                       headers:
                         X-Api-Key: ''${PROWLARR_KEY}
+                        Accept: application/json
                       template: |
                         {{ $issues := .JSON.Array "" }}
                         {{ if eq (len $issues) 0 }}
@@ -605,16 +610,16 @@ in
                           links:
                             - title: Jellyfin
                               url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}
-                              icon: sh:jellyfin
+                              icon: si:jellyfin
                             - title: Matrix
                               url: https://${config.sops.placeholder."pangolin/resources/element/domain"}
-                              icon: sh:element
+                              icon: si:element
                             - title: Grafana
                               url: https://${config.sops.placeholder."pangolin/resources/grafana/domain"}
-                              icon: sh:grafana
+                              icon: si:grafana
                             - title: GitLab
                               url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}
-                              icon: sh:gitlab
+                              icon: si:gitlab
 
                     - type: custom-api
                       title: Engineer
