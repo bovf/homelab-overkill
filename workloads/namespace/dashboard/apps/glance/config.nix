@@ -446,11 +446,12 @@ in
                 - size: small
                   widgets:
                     # Jellyfin library counts — Items/Counts is auth'd
-                    # via api_key query param.
+                    # via api_key query param. In-cluster Service so we
+                    # skip traefik/TLS overhead for this internal fetch.
                     - type: custom-api
                       title: Jellyfin Library
                       cache: 5m
-                      url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}/Items/Counts?api_key=''${JELLYFIN_KEY}
+                      url: http://jellyfin.media.svc.cluster.local:8096/Items/Counts?api_key=''${JELLYFIN_KEY}
                       template: |
                         <div class="flex flex-column gap-5">
                           <div class="flex justify-between"><span>Movies</span><span class="color-highlight">{{ .JSON.Int "MovieCount" }}</span></div>
@@ -463,7 +464,7 @@ in
                     - type: custom-api
                       title: Active streams
                       cache: 30s
-                      url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}/Sessions?api_key=''${JELLYFIN_KEY}&activeWithinSeconds=60
+                      url: http://jellyfin.media.svc.cluster.local:8096/Sessions?api_key=''${JELLYFIN_KEY}&activeWithinSeconds=60
                       template: |
                         {{ $playing := 0 }}
                         {{ range .JSON.Array "" }}
@@ -502,7 +503,7 @@ in
                     - type: custom-api
                       title: Upcoming — TV
                       cache: 10m
-                      url: https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}/api/v3/calendar?start=${arrStart}&end=${arrEnd}&includeSeries=true&unmonitored=false
+                      url: http://sonarr.media.svc.cluster.local:8989/api/v3/calendar?start=${arrStart}&end=${arrEnd}&includeSeries=true&unmonitored=false
                       headers:
                         X-Api-Key: ''${SONARR_KEY}
                         Accept: application/json
@@ -530,7 +531,7 @@ in
                     - type: custom-api
                       title: Coming Soon — Movies
                       cache: 10m
-                      url: https://${config.sops.placeholder."pangolin/resources/radarr/domain"}/api/v3/calendar?start=${arrStart}&end=${arrEnd}&unmonitored=false
+                      url: http://radarr.media.svc.cluster.local:7878/api/v3/calendar?start=${arrStart}&end=${arrEnd}&unmonitored=false
                       headers:
                         X-Api-Key: ''${RADARR_KEY}
                         Accept: application/json
@@ -566,7 +567,7 @@ in
                     - type: custom-api
                       title: Requests
                       cache: 5m
-                      url: https://${config.sops.placeholder."pangolin/resources/jellyseerr/domain"}/api/v1/request/count
+                      url: http://jellyseerr.media.svc.cluster.local:5055/api/v1/request/count
                       headers:
                         X-Api-Key: ''${JELLYSEERR_KEY}
                         Accept: application/json
@@ -621,7 +622,7 @@ in
                     - type: custom-api
                       title: Indexer Health
                       cache: 5m
-                      url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}/api/v1/health
+                      url: http://prowlarr.media.svc.cluster.local:9696/api/v1/health
                       headers:
                         X-Api-Key: ''${PROWLARR_KEY}
                         Accept: application/json
