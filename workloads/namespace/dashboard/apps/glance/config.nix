@@ -458,8 +458,9 @@ in
                         {{ end }}
 
                     - type: bookmarks
+                      title: Library
                       groups:
-                        - title: Library
+                        - title: ""
                           links:
                             - title: Jellyfin
                               url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}
@@ -471,18 +472,6 @@ in
                 # ── center ────────────────────────────────────────────
                 - size: full
                   widgets:
-                    # Sportarr first (user priority). It's a custom *arr —
-                    # listing here just as a bookmark group with the link;
-                    # API integration TBD once its endpoints are stable.
-                    - type: bookmarks
-                      title: Sportarr
-                      groups:
-                        - title: Events
-                          links:
-                            - title: Open Sportarr
-                              url: https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
-                              icon: di:sonarr
-
                     # Sonarr upcoming episodes
                     - type: custom-api
                       title: Upcoming — TV
@@ -563,9 +552,11 @@ in
                           <div class="flex justify-between"><span>declined</span><span class="size-h4 color-paragraph">{{ .JSON.Int "declined" }}</span></div>
                         </div>
 
+                    # *arr stack — Sportarr folded in alongside the others.
                     - type: bookmarks
+                      title: Stack
                       groups:
-                        - title: Manage
+                        - title: ""
                           links:
                             - title: Sonarr
                               url: https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}
@@ -573,6 +564,9 @@ in
                             - title: Radarr
                               url: https://${config.sops.placeholder."pangolin/resources/radarr/domain"}
                               icon: si:radarr
+                            - title: Sportarr
+                              url: https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
+                              icon: di:sonarr
                             - title: Prowlarr
                               url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}
                               icon: si:prowlarr
@@ -584,8 +578,9 @@ in
                 - size: small
                   widgets:
                     - type: bookmarks
+                      title: Queues
                       groups:
-                        - title: Queues
+                        - title: ""
                           links:
                             - title: qBittorrent
                               url: https://${config.sops.placeholder."pangolin/resources/qbittorrent/domain"}
