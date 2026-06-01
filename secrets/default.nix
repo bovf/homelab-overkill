@@ -25,6 +25,7 @@
     secrets."pangolin/resources/registry/domain"         = {};
     secrets."pangolin/resources/postgres/domain"         = {};
     secrets."pangolin/resources/traefik_dashboard/domain" = {};
+    secrets."pangolin/resources/cam/domain"              = {};
 
     # Pangolin TCP tunnel ports. The matching domain keys are consumed
     # at runtime by nix apps (not sops-nix on the node) so they're not
