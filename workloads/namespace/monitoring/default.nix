@@ -13,6 +13,8 @@
     ./apps/version-checker
     ./apps/nova
     ./apps/grafana-dashboards
+    ./apps/uptime-kuma
+    ./apps/speedtest-tracker
   ];
   
   # Define k3s namespace manifest

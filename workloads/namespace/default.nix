@@ -5,6 +5,7 @@
     ./blog
     ./cert-manager
     ./cicd
+    ./dashboard
     ./database
     ./dns
     ./finance

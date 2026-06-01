@@ -10,6 +10,7 @@ with lib;
     ./pangolin-resources.nix
     ./metallb.nix
     ./audio.nix
+    ./wireguard-exporter.nix
   ];
         
   # Keyboard US
