@@ -124,13 +124,22 @@ in
                       cache: 30s
                       url: ${promQuery "time()-wireguard_latest_handshake_seconds%7Binstance=%22engineer%22%7D"}
                       subrequests:
-                        # tx/rx as 24h delta (increase over rolling window)
-                        # rather than the lifetime counter — easier to spot
-                        # weird traffic patterns at a glance.
+                        # 30-day rolling delta to approximate Hetzner's
+                        # monthly traffic quota (20 TB out). NOT calendar-
+                        # month-exact — PromQL's increase() only takes
+                        # literal durations. Good enough for "am I near
+                        # the cap"; if we ever need exact billing-cycle
+                        # numbers, add a recording rule that snapshots
+                        # the counter at month boundaries.
+                        #
+                        # rx side (engineer.rx ≈ VPS.tx) is what counts
+                        # against Hetzner's "Traffic out" — that's the
+                        # bytes the VPS sent outbound through its public
+                        # NIC to reach us through the wg tunnel.
                         sent:
-                          url: ${promQuery "increase(wireguard_sent_bytes_total%7Binstance=%22engineer%22%7D%5B24h%5D)"}
+                          url: ${promQuery "increase(wireguard_sent_bytes_total%7Binstance=%22engineer%22%7D%5B30d%5D)"}
                         recv:
-                          url: ${promQuery "increase(wireguard_received_bytes_total%7Binstance=%22engineer%22%7D%5B24h%5D)"}
+                          url: ${promQuery "increase(wireguard_received_bytes_total%7Binstance=%22engineer%22%7D%5B30d%5D)"}
                       template: |
                         {{ $sent := .Subrequest "sent" }}
                         {{ $recv := .Subrequest "recv" }}
@@ -140,11 +149,11 @@ in
                             <span class="size-h5">{{ printf "%.0fs ago" (.JSON.Float "data.result.0.value.1") }}</span>
                           </div>
                           <div class="flex justify-between">
-                            <span class="size-h6 color-paragraph">↑ tx (24h)</span>
+                            <span class="size-h6 color-paragraph">↑ tx (30d)</span>
                             <span class="size-base">{{ printf "%.2f GB" (div ($sent.JSON.Float "data.result.0.value.1") 1073741824.0) }}</span>
                           </div>
                           <div class="flex justify-between">
-                            <span class="size-h6 color-paragraph">↓ rx (24h)</span>
+                            <span class="size-h6 color-paragraph">↓ rx (30d)</span>
                             <span class="size-base">{{ printf "%.2f GB" (div ($recv.JSON.Float "data.result.0.value.1") 1073741824.0) }}</span>
                           </div>
                           <div class="flex justify-between">
