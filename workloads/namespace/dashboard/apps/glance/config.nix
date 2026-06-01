@@ -343,11 +343,12 @@ in
                         {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
                         {{ $pinTs   := .JSON.Float  "nodes.nixpkgs.locked.lastModified" }}
                         {{ $headSha := $head.JSON.String "sha" }}
+                        {{ $nowVal  := now }}
+                        {{ $nowSec  := $nowVal.Unix }}
                         {{ if eq (len $pinSha) 0 }}
                           <p class="color-negative">flake.lock unreadable</p>
                         {{ else }}
-                          {{ $diff := sub now.Unix $pinTs }}
-                          {{ $days := div $diff 86400.0 }}
+                          {{ $days := div (sub $nowSec $pinTs) 86400.0 }}
                           <div class="flex flex-column gap-5">
                             <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }}</span></div>
                             <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }}</span></div>
@@ -370,11 +371,12 @@ in
                         {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
                         {{ $pinTs   := .JSON.Float  "nodes.nixpkgs.locked.lastModified" }}
                         {{ $headSha := $head.JSON.String "sha" }}
+                        {{ $nowVal  := now }}
+                        {{ $nowSec  := $nowVal.Unix }}
                         {{ if eq (len $pinSha) 0 }}
                           <p class="color-negative">flake.lock unreadable</p>
                         {{ else }}
-                          {{ $diff := sub now.Unix $pinTs }}
-                          {{ $days := div $diff 86400.0 }}
+                          {{ $days := div (sub $nowSec $pinTs) 86400.0 }}
                           <div class="flex flex-column gap-5">
                             <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }}</span></div>
                             <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }}</span></div>
