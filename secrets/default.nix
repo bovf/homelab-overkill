@@ -27,6 +27,9 @@
     secrets."pangolin/resources/traefik_dashboard/domain" = {};
     secrets."pangolin/resources/cam/domain"              = {};
     secrets."pangolin/resources/uptime/domain"           = {};
+    # Uptime Kuma admin (created by the bootstrap Job on first run).
+    secrets."uptime-kuma/admin_user"     = {};
+    secrets."uptime-kuma/admin_password" = {};
     secrets."pangolin/resources/search/domain"           = {};
     secrets."pangolin/resources/speedtest/domain"        = {};
 
