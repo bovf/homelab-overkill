@@ -275,26 +275,30 @@ in
                           url: ${kuma}/api/status-page/heartbeat/homelab
                       template: |
                         {{ $hb := .Subrequest "hb" }}
+                        <div class="flex flex-column gap-10">
                         {{ range .JSON.Array "publicGroupList" }}
-                          <p class="size-h6 color-paragraph margin-top-10">{{ .String "name" }}</p>
-                          <div class="cards-grid">
-                          {{ range .Array "monitorList" }}
-                            {{ $id := .String "id" }}
-                            {{ $name := .String "name" }}
-                            {{ $statusPath := printf "heartbeatList.%s|@reverse|0.status" $id }}
-                            {{ $pingPath   := printf "heartbeatList.%s|@reverse|0.ping"   $id }}
-                            {{ $status := $hb.JSON.Int $statusPath }}
-                            {{ $ping   := $hb.JSON.Int $pingPath }}
-                            <div class="card flex flex-column">
-                              <span>
-                                {{ if eq $status 1 }}<span class="color-positive">●</span>{{ else if eq $status 0 }}<span class="color-negative">●</span>{{ else }}<span class="color-paragraph">●</span>{{ end }}
-                                {{ $name }}
-                              </span>
-                              {{ if gt $ping 0 }}<span class="size-h6 color-paragraph">{{ $ping }} ms</span>{{ end }}
-                            </div>
-                          {{ end }}
+                          <div>
+                            <p class="size-h6 color-paragraph margin-bottom-3">{{ .String "name" | upper }}</p>
+                            <ul class="list list-gap-2">
+                            {{ range .Array "monitorList" }}
+                              {{ $id := .String "id" }}
+                              {{ $name := .String "name" }}
+                              {{ $statusPath := printf "heartbeatList.%s|@reverse|0.status" $id }}
+                              {{ $pingPath   := printf "heartbeatList.%s|@reverse|0.ping"   $id }}
+                              {{ $status := $hb.JSON.Int $statusPath }}
+                              {{ $ping   := $hb.JSON.Int $pingPath }}
+                              <li class="flex justify-between">
+                                <span>
+                                  {{ if eq $status 1 }}<span class="color-positive">●</span>{{ else if eq $status 0 }}<span class="color-negative">●</span>{{ else }}<span class="color-paragraph">●</span>{{ end }}
+                                  {{ $name }}
+                                </span>
+                                {{ if gt $ping 0 }}<span class="size-h6 color-paragraph">{{ $ping }} ms</span>{{ end }}
+                              </li>
+                            {{ end }}
+                            </ul>
                           </div>
                         {{ end }}
+                        </div>
 
                     - type: rss
                       title: News
@@ -341,18 +345,18 @@ in
                       template: |
                         {{ $head    := .Subrequest "head" }}
                         {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
-                        {{ $pinTs   := .JSON.Float  "nodes.nixpkgs.locked.lastModified" }}
                         {{ $headSha := $head.JSON.String "sha" }}
-                        {{ $nowVal  := now }}
-                        {{ $nowSec  := $nowVal.Unix }}
                         {{ if eq (len $pinSha) 0 }}
                           <p class="color-negative">flake.lock unreadable</p>
                         {{ else }}
-                          {{ $days := div (sub $nowSec $pinTs) 86400.0 }}
                           <div class="flex flex-column gap-5">
                             <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }}</span></div>
                             <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }}</span></div>
-                            <div class="flex justify-between"><span>drift</span><span>{{ printf "%.0fd" $days }}</span></div>
+                            {{ if eq $pinSha $headSha }}
+                              <div class="flex justify-between"><span>status</span><span class="color-positive">in sync</span></div>
+                            {{ else }}
+                              <div class="flex justify-between"><span>status</span><span class="color-negative">behind</span></div>
+                            {{ end }}
                           </div>
                         {{ end }}
 
@@ -369,18 +373,18 @@ in
                       template: |
                         {{ $head    := .Subrequest "head" }}
                         {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
-                        {{ $pinTs   := .JSON.Float  "nodes.nixpkgs.locked.lastModified" }}
                         {{ $headSha := $head.JSON.String "sha" }}
-                        {{ $nowVal  := now }}
-                        {{ $nowSec  := $nowVal.Unix }}
                         {{ if eq (len $pinSha) 0 }}
                           <p class="color-negative">flake.lock unreadable</p>
                         {{ else }}
-                          {{ $days := div (sub $nowSec $pinTs) 86400.0 }}
                           <div class="flex flex-column gap-5">
                             <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }}</span></div>
                             <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }}</span></div>
-                            <div class="flex justify-between"><span>drift</span><span>{{ printf "%.0fd" $days }}</span></div>
+                            {{ if eq $pinSha $headSha }}
+                              <div class="flex justify-between"><span>status</span><span class="color-positive">in sync</span></div>
+                            {{ else }}
+                              <div class="flex justify-between"><span>status</span><span class="color-negative">behind</span></div>
+                            {{ end }}
                           </div>
                         {{ end }}
 
