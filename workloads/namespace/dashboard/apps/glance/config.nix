@@ -199,6 +199,43 @@ in
                           </ul>
                         {{ end }}
 
+                    # SERVICES — Uptime Kuma's status-page heartbeat JSON.
+                    # Emits a section per group (Media, Dev, Ops, Comms,
+                    # Personal, Dashboard, Private) with its own grid.
+                    - type: custom-api
+                      title: Services
+                      cache: 1m
+                      url: ${kuma}/api/status-page/homelab
+                      subrequests:
+                        hb:
+                          url: ${kuma}/api/status-page/heartbeat/homelab
+                      template: |
+                        {{ $hb := .Subrequest "hb" }}
+                        <div class="flex flex-column gap-10">
+                        {{ range .JSON.Array "publicGroupList" }}
+                          <div>
+                            <p class="size-h6 color-paragraph margin-bottom-3">{{ .String "name" }}</p>
+                            <ul class="list list-gap-2">
+                            {{ range .Array "monitorList" }}
+                              {{ $id := .String "id" }}
+                              {{ $name := .String "name" }}
+                              {{ $statusPath := printf "heartbeatList.%s|@reverse|0.status" $id }}
+                              {{ $pingPath   := printf "heartbeatList.%s|@reverse|0.ping"   $id }}
+                              {{ $status := $hb.JSON.Int $statusPath }}
+                              {{ $ping   := $hb.JSON.Int $pingPath }}
+                              <li class="flex justify-between">
+                                <span>
+                                  {{ if eq $status 1 }}<span class="color-positive">●</span>{{ else if eq $status 0 }}<span class="color-negative">●</span>{{ else }}<span class="color-paragraph">●</span>{{ end }}
+                                  {{ $name }}
+                                </span>
+                                {{ if gt $ping 0 }}<span class="size-h6 color-paragraph">{{ $ping }} ms</span>{{ end }}
+                              </li>
+                            {{ end }}
+                            </ul>
+                          </div>
+                        {{ end }}
+                        </div>
+
                 # ── center / main column ──────────────────────────────
                 - size: full
                   widgets:
@@ -283,43 +320,6 @@ in
                             - title: NixOS Discourse
                               url: https://discourse.nixos.org/
                               icon: si:nixos
-
-                    # SERVICES — Uptime Kuma's status-page heartbeat JSON.
-                    # Emits a section per group (Media, Dev, Ops, Comms,
-                    # Personal, Dashboard, Private) with its own grid.
-                    - type: custom-api
-                      title: Services
-                      cache: 1m
-                      url: ${kuma}/api/status-page/homelab
-                      subrequests:
-                        hb:
-                          url: ${kuma}/api/status-page/heartbeat/homelab
-                      template: |
-                        {{ $hb := .Subrequest "hb" }}
-                        <div class="flex flex-column gap-10">
-                        {{ range .JSON.Array "publicGroupList" }}
-                          <div>
-                            <p class="size-h6 color-paragraph margin-bottom-3">{{ .String "name" }}</p>
-                            <ul class="list list-gap-2">
-                            {{ range .Array "monitorList" }}
-                              {{ $id := .String "id" }}
-                              {{ $name := .String "name" }}
-                              {{ $statusPath := printf "heartbeatList.%s|@reverse|0.status" $id }}
-                              {{ $pingPath   := printf "heartbeatList.%s|@reverse|0.ping"   $id }}
-                              {{ $status := $hb.JSON.Int $statusPath }}
-                              {{ $ping   := $hb.JSON.Int $pingPath }}
-                              <li class="flex justify-between">
-                                <span>
-                                  {{ if eq $status 1 }}<span class="color-positive">●</span>{{ else if eq $status 0 }}<span class="color-negative">●</span>{{ else }}<span class="color-paragraph">●</span>{{ end }}
-                                  {{ $name }}
-                                </span>
-                                {{ if gt $ping 0 }}<span class="size-h6 color-paragraph">{{ $ping }} ms</span>{{ end }}
-                              </li>
-                            {{ end }}
-                            </ul>
-                          </div>
-                        {{ end }}
-                        </div>
 
                     - type: rss
                       title: News
