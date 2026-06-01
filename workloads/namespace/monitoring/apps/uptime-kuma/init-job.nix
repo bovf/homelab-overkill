@@ -16,6 +16,11 @@
 let
   inherit (lib) filterAttrs mapAttrsToList;
 
+  # Bump to force a fresh Job. Embedded in the Job's `name` so K8s sees
+  # a brand-new resource each version → guaranteed re-run. Annotation-only
+  # bumps are no-ops because Job specs are immutable.
+  bootstrapVersion = "5";
+
   resolveUrl = m:
     if m.url != null
       then m.url
@@ -82,11 +87,13 @@ in
     apiVersion = "batch/v1";
     kind       = "Job";
     metadata = {
-      name      = "uptime-kuma-bootstrap";
+      # Versioned name so each `bootstrapVersion` bump spawns a brand-new
+      # Job (k8s Job specs are immutable; apply-on-existing is a no-op).
+      # Old versions auto-clean via ttlSecondsAfterFinished below.
+      name      = "uptime-kuma-bootstrap-v${bootstrapVersion}";
       namespace = "monitoring";
       annotations = {
-        # Bump on script changes to force re-run (delete old Job + apply new).
-        "homelab.dobryops.com/bootstrap-version" = "4";
+        "homelab.dobryops.com/bootstrap-version" = bootstrapVersion;
       };
     };
     spec = {
