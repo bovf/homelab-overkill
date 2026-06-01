@@ -198,6 +198,8 @@ in
                           shortcut: "!hn"
                           url: https://hn.algolia.com/?q={QUERY}
 
+                    # 6 balanced groups so glance lays them out 3×2.
+                    # A 4-group layout wraps to 3+1 and orphans the last.
                     - type: bookmarks
                       groups:
                         - title: Dev
@@ -211,7 +213,7 @@ in
                             - title: pgAdmin
                               url: https://${config.sops.placeholder."pangolin/resources/pgadmin/domain"}
                               icon: si:postgresql
-                        - title: Ops
+                        - title: Monitor
                           links:
                             - title: Grafana
                               url: https://${config.sops.placeholder."pangolin/resources/grafana/domain"}
@@ -222,12 +224,33 @@ in
                             - title: Alertmanager
                               url: https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
                               icon: di:alertmanager
+                        - title: Admin
+                          links:
                             - title: Pi-hole
                               url: https://${config.sops.placeholder."pangolin/resources/pihole/domain"}
                               icon: si:pihole
                             - title: MinIO
                               url: https://${config.sops.placeholder."pangolin/resources/minio_console/domain"}
                               icon: si:minio
+                        - title: Comms
+                          links:
+                            - title: Matrix
+                              url: https://${config.sops.placeholder."pangolin/resources/element/domain"}
+                              icon: si:element
+                            - title: Synapse Admin
+                              url: https://${config.sops.placeholder."pangolin/resources/synapse_admin/domain"}
+                              icon: si:matrix
+                            - title: Mail
+                              url: https://${config.sops.placeholder."pangolin/resources/mailadmin/domain"}
+                              icon: di:stalwart
+                        - title: Personal
+                          links:
+                            - title: ezBookkeeping
+                              url: https://${config.sops.placeholder."pangolin/resources/ezbookkeeping/domain"}
+                              icon: di:ezbookkeeping
+                            - title: Blog
+                              url: https://${config.sops.placeholder."pangolin/resources/whoami/domain"}
+                              icon: di:hashnode
                         - title: Social
                           links:
                             - title: YouTube
@@ -239,27 +262,10 @@ in
                             - title: NixOS Discourse
                               url: https://discourse.nixos.org/
                               icon: si:nixos
-                        - title: Personal
-                          links:
-                            - title: Matrix
-                              url: https://${config.sops.placeholder."pangolin/resources/element/domain"}
-                              icon: si:element
-                            - title: Synapse Admin
-                              url: https://${config.sops.placeholder."pangolin/resources/synapse_admin/domain"}
-                              icon: si:matrix
-                            - title: Mail
-                              url: https://${config.sops.placeholder."pangolin/resources/mailadmin/domain"}
-                              icon: di:stalwart
-                            - title: ezBookkeeping
-                              url: https://${config.sops.placeholder."pangolin/resources/ezbookkeeping/domain"}
-                              icon: di:ezbookkeeping
-                            - title: Blog
-                              url: https://${config.sops.placeholder."pangolin/resources/whoami/domain"}
-                              icon: di:hashnode
 
                     # SERVICES — Uptime Kuma's status-page heartbeat JSON.
-                    # The bootstrap Job creates a status page slugged
-                    # "homelab" on first deploy; widget populates after that.
+                    # Emits a section per group (Media, Dev, Ops, Comms,
+                    # Personal, Dashboard, Private) with its own grid.
                     - type: custom-api
                       title: Services
                       cache: 1m
@@ -269,8 +275,9 @@ in
                           url: ${kuma}/api/status-page/heartbeat/homelab
                       template: |
                         {{ $hb := .Subrequest "hb" }}
-                        <div class="cards-grid">
                         {{ range .JSON.Array "publicGroupList" }}
+                          <p class="size-h6 color-paragraph margin-top-10">{{ .String "name" }}</p>
+                          <div class="cards-grid">
                           {{ range .Array "monitorList" }}
                             {{ $id := .String "id" }}
                             {{ $name := .String "name" }}
@@ -286,55 +293,8 @@ in
                               {{ if gt $ping 0 }}<span class="size-h6 color-paragraph">{{ $ping }} ms</span>{{ end }}
                             </div>
                           {{ end }}
+                          </div>
                         {{ end }}
-                        </div>
-
-                    # NIXPKGS DRIFT — homelab-overkill. Renders pin date
-                    # (from flake.lock.lastModified, unix int) vs channel
-                    # head date (from GitHub commit ISO string), letting
-                    # the reader eyeball the drift.
-                    - type: custom-api
-                      title: nixpkgs — homelab-overkill
-                      cache: 30m
-                      url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}/api/v4/projects/bovf%2Fhomelab-overkill/repository/files/flake.lock/raw?ref=main
-                      headers:
-                        PRIVATE-TOKEN: ''${GITLAB_TOKEN}
-                      subrequests:
-                        head:
-                          url: https://api.github.com/repos/NixOS/nixpkgs/commits/nixos-unstable
-                      template: |
-                        {{ $head    := .Subrequest "head" }}
-                        {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
-                        {{ $pinTs   := .JSON.Int    "nodes.nixpkgs.locked.lastModified" }}
-                        {{ $pinTime := parseTime "1136239445" (printf "%d" $pinTs) }}
-                        {{ $headSha := $head.JSON.String "sha" }}
-                        {{ $headTime := parseTime "2006-01-02T15:04:05Z" ($head.JSON.String "commit.committer.date") }}
-                        <div class="flex flex-column gap-5">
-                          <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }} · {{ formatTime "2006-01-02" $pinTime }}</span></div>
-                          <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }} · {{ formatTime "2006-01-02" $headTime }}</span></div>
-                        </div>
-
-                    # NIXPKGS DRIFT — pl-badwater
-                    - type: custom-api
-                      title: nixpkgs — pl-badwater
-                      cache: 30m
-                      url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}/api/v4/projects/bovf%2Fpl-badwater/repository/files/flake.lock/raw?ref=main
-                      headers:
-                        PRIVATE-TOKEN: ''${GITLAB_TOKEN}
-                      subrequests:
-                        head:
-                          url: https://api.github.com/repos/NixOS/nixpkgs/commits/nixos-unstable
-                      template: |
-                        {{ $head    := .Subrequest "head" }}
-                        {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
-                        {{ $pinTs   := .JSON.Int    "nodes.nixpkgs.locked.lastModified" }}
-                        {{ $pinTime := parseTime "1136239445" (printf "%d" $pinTs) }}
-                        {{ $headSha := $head.JSON.String "sha" }}
-                        {{ $headTime := parseTime "2006-01-02T15:04:05Z" ($head.JSON.String "commit.committer.date") }}
-                        <div class="flex flex-column gap-5">
-                          <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }} · {{ formatTime "2006-01-02" $pinTime }}</span></div>
-                          <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }} · {{ formatTime "2006-01-02" $headTime }}</span></div>
-                        </div>
 
                     - type: rss
                       title: News
@@ -364,6 +324,63 @@ in
                             - title: Traefik
                               url: https://${config.sops.placeholder."pangolin/resources/traefik_dashboard/domain"}
                               icon: si:traefikproxy
+                            - title: Hetzner
+                              url: https://console.hetzner.com/projects/11019344/dashboard
+                              icon: si:hetzner
+
+                    # NIXPKGS DRIFT — homelab-overkill. Sourced from GitHub
+                    # raw since the repo isn't mirrored to the in-cluster
+                    # GitLab. No auth needed for public read.
+                    - type: custom-api
+                      title: nixpkgs — homelab-overkill
+                      cache: 30m
+                      url: https://raw.githubusercontent.com/bovf/homelab-overkill/main/flake.lock
+                      subrequests:
+                        head:
+                          url: https://api.github.com/repos/NixOS/nixpkgs/commits/nixos-unstable
+                      template: |
+                        {{ $head    := .Subrequest "head" }}
+                        {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
+                        {{ $pinTs   := .JSON.Float  "nodes.nixpkgs.locked.lastModified" }}
+                        {{ $headSha := $head.JSON.String "sha" }}
+                        {{ if eq (len $pinSha) 0 }}
+                          <p class="color-negative">flake.lock unreadable</p>
+                        {{ else }}
+                          {{ $diff := sub now.Unix $pinTs }}
+                          {{ $days := div $diff 86400.0 }}
+                          <div class="flex flex-column gap-5">
+                            <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }}</span></div>
+                            <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }}</span></div>
+                            <div class="flex justify-between"><span>drift</span><span>{{ printf "%.0fd" $days }}</span></div>
+                          </div>
+                        {{ end }}
+
+                    # NIXPKGS DRIFT — pl-badwater (from in-cluster GitLab).
+                    - type: custom-api
+                      title: nixpkgs — pl-badwater
+                      cache: 30m
+                      url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}/api/v4/projects/bovf%2Fpl-badwater/repository/files/flake.lock/raw?ref=main
+                      headers:
+                        PRIVATE-TOKEN: ''${GITLAB_TOKEN}
+                      subrequests:
+                        head:
+                          url: https://api.github.com/repos/NixOS/nixpkgs/commits/nixos-unstable
+                      template: |
+                        {{ $head    := .Subrequest "head" }}
+                        {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
+                        {{ $pinTs   := .JSON.Float  "nodes.nixpkgs.locked.lastModified" }}
+                        {{ $headSha := $head.JSON.String "sha" }}
+                        {{ if eq (len $pinSha) 0 }}
+                          <p class="color-negative">flake.lock unreadable</p>
+                        {{ else }}
+                          {{ $diff := sub now.Unix $pinTs }}
+                          {{ $days := div $diff 86400.0 }}
+                          <div class="flex flex-column gap-5">
+                            <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }}</span></div>
+                            <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }}</span></div>
+                            <div class="flex justify-between"><span>drift</span><span>{{ printf "%.0fd" $days }}</span></div>
+                          </div>
+                        {{ end }}
 
                     # SPEEDTEST — latest result from speedtest-tracker v1.14+
                     # Requires a Sanctum bearer token. Generate one in the
