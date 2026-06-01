@@ -19,7 +19,7 @@ let
   # Bump to force a fresh Job. Embedded in the Job's `name` so K8s sees
   # a brand-new resource each version → guaranteed re-run. Annotation-only
   # bumps are no-ops because Job specs are immutable.
-  bootstrapVersion = "6";
+  bootstrapVersion = "7";
 
   resolveUrl = m:
     if m.url != null
