@@ -1,35 +1,64 @@
 # Glance dashboard config. Rendered via sops.templates so every
 # *.dobryops.com host is templated from SOPS — no plaintext domains in
-# git. The GitLab read token is injected via env at runtime (see
-# helm.nix' glance-env Secret) so it's not baked into this rendered
-# Secret either.
+# git. API tokens are injected via env at runtime (see glance-env in
+# helm.nix) so rotating one doesn't reroll this whole Secret.
 #
-# Layout = "Mission Control": 3 columns, left/right are sidebars, middle
-# is the daily-driver feed. Media + Mobile pages are wired but stay
-# light (mostly bookmarks) — we flesh them out in follow-ups once Kuma
-# + the *arr integrations are confirmed live.
+# Layout = "Mission Control" home page + integrated Media page +
+# slim Mobile page. Bookmarks have selfh.st (`sh:`) / simple-icons
+# (`si:`) icons per link.
 #
-# Template helpers available in custom-api widget (see
-# glance/widget-custom-api.go):
-#   .JSON.{String,Int,Float,Bool,Array,Get,Exists} "path"   (gjson syntax)
-#   .Subrequest "name"     (returns the same shape; cache it in a var
-#                           before entering range loops since `.` shifts)
-#   add sub mul div  parseTime formatTime  now  duration  slice
+# Template helpers (see widget-custom-api.go):
+#   .JSON.{String,Int,Float,Bool,Array,Get,Exists} "<gjson-path>"
+#   .Subrequest "name"     (cache in $var before {{ range }} loops)
+#   add sub mul div  now (time.Time)  parseTime formatTime  duration  slice
+#   toFloat(int)→float, toInt(float)→int
 #   No sprig — toJson / parseJSON / humanizeBytes etc. don't exist.
 #
-# Prometheus queries hardcode instance="192.0.2.10:9100" for the
-# node-exporter on engineer; WireGuard metrics carry instance="engineer"
-# from the ScrapeConfig in monitoring/.../wireguard-scrape.nix.
+# Prometheus queries hardcode instance="192.0.2.10:9100"; WG metrics
+# carry instance="engineer" from monitoring/.../wireguard-scrape.nix.
+#
+# In-cluster Service URLs use the *Service* port (the tunnel-IP-side
+# port), NOT the pod-side targetPort. uptime-kuma exposes :8097
+# (pod listens on 3001), speedtest-tracker :8099 (pod on 80), etc.
 { config, ... }:
 
 let
-  # Cluster-internal Service URLs. Not secrets, just inconvenient strings.
   prom    = "http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090";
   amgr    = "http://kube-prometheus-stack-alertmanager.monitoring.svc.cluster.local:9093";
-  kuma    = "http://uptime-kuma.monitoring.svc.cluster.local:3001";
-  spdtest = "http://speedtest-tracker.monitoring.svc.cluster.local:80";
+  kuma    = "http://uptime-kuma.monitoring.svc.cluster.local:8097";
+  spdtest = "http://speedtest-tracker.monitoring.svc.cluster.local:8099";
 
   promQuery = q: "${prom}/api/v1/query?query=${q}";
+
+  # Wide hardcoded date range for *arr calendars — Sonarr/Radarr
+  # require start+end. Refresh every couple years or so.
+  arrStart = "2026-01-01T00:00:00Z";
+  arrEnd   = "2027-06-01T00:00:00Z";
+
+  # Reusable engineer-stats template — used on both Home and Mobile pages.
+  engineerStats = ''
+    template: |
+      {{ $ram    := .Subrequest "ram" }}
+      {{ $disk   := .Subrequest "disk" }}
+      {{ $uptime := .Subrequest "uptime" }}
+      <div class="flex flex-column gap-7">
+        <div>
+          <p class="size-h6 color-paragraph">CPU</p>
+          <p class="size-h3">{{ printf "%.1f" (.JSON.Float "data.result.0.value.1") }}%</p>
+        </div>
+        <div>
+          <p class="size-h6 color-paragraph">RAM</p>
+          <p class="size-h3">{{ printf "%.1f" ($ram.JSON.Float "data.result.0.value.1") }}%</p>
+        </div>
+        <div>
+          <p class="size-h6 color-paragraph">Disk /</p>
+          <p class="size-h3">{{ printf "%.1f" ($disk.JSON.Float "data.result.0.value.1") }}%</p>
+        </div>
+        <div>
+          <p class="size-h6 color-paragraph">Uptime</p>
+          <p class="size-base">{{ printf "%.0f hours" (div ($uptime.JSON.Float "data.result.0.value.1") 3600) }}</p>
+        </div>
+      </div>'';
 in
 {
   sops.templates."glance/config.yaml" = {
@@ -73,28 +102,7 @@ in
                           url: ${promQuery "(1-node_filesystem_avail_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D/node_filesystem_size_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D)*100"}
                         uptime:
                           url: ${promQuery "node_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D-node_boot_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D"}
-                      template: |
-                        {{ $ram    := .Subrequest "ram" }}
-                        {{ $disk   := .Subrequest "disk" }}
-                        {{ $uptime := .Subrequest "uptime" }}
-                        <div class="flex flex-column gap-7">
-                          <div>
-                            <p class="size-h6 color-paragraph">CPU</p>
-                            <p class="size-h3">{{ printf "%.1f" (.JSON.Float "data.result.0.value.1") }}%</p>
-                          </div>
-                          <div>
-                            <p class="size-h6 color-paragraph">RAM</p>
-                            <p class="size-h3">{{ printf "%.1f" ($ram.JSON.Float "data.result.0.value.1") }}%</p>
-                          </div>
-                          <div>
-                            <p class="size-h6 color-paragraph">Disk /</p>
-                            <p class="size-h3">{{ printf "%.1f" ($disk.JSON.Float "data.result.0.value.1") }}%</p>
-                          </div>
-                          <div>
-                            <p class="size-h6 color-paragraph">Uptime</p>
-                            <p class="size-base">{{ printf "%.0f hours" (div ($uptime.JSON.Float "data.result.0.value.1") 3600) }}</p>
-                          </div>
-                        </div>
+                      ${engineerStats}
 
                     - type: custom-api
                       title: Pangolin VPS
@@ -199,42 +207,58 @@ in
                           links:
                             - title: GitLab
                               url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}
+                              icon: sh:gitlab
                             - title: ArgoCD
                               url: https://${config.sops.placeholder."pangolin/resources/argocd/domain"}
-                        - title: Social
-                          links:
-                            - title: YouTube
-                              url: https://www.youtube.com/
-                            - title: Reddit
-                              url: https://www.reddit.com/
-                            - title: NixOS Discourse
-                              url: https://discourse.nixos.org/
+                              icon: sh:argo-cd
+                            - title: pgAdmin
+                              url: https://${config.sops.placeholder."pangolin/resources/pgadmin/domain"}
+                              icon: sh:pgadmin
                         - title: Ops
                           links:
                             - title: Grafana
                               url: https://${config.sops.placeholder."pangolin/resources/grafana/domain"}
+                              icon: sh:grafana
                             - title: Prometheus
                               url: https://${config.sops.placeholder."pangolin/resources/prometheus/domain"}
+                              icon: sh:prometheus
                             - title: Alertmanager
                               url: https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
+                              icon: sh:prometheus-alertmanager
                             - title: Pi-hole
                               url: https://${config.sops.placeholder."pangolin/resources/pihole/domain"}
-                            - title: Pangolin
-                              url: https://pangolin.dobryops.com
+                              icon: sh:pi-hole
                             - title: MinIO
                               url: https://${config.sops.placeholder."pangolin/resources/minio_console/domain"}
-                        - title: Comms
+                              icon: sh:minio
+                        - title: Social
+                          links:
+                            - title: YouTube
+                              url: https://www.youtube.com/
+                              icon: si:youtube
+                            - title: Reddit
+                              url: https://www.reddit.com/
+                              icon: si:reddit
+                            - title: NixOS Discourse
+                              url: https://discourse.nixos.org/
+                              icon: si:nixos
+                        - title: Personal
                           links:
                             - title: Matrix
                               url: https://${config.sops.placeholder."pangolin/resources/element/domain"}
+                              icon: sh:element
                             - title: Synapse Admin
                               url: https://${config.sops.placeholder."pangolin/resources/synapse_admin/domain"}
+                              icon: sh:matrix
                             - title: Mail
                               url: https://${config.sops.placeholder."pangolin/resources/mailadmin/domain"}
+                              icon: sh:stalwart
                             - title: ezBookkeeping
                               url: https://${config.sops.placeholder."pangolin/resources/ezbookkeeping/domain"}
+                              icon: sh:ezbookkeeping
                             - title: Blog
                               url: https://${config.sops.placeholder."pangolin/resources/whoami/domain"}
+                              icon: sh:whoogle-search
 
                     # SERVICES — Uptime Kuma's status-page heartbeat JSON.
                     # The bootstrap Job creates a status page slugged
@@ -268,7 +292,10 @@ in
                         {{ end }}
                         </div>
 
-                    # NIXPKGS DRIFT — homelab-overkill
+                    # NIXPKGS DRIFT — homelab-overkill. Renders pin date
+                    # (from flake.lock.lastModified, unix int) vs channel
+                    # head date (from GitHub commit ISO string), letting
+                    # the reader eyeball the drift.
                     - type: custom-api
                       title: nixpkgs — homelab-overkill
                       cache: 30m
@@ -281,14 +308,13 @@ in
                       template: |
                         {{ $head    := .Subrequest "head" }}
                         {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
-                        {{ $pinTs   := .JSON.Float  "nodes.nixpkgs.locked.lastModified" }}
+                        {{ $pinTs   := .JSON.Int    "nodes.nixpkgs.locked.lastModified" }}
+                        {{ $pinTime := parseTime "1136239445" (printf "%d" $pinTs) }}
                         {{ $headSha := $head.JSON.String "sha" }}
-                        {{ $nowUnix := now.Unix }}
-                        {{ $drift   := div (sub (toFloat $nowUnix) $pinTs) 86400.0 }}
+                        {{ $headTime := parseTime "2006-01-02T15:04:05Z" ($head.JSON.String "commit.committer.date") }}
                         <div class="flex flex-column gap-5">
-                          <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }}</span></div>
-                          <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }}</span></div>
-                          <div class="flex justify-between"><span>drift</span><span>{{ printf "%.0fd" $drift }}</span></div>
+                          <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }} · {{ formatTime "2006-01-02" $pinTime }}</span></div>
+                          <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }} · {{ formatTime "2006-01-02" $headTime }}</span></div>
                         </div>
 
                     # NIXPKGS DRIFT — pl-badwater
@@ -304,14 +330,13 @@ in
                       template: |
                         {{ $head    := .Subrequest "head" }}
                         {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
-                        {{ $pinTs   := .JSON.Float  "nodes.nixpkgs.locked.lastModified" }}
+                        {{ $pinTs   := .JSON.Int    "nodes.nixpkgs.locked.lastModified" }}
+                        {{ $pinTime := parseTime "1136239445" (printf "%d" $pinTs) }}
                         {{ $headSha := $head.JSON.String "sha" }}
-                        {{ $nowUnix := now.Unix }}
-                        {{ $drift   := div (sub (toFloat $nowUnix) $pinTs) 86400.0 }}
+                        {{ $headTime := parseTime "2006-01-02T15:04:05Z" ($head.JSON.String "commit.committer.date") }}
                         <div class="flex flex-column gap-5">
-                          <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }}</span></div>
-                          <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }}</span></div>
-                          <div class="flex justify-between"><span>drift</span><span>{{ printf "%.0fd" $drift }}</span></div>
+                          <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }} · {{ formatTime "2006-01-02" $pinTime }}</span></div>
+                          <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }} · {{ formatTime "2006-01-02" $headTime }}</span></div>
                         </div>
 
                     - type: rss
@@ -334,25 +359,28 @@ in
                       groups:
                         - title: Infra
                           links:
-                            - title: ArgoCD
-                              url: https://${config.sops.placeholder."pangolin/resources/argocd/domain"}
-                            - title: GitLab
-                              url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}
-                            - title: Grafana
-                              url: https://${config.sops.placeholder."pangolin/resources/grafana/domain"}
                             - title: Pangolin
                               url: https://pangolin.dobryops.com
+                              icon: sh:cloudflared
+                            - title: Traefik
+                              url: https://${config.sops.placeholder."pangolin/resources/traefik_dashboard/domain"}
+                              icon: sh:traefik
 
-                    # SPEEDTEST — latest result from speedtest-tracker.
-                    # Path is `data.<field>` on v1.x of the linuxserver image.
+                    # SPEEDTEST — latest result from speedtest-tracker v1.14+
+                    # Requires a Sanctum bearer token. Generate one in the
+                    # UI: Settings → API Tokens → Create, then set
+                    # speedtest/api_token in sops.
                     - type: custom-api
                       title: Speedtest
                       cache: 5m
-                      url: ${spdtest}/api/v1/speedtests/latest
+                      url: ${spdtest}/api/v1/results/latest
+                      headers:
+                        Authorization: Bearer ''${SPEEDTEST_TOKEN}
+                        Accept: application/json
                       template: |
                         <div class="flex flex-column gap-5">
-                          <div class="flex justify-between"><span>↓ download</span><span class="size-h4">{{ printf "%.0f Mbps" (.JSON.Float "data.download") }}</span></div>
-                          <div class="flex justify-between"><span>↑ upload</span><span class="size-h4">{{ printf "%.0f Mbps" (.JSON.Float "data.upload") }}</span></div>
+                          <div class="flex justify-between"><span>↓ download</span><span class="size-h4">{{ printf "%.0f Mbps" (div (.JSON.Float "data.download") 1000000.0) }}</span></div>
+                          <div class="flex justify-between"><span>↑ upload</span><span class="size-h4">{{ printf "%.0f Mbps" (div (.JSON.Float "data.upload") 1000000.0) }}</span></div>
                           <div class="flex justify-between"><span>· ping</span><span class="size-h4">{{ printf "%.0f ms" (.JSON.Float "data.ping") }}</span></div>
                         </div>
 
@@ -366,32 +394,167 @@ in
             # ────────────────────────────────────────────────────────────
             - name: Media
               columns:
+                # ── left ──────────────────────────────────────────────
                 - size: small
                   widgets:
+                    # Jellyfin library counts — Items/Counts is auth'd
+                    # via api_key query param.
+                    - type: custom-api
+                      title: Jellyfin Library
+                      cache: 5m
+                      url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}/Items/Counts?api_key=''${JELLYFIN_KEY}
+                      template: |
+                        <div class="flex flex-column gap-5">
+                          <div class="flex justify-between"><span>Movies</span><span class="color-highlight">{{ .JSON.Int "MovieCount" }}</span></div>
+                          <div class="flex justify-between"><span>Shows</span><span class="color-highlight">{{ .JSON.Int "SeriesCount" }}</span></div>
+                          <div class="flex justify-between"><span>Episodes</span><span class="color-highlight">{{ .JSON.Int "EpisodeCount" }}</span></div>
+                          <div class="flex justify-between"><span>Songs</span><span class="color-highlight">{{ .JSON.Int "SongCount" }}</span></div>
+                        </div>
+
+                    # Active Jellyfin streams
+                    - type: custom-api
+                      title: Active streams
+                      cache: 30s
+                      url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}/Sessions?api_key=''${JELLYFIN_KEY}&activeWithinSeconds=60
+                      template: |
+                        {{ $playing := 0 }}
+                        {{ range .JSON.Array "" }}
+                          {{ if .Exists "NowPlayingItem" }}
+                            {{ $playing = add $playing 1 }}
+                          {{ end }}
+                        {{ end }}
+                        {{ if eq $playing 0 }}
+                          <p class="color-paragraph">No active streams</p>
+                        {{ else }}
+                          <ul class="list">
+                            {{ range .JSON.Array "" }}
+                              {{ if .Exists "NowPlayingItem" }}
+                                <li><span class="color-positive">●</span> {{ .String "UserName" }} · {{ .String "NowPlayingItem.Name" }}</li>
+                              {{ end }}
+                            {{ end }}
+                          </ul>
+                        {{ end }}
+
                     - type: bookmarks
                       groups:
                         - title: Library
                           links:
                             - title: Jellyfin
                               url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}
+                              icon: sh:jellyfin
                             - title: Jellyseerr
                               url: https://${config.sops.placeholder."pangolin/resources/jellyseerr/domain"}
+                              icon: sh:jellyseerr
+
+                # ── center ────────────────────────────────────────────
                 - size: full
                   widgets:
+                    # Sportarr first (user priority). It's a custom *arr —
+                    # listing here just as a bookmark group with the link;
+                    # API integration TBD once its endpoints are stable.
+                    - type: bookmarks
+                      title: Sportarr
+                      groups:
+                        - title: Events
+                          links:
+                            - title: Open Sportarr
+                              url: https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
+                              icon: sh:sonarr
+
+                    # Sonarr upcoming episodes
+                    - type: custom-api
+                      title: Upcoming — TV
+                      cache: 10m
+                      url: https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}/api/v3/calendar?apikey=''${SONARR_KEY}&start=${arrStart}&end=${arrEnd}&includeSeries=true&unmonitored=false
+                      template: |
+                        {{ $now := now }}
+                        {{ $items := .JSON.Array "" }}
+                        {{ if eq (len $items) 0 }}
+                          <p class="color-paragraph">Nothing scheduled</p>
+                        {{ else }}
+                          <ul class="list collapsible-container" data-collapse-after="6">
+                            {{ range $items }}
+                              {{ $air := parseTime "2006-01-02T15:04:05Z" (.String "airDateUtc") }}
+                              {{ if gt $air.Unix $now.Unix }}
+                                <li>
+                                  <span class="color-highlight">{{ .String "series.title" }}</span>
+                                  · S{{ printf "%02d" (.Int "seasonNumber") }}E{{ printf "%02d" (.Int "episodeNumber") }}
+                                  · <span class="color-paragraph">{{ formatTime "Jan 02" $air }}</span>
+                                </li>
+                              {{ end }}
+                            {{ end }}
+                          </ul>
+                        {{ end }}
+
+                    # Radarr upcoming movies
+                    - type: custom-api
+                      title: Coming Soon — Movies
+                      cache: 10m
+                      url: https://${config.sops.placeholder."pangolin/resources/radarr/domain"}/api/v3/calendar?apikey=''${RADARR_KEY}&start=${arrStart}&end=${arrEnd}&unmonitored=false
+                      template: |
+                        {{ $now := now }}
+                        {{ $items := .JSON.Array "" }}
+                        {{ if eq (len $items) 0 }}
+                          <p class="color-paragraph">Nothing scheduled</p>
+                        {{ else }}
+                          <ul class="list collapsible-container" data-collapse-after="6">
+                            {{ range $items }}
+                              {{ $dateStr := .String "physicalRelease" }}
+                              {{ if eq $dateStr "" }}{{ $dateStr = .String "digitalRelease" }}{{ end }}
+                              {{ if ne $dateStr "" }}
+                                {{ $rel := parseTime "2006-01-02T15:04:05Z" $dateStr }}
+                                {{ if gt $rel.Unix $now.Unix }}
+                                  <li>
+                                    <span class="color-highlight">{{ .String "title" }}</span>
+                                    · <span class="color-paragraph">{{ formatTime "Jan 02" $rel }}</span>
+                                  </li>
+                                {{ end }}
+                              {{ end }}
+                            {{ end }}
+                          </ul>
+                        {{ end }}
+
+                    # Jellyseerr pending requests
+                    - type: custom-api
+                      title: Pending Requests
+                      cache: 5m
+                      url: https://${config.sops.placeholder."pangolin/resources/jellyseerr/domain"}/api/v1/request?filter=pending&take=10&sort=added
+                      headers:
+                        X-Api-Key: ''${JELLYSEERR_KEY}
+                      template: |
+                        {{ $reqs := .JSON.Array "results" }}
+                        {{ if eq (len $reqs) 0 }}
+                          <p class="color-positive">No pending requests</p>
+                        {{ else }}
+                          <ul class="list">
+                            {{ range $reqs }}
+                              <li>
+                                <span class="color-highlight">{{ .String "media.title" }}</span>
+                                · <span class="color-paragraph">{{ .String "type" }}</span>
+                                · {{ .String "requestedBy.displayName" }}
+                              </li>
+                            {{ end }}
+                          </ul>
+                        {{ end }}
+
                     - type: bookmarks
                       groups:
                         - title: Manage
                           links:
                             - title: Sonarr
                               url: https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}
+                              icon: sh:sonarr
                             - title: Radarr
                               url: https://${config.sops.placeholder."pangolin/resources/radarr/domain"}
-                            - title: Sportarr
-                              url: https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
-                            - title: Bazarr
-                              url: https://${config.sops.placeholder."pangolin/resources/bazarr/domain"}
+                              icon: sh:radarr
                             - title: Prowlarr
                               url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}
+                              icon: sh:prowlarr
+                            - title: Bazarr
+                              url: https://${config.sops.placeholder."pangolin/resources/bazarr/domain"}
+                              icon: sh:bazarr
+
+                # ── right ─────────────────────────────────────────────
                 - size: small
                   widgets:
                     - type: bookmarks
@@ -400,8 +563,31 @@ in
                           links:
                             - title: qBittorrent
                               url: https://${config.sops.placeholder."pangolin/resources/qbittorrent/domain"}
+                              icon: sh:qbittorrent
                             - title: NZBGet
                               url: https://${config.sops.placeholder."pangolin/resources/nzbget/domain"}
+                              icon: sh:nzbget
+
+                    # *arr health from Prowlarr's perspective — Prowlarr
+                    # pings every connected indexer + downloader on
+                    # /api/v1/health and returns issue list.
+                    - type: custom-api
+                      title: Indexer Health
+                      cache: 5m
+                      url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}/api/v1/health
+                      headers:
+                        X-Api-Key: ''${PROWLARR_KEY}
+                      template: |
+                        {{ $issues := .JSON.Array "" }}
+                        {{ if eq (len $issues) 0 }}
+                          <p class="color-positive">All healthy</p>
+                        {{ else }}
+                          <ul class="list">
+                            {{ range $issues }}
+                              <li><span class="color-negative">●</span> {{ .String "source" }} · {{ .String "message" }}</li>
+                            {{ end }}
+                          </ul>
+                        {{ end }}
 
             # ────────────────────────────────────────────────────────────
             # MOBILE
@@ -415,28 +601,42 @@ in
                     - type: search
                       search-engine: https://${config.sops.placeholder."pangolin/resources/search/domain"}/search?q={QUERY}
                       new-tab: true
+
                     - type: bookmarks
                       groups:
                         - title: Daily
                           links:
                             - title: Jellyfin
                               url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}
+                              icon: sh:jellyfin
                             - title: Matrix
                               url: https://${config.sops.placeholder."pangolin/resources/element/domain"}
+                              icon: sh:element
                             - title: Grafana
                               url: https://${config.sops.placeholder."pangolin/resources/grafana/domain"}
+                              icon: sh:grafana
                             - title: GitLab
                               url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}
+                              icon: sh:gitlab
+
                     - type: custom-api
-                      title: Engineer CPU
+                      title: Engineer
                       cache: 30s
                       url: ${promQuery "(1-avg(rate(node_cpu_seconds_total%7Binstance=%22192.0.2.10:9100%22,mode=%22idle%22%7D%5B5m%5D)))*100"}
-                      template: |
-                        <p class="size-h3">CPU {{ printf "%.0f" (.JSON.Float "data.result.0.value.1") }}%</p>
+                      subrequests:
+                        ram:
+                          url: ${promQuery "(1-node_memory_MemAvailable_bytes%7Binstance=%22192.0.2.10:9100%22%7D/node_memory_MemTotal_bytes%7Binstance=%22192.0.2.10:9100%22%7D)*100"}
+                        disk:
+                          url: ${promQuery "(1-node_filesystem_avail_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D/node_filesystem_size_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D)*100"}
+                        uptime:
+                          url: ${promQuery "node_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D-node_boot_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D"}
+                      ${engineerStats}
+
                     - type: weather
                       location: Sofia, Bulgaria
                       units: metric
                       hour-format: 24h
+
                     - type: rss
                       title: News
                       limit: 6
