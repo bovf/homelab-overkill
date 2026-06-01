@@ -376,15 +376,7 @@ in
                             {{ if eq $pinSha $headSha }}
                               <div class="flex justify-between"><span>status</span><span class="color-positive">in sync</span></div>
                             {{ else }}
-                              {{ $pinTs    := .JSON.Int "nodes.nixpkgs.locked.lastModified" }}
-                              {{ $headTime := parseTime "2006-01-02T15:04:05Z" ($head.JSON.String "commit.committer.date") }}
-                              {{ $headTs   := $headTime.Unix }}
-                              {{ $daysBehind := div (sub $headTs $pinTs) 86400 }}
-                              {{ if gt $daysBehind 15.0 }}
-                                <div class="flex justify-between"><span>behind</span><span class="color-negative">{{ printf "%.0fd" $daysBehind }}</span></div>
-                              {{ else }}
-                                <div class="flex justify-between"><span>behind</span><span>{{ printf "%.0fd" $daysBehind }}</span></div>
-                              {{ end }}
+                              <div class="flex justify-between"><span>status</span><span class="color-negative">behind</span></div>
                             {{ end }}
                           </div>
                         {{ end }}
@@ -412,15 +404,7 @@ in
                             {{ if eq $pinSha $headSha }}
                               <div class="flex justify-between"><span>status</span><span class="color-positive">in sync</span></div>
                             {{ else }}
-                              {{ $pinTs    := .JSON.Int "nodes.nixpkgs.locked.lastModified" }}
-                              {{ $headTime := parseTime "2006-01-02T15:04:05Z" ($head.JSON.String "commit.committer.date") }}
-                              {{ $headTs   := $headTime.Unix }}
-                              {{ $daysBehind := div (sub $headTs $pinTs) 86400 }}
-                              {{ if gt $daysBehind 15.0 }}
-                                <div class="flex justify-between"><span>behind</span><span class="color-negative">{{ printf "%.0fd" $daysBehind }}</span></div>
-                              {{ else }}
-                                <div class="flex justify-between"><span>behind</span><span>{{ printf "%.0fd" $daysBehind }}</span></div>
-                              {{ end }}
+                              <div class="flex justify-between"><span>status</span><span class="color-negative">behind</span></div>
                             {{ end }}
                           </div>
                         {{ end }}
