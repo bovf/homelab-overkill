@@ -10,5 +10,6 @@
     ./external-services.nix
     ./local-dns.nix
     ./wireguard-scrape.nix
+    ./uptime.nix
   ];
 }

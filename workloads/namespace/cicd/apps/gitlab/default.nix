@@ -9,5 +9,6 @@
     ./external-services.nix
     ./lan-shell-service.nix
     ./local-dns.nix
+    ./uptime.nix
   ];
 }

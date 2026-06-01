@@ -8,5 +8,6 @@
     ./pangolin-blueprint.nix
     ./external-services.nix
     ./local-dns.nix
+    ./uptime.nix
   ];
 }

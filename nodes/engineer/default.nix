@@ -11,6 +11,7 @@ with lib;
     ./metallb.nix
     ./audio.nix
     ./wireguard-exporter.nix
+    ./uptime.nix
   ];
         
   # Keyboard US
