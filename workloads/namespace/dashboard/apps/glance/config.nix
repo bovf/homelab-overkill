@@ -380,10 +380,10 @@ in
                               {{ $headTime := parseTime "2006-01-02T15:04:05Z" ($head.JSON.String "commit.committer.date") }}
                               {{ $headTs   := $headTime.Unix }}
                               {{ $daysBehind := div (sub $headTs $pinTs) 86400 }}
-                              {{ if gt $daysBehind 15 }}
-                                <div class="flex justify-between"><span>behind</span><span class="color-negative">{{ printf "%v" $daysBehind }}d</span></div>
+                              {{ if gt $daysBehind 15.0 }}
+                                <div class="flex justify-between"><span>behind</span><span class="color-negative">{{ printf "%.0fd" $daysBehind }}</span></div>
                               {{ else }}
-                                <div class="flex justify-between"><span>behind</span><span>{{ printf "%v" $daysBehind }}d</span></div>
+                                <div class="flex justify-between"><span>behind</span><span>{{ printf "%.0fd" $daysBehind }}</span></div>
                               {{ end }}
                             {{ end }}
                           </div>
@@ -416,10 +416,10 @@ in
                               {{ $headTime := parseTime "2006-01-02T15:04:05Z" ($head.JSON.String "commit.committer.date") }}
                               {{ $headTs   := $headTime.Unix }}
                               {{ $daysBehind := div (sub $headTs $pinTs) 86400 }}
-                              {{ if gt $daysBehind 15 }}
-                                <div class="flex justify-between"><span>behind</span><span class="color-negative">{{ printf "%v" $daysBehind }}d</span></div>
+                              {{ if gt $daysBehind 15.0 }}
+                                <div class="flex justify-between"><span>behind</span><span class="color-negative">{{ printf "%.0fd" $daysBehind }}</span></div>
                               {{ else }}
-                                <div class="flex justify-between"><span>behind</span><span>{{ printf "%v" $daysBehind }}d</span></div>
+                                <div class="flex justify-between"><span>behind</span><span>{{ printf "%.0fd" $daysBehind }}</span></div>
                               {{ end }}
                             {{ end }}
                           </div>
