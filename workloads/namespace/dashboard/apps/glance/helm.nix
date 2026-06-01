@@ -126,7 +126,11 @@
         BAZARR_KEY:      "${config.sops.placeholder."media/bazarr/api_key"}"
         JELLYSEERR_KEY:  "${config.sops.placeholder."media/jellyseerr/api_key"}"
         JELLYFIN_KEY:    "${config.sops.placeholder."homarr/integrations/jellyfin_key"}"
-        SPEEDTEST_TOKEN: "${config.sops.placeholder."speedtest/api_token"}"
+        # NOTE: This is the Laravel APP_KEY (encryption key), not a
+        # Sanctum bearer token. /api/v1/* will 302 to login. Generate a
+        # real token in speedtest-tracker UI → Settings → API Tokens →
+        # add as `speedtest/api_token` in sops and swap this reference.
+        SPEEDTEST_TOKEN: "${config.sops.placeholder."speedtest/app_key"}"
     '';
     path  = "/var/lib/rancher/k3s/server/manifests/glance-env.yaml";
     owner = "root";
