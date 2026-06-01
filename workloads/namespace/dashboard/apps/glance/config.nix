@@ -124,22 +124,18 @@ in
                       cache: 30s
                       url: ${promQuery "time()-wireguard_latest_handshake_seconds%7Binstance=%22engineer%22%7D"}
                       subrequests:
-                        # 30-day rolling delta to approximate Hetzner's
-                        # monthly traffic quota (20 TB out). NOT calendar-
-                        # month-exact — PromQL's increase() only takes
-                        # literal durations. Good enough for "am I near
-                        # the cap"; if we ever need exact billing-cycle
-                        # numbers, add a recording rule that snapshots
-                        # the counter at month boundaries.
-                        #
+                        # Bytes since the 1st of the current calendar
+                        # month — matches Hetzner's 20 TB/mo billing
+                        # cycle. Derived via a PrometheusRule in
+                        # workloads/namespace/monitoring/apps/
+                        # kube-prometheus-stack/wireguard-monthly.nix
+                        # that captures a marker at month boundaries.
                         # rx side (engineer.rx ≈ VPS.tx) is what counts
-                        # against Hetzner's "Traffic out" — that's the
-                        # bytes the VPS sent outbound through its public
-                        # NIC to reach us through the wg tunnel.
+                        # against Hetzner's "Traffic out" quota.
                         sent:
-                          url: ${promQuery "increase(wireguard_sent_bytes_total%7Binstance=%22engineer%22%7D%5B30d%5D)"}
+                          url: ${promQuery "wireguard_sent_bytes_since_month_start%7Binstance=%22engineer%22%7D"}
                         recv:
-                          url: ${promQuery "increase(wireguard_received_bytes_total%7Binstance=%22engineer%22%7D%5B30d%5D)"}
+                          url: ${promQuery "wireguard_received_bytes_since_month_start%7Binstance=%22engineer%22%7D"}
                       template: |
                         {{ $sent := .Subrequest "sent" }}
                         {{ $recv := .Subrequest "recv" }}
@@ -149,11 +145,11 @@ in
                             <span class="size-h5">{{ printf "%.0fs ago" (.JSON.Float "data.result.0.value.1") }}</span>
                           </div>
                           <div class="flex justify-between">
-                            <span class="size-h6 color-paragraph">↑ tx (30d)</span>
+                            <span class="size-h6 color-paragraph">↑ tx (mo)</span>
                             <span class="size-base">{{ printf "%.2f GB" (div ($sent.JSON.Float "data.result.0.value.1") 1073741824.0) }}</span>
                           </div>
                           <div class="flex justify-between">
-                            <span class="size-h6 color-paragraph">↓ rx (30d)</span>
+                            <span class="size-h6 color-paragraph">↓ rx (mo)</span>
                             <span class="size-base">{{ printf "%.2f GB" (div ($recv.JSON.Float "data.result.0.value.1") 1073741824.0) }}</span>
                           </div>
                           <div class="flex justify-between">
