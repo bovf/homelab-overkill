@@ -25,7 +25,7 @@
                 main:
                   image:
                     repository: lscr.io/linuxserver/speedtest-tracker
-                    tag: "0.22.4"
+                    tag: "1.14.3"
                     pullPolicy: IfNotPresent
                   envFrom:
                     - secretRef:
