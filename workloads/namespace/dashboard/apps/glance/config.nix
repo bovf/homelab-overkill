@@ -35,30 +35,6 @@ let
   arrStart = "2026-01-01T00:00:00Z";
   arrEnd   = "2027-06-01T00:00:00Z";
 
-  # Reusable engineer-stats template — used on both Home and Mobile pages.
-  engineerStats = ''
-    template: |
-      {{ $ram    := .Subrequest "ram" }}
-      {{ $disk   := .Subrequest "disk" }}
-      {{ $uptime := .Subrequest "uptime" }}
-      <div class="flex flex-column gap-7">
-        <div>
-          <p class="size-h6 color-paragraph">CPU</p>
-          <p class="size-h3">{{ printf "%.1f" (.JSON.Float "data.result.0.value.1") }}%</p>
-        </div>
-        <div>
-          <p class="size-h6 color-paragraph">RAM</p>
-          <p class="size-h3">{{ printf "%.1f" ($ram.JSON.Float "data.result.0.value.1") }}%</p>
-        </div>
-        <div>
-          <p class="size-h6 color-paragraph">Disk /</p>
-          <p class="size-h3">{{ printf "%.1f" ($disk.JSON.Float "data.result.0.value.1") }}%</p>
-        </div>
-        <div>
-          <p class="size-h6 color-paragraph">Uptime</p>
-          <p class="size-base">{{ printf "%.0f hours" (div ($uptime.JSON.Float "data.result.0.value.1") 3600) }}</p>
-        </div>
-      </div>'';
 in
 {
   sops.templates."glance/config.yaml" = {
@@ -102,7 +78,28 @@ in
                           url: ${promQuery "(1-node_filesystem_avail_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D/node_filesystem_size_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D)*100"}
                         uptime:
                           url: ${promQuery "node_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D-node_boot_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D"}
-                      ${engineerStats}
+                      template: |
+                        {{ $ram    := .Subrequest "ram" }}
+                        {{ $disk   := .Subrequest "disk" }}
+                        {{ $uptime := .Subrequest "uptime" }}
+                        <div class="flex flex-column gap-7">
+                          <div>
+                            <p class="size-h6 color-paragraph">CPU</p>
+                            <p class="size-h3">{{ printf "%.1f" (.JSON.Float "data.result.0.value.1") }}%</p>
+                          </div>
+                          <div>
+                            <p class="size-h6 color-paragraph">RAM</p>
+                            <p class="size-h3">{{ printf "%.1f" ($ram.JSON.Float "data.result.0.value.1") }}%</p>
+                          </div>
+                          <div>
+                            <p class="size-h6 color-paragraph">Disk /</p>
+                            <p class="size-h3">{{ printf "%.1f" ($disk.JSON.Float "data.result.0.value.1") }}%</p>
+                          </div>
+                          <div>
+                            <p class="size-h6 color-paragraph">Uptime</p>
+                            <p class="size-base">{{ printf "%.0f hours" (div ($uptime.JSON.Float "data.result.0.value.1") 3600) }}</p>
+                          </div>
+                        </div>
 
                     - type: custom-api
                       title: Pangolin VPS
@@ -630,7 +627,28 @@ in
                           url: ${promQuery "(1-node_filesystem_avail_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D/node_filesystem_size_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D)*100"}
                         uptime:
                           url: ${promQuery "node_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D-node_boot_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D"}
-                      ${engineerStats}
+                      template: |
+                        {{ $ram    := .Subrequest "ram" }}
+                        {{ $disk   := .Subrequest "disk" }}
+                        {{ $uptime := .Subrequest "uptime" }}
+                        <div class="flex flex-column gap-7">
+                          <div>
+                            <p class="size-h6 color-paragraph">CPU</p>
+                            <p class="size-h3">{{ printf "%.1f" (.JSON.Float "data.result.0.value.1") }}%</p>
+                          </div>
+                          <div>
+                            <p class="size-h6 color-paragraph">RAM</p>
+                            <p class="size-h3">{{ printf "%.1f" ($ram.JSON.Float "data.result.0.value.1") }}%</p>
+                          </div>
+                          <div>
+                            <p class="size-h6 color-paragraph">Disk /</p>
+                            <p class="size-h3">{{ printf "%.1f" ($disk.JSON.Float "data.result.0.value.1") }}%</p>
+                          </div>
+                          <div>
+                            <p class="size-h6 color-paragraph">Uptime</p>
+                            <p class="size-base">{{ printf "%.0f hours" (div ($uptime.JSON.Float "data.result.0.value.1") 3600) }}</p>
+                          </div>
+                        </div>
 
                     - type: weather
                       location: Sofia, Bulgaria
