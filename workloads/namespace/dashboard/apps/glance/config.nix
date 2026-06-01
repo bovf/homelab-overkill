@@ -521,6 +521,7 @@ in
                               icon: si:radarr
                             - title: Sportarr
                               url: https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
+                              icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/sportarr-dark.svg
                             - title: Prowlarr
                               url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}
                               icon: di:prowlarr
