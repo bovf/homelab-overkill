@@ -9,6 +9,7 @@ with lib;
     ./pangolin-kwg.nix
     ./pangolin-resources.nix
     ./metallb.nix
+    ./audio.nix
   ];
         
   # Keyboard US

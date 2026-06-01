@@ -16,5 +16,6 @@
     ./media
     ./monitoring
     ./proxy
+    ./surveillance
   ];
 }
