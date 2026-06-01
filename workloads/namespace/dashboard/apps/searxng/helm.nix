@@ -26,7 +26,7 @@
                 main:
                   image:
                     repository: docker.io/searxng/searxng
-                    tag: "2026.4.27-9c0b5e3"
+                    tag: "2026.5.31-7159b8aed"
                     pullPolicy: IfNotPresent
                   envFrom:
                     - secretRef:
