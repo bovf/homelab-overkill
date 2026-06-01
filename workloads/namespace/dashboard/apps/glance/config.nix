@@ -299,7 +299,7 @@ in
                         <div class="flex flex-column gap-10">
                         {{ range .JSON.Array "publicGroupList" }}
                           <div>
-                            <p class="size-h6 color-paragraph margin-bottom-3">{{ .String "name" | upper }}</p>
+                            <p class="size-h6 color-paragraph margin-bottom-3">{{ .String "name" }}</p>
                             <ul class="list list-gap-2">
                             {{ range .Array "monitorList" }}
                               {{ $id := .String "id" }}
