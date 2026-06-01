@@ -103,7 +103,7 @@ in
       namespace = "monitoring";
       annotations = {
         # Bump on script changes to force re-run (delete old Job + apply new).
-        "homelab.dobryops.com/bootstrap-version" = "1";
+        "homelab.dobryops.com/bootstrap-version" = "2";
       };
     };
     spec = {
@@ -145,7 +145,7 @@ in
               api = None
               for attempt in range(60):
                   try:
-                      api = UptimeKumaApi(URL, wait_timeout=10)
+                      api = UptimeKumaApi(URL)
                       break
                   except Exception as e:
                       print(f"  retry {attempt}: {e}", flush=True)

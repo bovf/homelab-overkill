@@ -107,9 +107,9 @@
     mode  = "0644";
   };
 
-  # GitLab read token for the nixpkgs-drift widgets — injected as env var
-  # so glance.yml can interpolate `${GITLAB_TOKEN}` without baking the
-  # plaintext into the rendered config Secret.
+  # Env-injected secrets for the dashboard's API integrations. Kept out
+  # of glance-config so we don't have to re-render the whole 600-line
+  # YAML when a single key rotates.
   sops.templates."glance/env.yaml" = {
     content = ''
       apiVersion: v1
@@ -119,7 +119,14 @@
         namespace: dashboard
       type: Opaque
       stringData:
-        GITLAB_TOKEN: "${config.sops.placeholder."gitlab/glance_read_token"}"
+        GITLAB_TOKEN:    "${config.sops.placeholder."gitlab/glance_read_token"}"
+        SONARR_KEY:      "${config.sops.placeholder."media/sonarr/api_key"}"
+        RADARR_KEY:      "${config.sops.placeholder."media/radarr/api_key"}"
+        PROWLARR_KEY:    "${config.sops.placeholder."media/prowlarr/api_key"}"
+        BAZARR_KEY:      "${config.sops.placeholder."media/bazarr/api_key"}"
+        JELLYSEERR_KEY:  "${config.sops.placeholder."media/jellyseerr/api_key"}"
+        JELLYFIN_KEY:    "${config.sops.placeholder."homarr/integrations/jellyfin_key"}"
+        SPEEDTEST_TOKEN: "${config.sops.placeholder."speedtest/api_token"}"
     '';
     path  = "/var/lib/rancher/k3s/server/manifests/glance-env.yaml";
     owner = "root";
