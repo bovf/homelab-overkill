@@ -106,29 +106,32 @@ in
                       cache: 30s
                       url: ${promQuery "time()-wireguard_latest_handshake_seconds%7Binstance=%22engineer%22%7D"}
                       subrequests:
+                        # tx/rx as 24h delta (increase over rolling window)
+                        # rather than the lifetime counter — easier to spot
+                        # weird traffic patterns at a glance.
                         sent:
-                          url: ${promQuery "wireguard_sent_bytes_total%7Binstance=%22engineer%22%7D"}
+                          url: ${promQuery "increase(wireguard_sent_bytes_total%7Binstance=%22engineer%22%7D%5B24h%5D)"}
                         recv:
-                          url: ${promQuery "wireguard_received_bytes_total%7Binstance=%22engineer%22%7D"}
+                          url: ${promQuery "increase(wireguard_received_bytes_total%7Binstance=%22engineer%22%7D%5B24h%5D)"}
                       template: |
                         {{ $sent := .Subrequest "sent" }}
                         {{ $recv := .Subrequest "recv" }}
                         <div class="flex flex-column gap-7">
-                          <div>
-                            <p class="size-h6 color-paragraph">kwg handshake</p>
-                            <p class="size-h4">{{ printf "%.0fs ago" (.JSON.Float "data.result.0.value.1") }}</p>
+                          <div class="flex justify-between">
+                            <span class="size-h6 color-paragraph">handshake</span>
+                            <span class="size-h5">{{ printf "%.0fs ago" (.JSON.Float "data.result.0.value.1") }}</span>
                           </div>
-                          <div>
-                            <p class="size-h6 color-paragraph">tx</p>
-                            <p class="size-base">{{ printf "%.2f GB" (div ($sent.JSON.Float "data.result.0.value.1") 1073741824.0) }}</p>
+                          <div class="flex justify-between">
+                            <span class="size-h6 color-paragraph">↑ tx (24h)</span>
+                            <span class="size-base">{{ printf "%.2f GB" (div ($sent.JSON.Float "data.result.0.value.1") 1073741824.0) }}</span>
                           </div>
-                          <div>
-                            <p class="size-h6 color-paragraph">rx</p>
-                            <p class="size-base">{{ printf "%.2f GB" (div ($recv.JSON.Float "data.result.0.value.1") 1073741824.0) }}</p>
+                          <div class="flex justify-between">
+                            <span class="size-h6 color-paragraph">↓ rx (24h)</span>
+                            <span class="size-base">{{ printf "%.2f GB" (div ($recv.JSON.Float "data.result.0.value.1") 1073741824.0) }}</span>
                           </div>
-                          <div>
-                            <p class="size-h6 color-paragraph">remote</p>
-                            <p class="size-base">203.0.113.10</p>
+                          <div class="flex justify-between">
+                            <span class="size-h6 color-paragraph">remote</span>
+                            <span class="size-base">203.0.113.10</span>
                           </div>
                         </div>
 
