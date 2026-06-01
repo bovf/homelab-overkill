@@ -77,11 +77,6 @@
               type: ClusterIP
               # Tunnel-side ingress on a sibling Service — see alertmanager above.
             prometheusSpec:
-              # 35d to fit the calendar-month rollover for the
-              # wireguard_*_since_month_start recording rules — they
-              # last_over_time over [31d] to find the marker at the
-              # start of the current month. 35d adds buffer.
-              retention: 35d
               enableFeatures:
                 - otlp-write-receiver
               enableRemoteWriteReceiver: true
