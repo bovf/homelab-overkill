@@ -1,63 +1,46 @@
-# Declarative bootstrap of Uptime Kuma: create the initial admin user
-# (first run only), then sync monitors + the "homelab" public status
-# page that Glance reads via /api/status-page/heartbeat/homelab.
+# Declarative bootstrap of Uptime Kuma. Walks config.workloads.uptimeMonitors
+# (declared by each workload's uptime.nix), and on every run:
+#   1. Creates the initial admin if Kuma is at first-run setup.
+#   2. Ensures a `homelab-managed` tag exists.
+#   3. Add/update every declared monitor, tagged as managed.
+#   4. Deletes any monitor that carries the managed tag but is no longer
+#      declared (stale cleanup — won't touch monitors created by hand).
+#   5. Syncs the "homelab" public status page with publicGroupList
+#      derived from each monitor's `group` field. Group order follows
+#      GROUP_ORDER below.
 #
-# Kuma's API is Socket.IO, not REST. The community-maintained Python
-# library uptime-kuma-api wraps it. We pip-install it at Job runtime
-# in a python:3.11-slim container — same pattern as stalwart's
-# alpine+curl bootstrap, just python+pip instead.
-#
-# Idempotent: existing monitors are matched by name, only missing ones
-# get created. Existing status page is updated in place.
-{ config, ... }:
+# Kuma's API is Socket.IO so we use the community uptime-kuma-api Python
+# library, pip-installed at Job runtime in a python:3.11-slim image.
+{ config, lib, ... }:
 
 let
+  inherit (lib) filterAttrs mapAttrsToList;
+
+  resolveUrl = m:
+    if m.url != null
+      then m.url
+      else "https://${config.sops.placeholder.${m.domainKey}}${m.path}";
+
+  activeMonitors = filterAttrs (_: m: m.enabled) config.workloads.uptimeMonitors;
+
+  monitorList = mapAttrsToList (_: m:
+    let
+      base = {
+        inherit (m) name type interval retryInterval maxretries group tags;
+        accepted_statuscodes = m.acceptedStatusCodes;
+      };
+    in
+      if m.type == "http"
+      then base // { url = resolveUrl m; }
+      else base // { hostname = m.host; port = m.port; }
+  ) activeMonitors;
+
+  monitorsJson = builtins.toJSON monitorList;
+
   adminUser = config.sops.placeholder."uptime-kuma/admin_user";
   adminPwd  = config.sops.placeholder."uptime-kuma/admin_password";
-
-  # Service domains — each is a sops placeholder so this whole file is
-  # safe in plaintext .nix. Add/remove monitors here, the init-job
-  # picks them up on next deploy.
-  monitor = name: domain: { inherit name; url = "https://${domain}"; };
-
-  monitors = [
-    # Media
-    (monitor "Jellyfin"      config.sops.placeholder."pangolin/resources/jellyfin/domain")
-    (monitor "Jellyseerr"    config.sops.placeholder."pangolin/resources/jellyseerr/domain")
-    (monitor "Sonarr"        config.sops.placeholder."pangolin/resources/sonarr/domain")
-    (monitor "Radarr"        config.sops.placeholder."pangolin/resources/radarr/domain")
-    (monitor "Sportarr"      config.sops.placeholder."pangolin/resources/sportarr/domain")
-    (monitor "Bazarr"        config.sops.placeholder."pangolin/resources/bazarr/domain")
-    (monitor "Prowlarr"      config.sops.placeholder."pangolin/resources/prowlarr/domain")
-    (monitor "qBittorrent"   config.sops.placeholder."pangolin/resources/qbittorrent/domain")
-    (monitor "NZBGet"        config.sops.placeholder."pangolin/resources/nzbget/domain")
-    # Dev / CI
-    (monitor "GitLab"        config.sops.placeholder."pangolin/resources/gitlab/domain")
-    (monitor "ArgoCD"        config.sops.placeholder."pangolin/resources/argocd/domain")
-    # Ops
-    (monitor "Grafana"       config.sops.placeholder."pangolin/resources/grafana/domain")
-    (monitor "Prometheus"    config.sops.placeholder."pangolin/resources/prometheus/domain")
-    (monitor "Alertmanager"  config.sops.placeholder."pangolin/resources/alertmanager/domain")
-    (monitor "Pi-hole"       config.sops.placeholder."pangolin/resources/pihole/domain")
-    (monitor "MinIO"         config.sops.placeholder."pangolin/resources/minio_console/domain")
-    (monitor "pgAdmin"       config.sops.placeholder."pangolin/resources/pgadmin/domain")
-    # Comms
-    (monitor "Matrix"        config.sops.placeholder."pangolin/resources/element/domain")
-    (monitor "Synapse Admin" config.sops.placeholder."pangolin/resources/synapse_admin/domain")
-    (monitor "Mail"          config.sops.placeholder."pangolin/resources/mailadmin/domain")
-    # Personal
-    (monitor "ezBookkeeping" config.sops.placeholder."pangolin/resources/ezbookkeeping/domain")
-    (monitor "Blog"          config.sops.placeholder."pangolin/resources/whoami/domain")
-    # Self / Dashboard
-    (monitor "SearXNG"       config.sops.placeholder."pangolin/resources/search/domain")
-    (monitor "Speedtest"     config.sops.placeholder."pangolin/resources/speedtest/domain")
-  ];
-
-  monitorsJson = builtins.toJSON monitors;
 in
 {
-  # Bootstrap creds for the Job. Separate Secret from any user-managed
-  # secrets so the Job only mounts what it needs.
   sops.templates."uptime-kuma/bootstrap-secret.yaml" = {
     content = ''
       apiVersion: v1
@@ -76,8 +59,9 @@ in
     mode  = "0644";
   };
 
-  # Monitor list rendered via sops so domain placeholders resolve. The
-  # bootstrap Job mounts this as /config/monitors.json.
+  # Compact JSON inline so YAML `|` indent stays simple. sops-nix
+  # resolves placeholders inside the JSON before k3s applies the
+  # ConfigMap; the bootstrap Job then mounts /config/monitors.json.
   sops.templates."uptime-kuma/monitors.yaml" = {
     content = ''
       apiVersion: v1
@@ -86,8 +70,7 @@ in
         name: uptime-kuma-monitors
         namespace: monitoring
       data:
-        monitors.json: |
-          ${monitorsJson}
+        monitors.json: '${monitorsJson}'
     '';
     path  = "/var/lib/rancher/k3s/server/manifests/uptime-kuma-monitors.yaml";
     owner = "root";
@@ -103,7 +86,7 @@ in
       namespace = "monitoring";
       annotations = {
         # Bump on script changes to force re-run (delete old Job + apply new).
-        "homelab.dobryops.com/bootstrap-version" = "3";
+        "homelab.dobryops.com/bootstrap-version" = "4";
       };
     };
     spec = {
@@ -122,9 +105,6 @@ in
           image   = "python:3.11-slim";
           envFrom = [{ secretRef.name = "uptime-kuma-bootstrap-creds"; }];
           env = [
-            # Service port (8097), NOT the pod-side targetPort (3001).
-            # The ClusterIP only exposes 8097 — pod port 3001 isn't
-            # reachable via the Service.
             { name = "KUMA_URL"; value = "http://uptime-kuma.monitoring.svc.cluster.local:8097"; }
           ];
           volumeMounts = [{
@@ -140,9 +120,15 @@ in
               import json, os, time
               from uptime_kuma_api import UptimeKumaApi, MonitorType
 
-              URL  = os.environ["KUMA_URL"]
-              USER = os.environ["admin_user"]
-              PASS = os.environ["admin_password"]
+              URL         = os.environ["KUMA_URL"]
+              USER        = os.environ["admin_user"]
+              PASS        = os.environ["admin_password"]
+              MANAGED_TAG = "homelab-managed"
+
+              # Ordered groups for the status page — anything not listed
+              # falls to the end alphabetically.
+              GROUP_ORDER = ["Media", "Dev", "Ops", "Comms", "Personal",
+                             "Dashboard", "Private"]
 
               print(f"Connecting to {URL} ...", flush=True)
               api = None
@@ -163,33 +149,99 @@ in
               api.login(USER, PASS)
               print("Authenticated.", flush=True)
 
+              # Ensure the managed tag exists.
+              tags = api.get_tags()
+              managed = next((t for t in tags if t["name"] == MANAGED_TAG), None)
+              if managed is None:
+                  print(f"Creating tag '{MANAGED_TAG}'", flush=True)
+                  managed = api.add_tag(name=MANAGED_TAG, color="#3b82f6")
+              managed_id = managed["id"]
+
               with open("/config/monitors.json") as f:
                   declared = json.load(f)
+              declared_by_name = {m["name"]: m for m in declared}
 
-              existing = {m["name"]: m for m in api.get_monitors()}
-              ids = []
-              for mon in declared:
-                  if mon["name"] in existing:
-                      ids.append(existing[mon["name"]]["id"])
-                      print(f"  = {mon['name']} (exists, id={existing[mon['name']]['id']})", flush=True)
-                      continue
-                  res = api.add_monitor(
-                      type=MonitorType.HTTP,
-                      name=mon["name"],
-                      url=mon["url"],
-                      interval=60,
-                      retryInterval=20,
-                      maxretries=3,
-                      accepted_statuscodes=["200-299", "301", "302"],
+              existing = api.get_monitors()
+              existing_by_name = {m["name"]: m for m in existing}
+
+              def has_managed_tag(m):
+                  return any(t.get("name") == MANAGED_TAG for t in (m.get("tags") or []))
+
+              def common_args(d):
+                  base = dict(
+                      name          = d["name"],
+                      interval      = d["interval"],
+                      retryInterval = d["retryInterval"],
+                      maxretries    = d["maxretries"],
                   )
-                  ids.append(res["monitorID"])
-                  print(f"  + {mon['name']} (created, id={res['monitorID']})", flush=True)
+                  if d["type"] == "http":
+                      base.update(
+                          type                 = MonitorType.HTTP,
+                          url                  = d["url"],
+                          accepted_statuscodes = d["accepted_statuscodes"],
+                      )
+                  elif d["type"] == "port":
+                      base.update(
+                          type     = MonitorType.PORT,
+                          hostname = d["hostname"],
+                          port     = d["port"],
+                      )
+                  return base
 
-              status_groups = [{
-                  "name": "Services",
-                  "weight": 1,
-                  "monitorList": [{"id": i, "sendUrl": 0} for i in ids],
-              }]
+              monitor_ids = {}
+              for name, decl in declared_by_name.items():
+                  if name in existing_by_name:
+                      m = existing_by_name[name]
+                      # Update in place
+                      args = common_args(decl)
+                      args.pop("name", None)  # name is the lookup key
+                      api.edit_monitor(m["id"], **args)
+                      monitor_ids[name] = m["id"]
+                      if not has_managed_tag(m):
+                          try:
+                              api.add_monitor_tag(managed_id, m["id"], "")
+                          except Exception as e:
+                              print(f"  tag attach failed for {name}: {e}", flush=True)
+                      print(f"  ~ {name} (updated, id={m['id']})", flush=True)
+                  else:
+                      args = common_args(decl)
+                      res = api.add_monitor(**args)
+                      new_id = res["monitorID"]
+                      try:
+                          api.add_monitor_tag(managed_id, new_id, "")
+                      except Exception as e:
+                          print(f"  tag attach failed for {name}: {e}", flush=True)
+                      monitor_ids[name] = new_id
+                      print(f"  + {name} (created, id={new_id})", flush=True)
+
+              # Stale: monitor that carries our tag but isn't declared anymore.
+              stale = [
+                  m for m in existing
+                  if has_managed_tag(m) and m["name"] not in declared_by_name
+              ]
+              for m in stale:
+                  print(f"  - {m['name']} (stale, deleting id={m['id']})", flush=True)
+                  api.delete_monitor(m["id"])
+
+              # Build status page publicGroupList ordered per GROUP_ORDER.
+              def group_weight(g):
+                  return GROUP_ORDER.index(g) if g in GROUP_ORDER else len(GROUP_ORDER)
+
+              groups = {}
+              for name, decl in declared_by_name.items():
+                  groups.setdefault(decl["group"], []).append(monitor_ids[name])
+
+              publicGroupList = sorted(
+                  [
+                      {
+                          "name": g,
+                          "weight": group_weight(g),
+                          "monitorList": [{"id": mid, "sendUrl": 0} for mid in sorted(ids)],
+                      }
+                      for g, ids in groups.items()
+                  ],
+                  key=lambda x: (x["weight"], x["name"]),
+              )
 
               try:
                   api.get_status_page("homelab")
@@ -199,13 +251,13 @@ in
                   api.add_status_page("Homelab", "homelab")
 
               api.save_status_page(
-                  slug="homelab",
-                  title="Homelab",
-                  description="Service health for the dashboard SERVICES grid",
-                  publicGroupList=status_groups,
-                  showTags=False,
+                  slug            = "homelab",
+                  title           = "Homelab",
+                  description     = "Auto-managed by workloads.uptimeMonitors",
+                  publicGroupList = publicGroupList,
+                  showTags        = True,
               )
-              print("Status page synced.", flush=True)
+              print(f"Status page synced ({len(declared)} monitors, {len(groups)} groups).", flush=True)
               api.disconnect()
               print("Done.", flush=True)
               PY
@@ -214,8 +266,7 @@ in
           resources = {
             requests = { cpu = "100m"; memory = "128Mi"; };
             # pip install + uptime-kuma-api's socket.io connect both burst
-            # close to 1 core. Generous limit per the "raise, don't
-            # remove" rule (see memory).
+            # close to 1 core. Generous limit per the raise-don't-remove rule.
             limits   = { cpu = "2000m"; memory = "512Mi"; };
           };
         }];

@@ -186,5 +186,95 @@ with lib;
       default     = {};
       description = "LAN-side DNS A records published by pihole.";
     };
+
+    # ---------------------------------------------------------------------------
+    # Uptime Kuma monitors
+    # One entry per workload that wants to be monitored. The init-job in
+    # workloads/namespace/monitoring/apps/uptime-kuma/init-job.nix walks
+    # this attrset, syncs Kuma, builds the "homelab" status page, and
+    # deletes any monitors it previously created that aren't declared
+    # here anymore.
+    # ---------------------------------------------------------------------------
+    uptimeMonitors = mkOption {
+      type = types.attrsOf (types.submodule {
+        options = {
+          name = mkOption {
+            type        = types.str;
+            description = "Display name in Kuma + the dashboard SERVICES grid.";
+          };
+          type = mkOption {
+            type    = types.enum [ "http" "port" ];
+            default = "http";
+            description = "Probe type. http = full HTTP request; port = TCP handshake.";
+          };
+
+          # ── HTTP target — exactly one of domainKey or url ────────────
+          domainKey = mkOption {
+            type        = types.nullOr types.str;
+            default     = null;
+            description = "SOPS key for a *.dobryops.com hostname. Mutually exclusive with url.";
+          };
+          url = mkOption {
+            type        = types.nullOr types.str;
+            default     = null;
+            description = "Hardcoded URL (e.g. cluster-internal http://svc.ns.svc.cluster.local:8080).";
+          };
+          path = mkOption {
+            type        = types.str;
+            default     = "/";
+            description = "Path appended to the resolved domain/url. HTTP monitors only.";
+          };
+
+          # ── TCP target — required when type = port ───────────────────
+          host = mkOption {
+            type        = types.nullOr types.str;
+            default     = null;
+            description = "Host to TCP-dial. port monitors only.";
+          };
+          port = mkOption {
+            type        = types.nullOr types.int;
+            default     = null;
+            description = "Port to TCP-dial. port monitors only.";
+          };
+
+          # ── tuning ────────────────────────────────────────────────────
+          interval = mkOption {
+            type    = types.int;
+            default = 60;
+          };
+          retryInterval = mkOption {
+            type    = types.int;
+            default = 20;
+          };
+          maxretries = mkOption {
+            type    = types.int;
+            default = 3;
+          };
+          acceptedStatusCodes = mkOption {
+            type    = types.listOf types.str;
+            default = [ "200-299" "301" "302" ];
+            description = "302 covers Pangolin SSO challenge for off-LAN probes.";
+          };
+
+          # ── status page presentation ─────────────────────────────────
+          group = mkOption {
+            type        = types.str;
+            default     = "Services";
+            description = "Section name on the public status page. 'Private' for cluster-internal-only monitors.";
+          };
+          tags = mkOption {
+            type        = types.listOf types.str;
+            default     = [];
+            description = "Free-form tags surfaced in Kuma's monitor list.";
+          };
+          enabled = mkOption {
+            type    = types.bool;
+            default = true;
+          };
+        };
+      });
+      default     = {};
+      description = "Per-workload uptime monitors. Aggregated by the uptime-kuma init-job.";
+    };
   };
 }
