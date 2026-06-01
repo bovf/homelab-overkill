@@ -9,6 +9,14 @@
 # light (mostly bookmarks) — we flesh them out in follow-ups once Kuma
 # + the *arr integrations are confirmed live.
 #
+# Template helpers available in custom-api widget (see
+# glance/widget-custom-api.go):
+#   .JSON.{String,Int,Float,Bool,Array,Get,Exists} "path"   (gjson syntax)
+#   .Subrequest "name"     (returns the same shape; cache it in a var
+#                           before entering range loops since `.` shifts)
+#   add sub mul div  parseTime formatTime  now  duration  slice
+#   No sprig — toJson / parseJSON / humanizeBytes etc. don't exist.
+#
 # Prometheus queries hardcode instance="192.0.2.10:9100" for the
 # node-exporter on engineer; WireGuard metrics carry instance="engineer"
 # from the ScrapeConfig in monitoring/.../wireguard-scrape.nix.
@@ -19,12 +27,8 @@ let
   prom    = "http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090";
   amgr    = "http://kube-prometheus-stack-alertmanager.monitoring.svc.cluster.local:9093";
   kuma    = "http://uptime-kuma.monitoring.svc.cluster.local:3001";
-  searx   = "http://searxng.dashboard.svc.cluster.local:8098";
   spdtest = "http://speedtest-tracker.monitoring.svc.cluster.local:80";
 
-  # Helper to build Prometheus instant-query URLs without ugly inline
-  # URL-encoding everywhere. Reserved chars in PromQL ({}=":,") are
-  # passed as-is; net/http on Prom's side accepts them.
   promQuery = q: "${prom}/api/v1/query?query=${q}";
 in
 {
@@ -70,24 +74,25 @@ in
                         uptime:
                           url: ${promQuery "node_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D-node_boot_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D"}
                       template: |
-                        {{ $cpu  := index (.JSON.Array "data.result") 0 }}
-                        {{ $ram  := index (.Subrequest "ram"  | toJson | parseJSON | get "data.result" | toJson | parseJSON) 0 }}
+                        {{ $ram    := .Subrequest "ram" }}
+                        {{ $disk   := .Subrequest "disk" }}
+                        {{ $uptime := .Subrequest "uptime" }}
                         <div class="flex flex-column gap-7">
                           <div>
                             <p class="size-h6 color-paragraph">CPU</p>
-                            <p class="size-h3">{{ index $cpu.value 1 | toFloat | printf "%.1f" }}%</p>
+                            <p class="size-h3">{{ printf "%.1f" (.JSON.Float "data.result.0.value.1") }}%</p>
                           </div>
                           <div>
                             <p class="size-h6 color-paragraph">RAM</p>
-                            <p class="size-h3">{{ (.Subrequest "ram").JSON.Array "data.result" | first | get "value" | index 1 | toFloat | printf "%.1f" }}%</p>
+                            <p class="size-h3">{{ printf "%.1f" ($ram.JSON.Float "data.result.0.value.1") }}%</p>
                           </div>
                           <div>
                             <p class="size-h6 color-paragraph">Disk /</p>
-                            <p class="size-h3">{{ (.Subrequest "disk").JSON.Array "data.result" | first | get "value" | index 1 | toFloat | printf "%.1f" }}%</p>
+                            <p class="size-h3">{{ printf "%.1f" ($disk.JSON.Float "data.result.0.value.1") }}%</p>
                           </div>
                           <div>
                             <p class="size-h6 color-paragraph">Uptime</p>
-                            <p class="size-base">{{ (.Subrequest "uptime").JSON.Array "data.result" | first | get "value" | index 1 | toFloat | duration }}</p>
+                            <p class="size-base">{{ printf "%.0f hours" (div ($uptime.JSON.Float "data.result.0.value.1") 3600) }}</p>
                           </div>
                         </div>
 
@@ -101,15 +106,20 @@ in
                         recv:
                           url: ${promQuery "wireguard_received_bytes_total%7Binstance=%22engineer%22%7D"}
                       template: |
-                        {{ $age := (.JSON.Array "data.result") | first | get "value" | index 1 | toFloat }}
+                        {{ $sent := .Subrequest "sent" }}
+                        {{ $recv := .Subrequest "recv" }}
                         <div class="flex flex-column gap-7">
                           <div>
                             <p class="size-h6 color-paragraph">kwg handshake</p>
-                            <p class="size-h4">{{ $age | duration }} ago</p>
+                            <p class="size-h4">{{ printf "%.0fs ago" (.JSON.Float "data.result.0.value.1") }}</p>
                           </div>
                           <div>
-                            <p class="size-h6 color-paragraph">tx · rx</p>
-                            <p class="size-base">{{ (.Subrequest "sent").JSON.Array "data.result" | first | get "value" | index 1 | toFloat | humanizeBytes }} · {{ (.Subrequest "recv").JSON.Array "data.result" | first | get "value" | index 1 | toFloat | humanizeBytes }}</p>
+                            <p class="size-h6 color-paragraph">tx</p>
+                            <p class="size-base">{{ printf "%.2f GB" (div ($sent.JSON.Float "data.result.0.value.1") 1073741824.0) }}</p>
+                          </div>
+                          <div>
+                            <p class="size-h6 color-paragraph">rx</p>
+                            <p class="size-base">{{ printf "%.2f GB" (div ($recv.JSON.Float "data.result.0.value.1") 1073741824.0) }}</p>
                           </div>
                           <div>
                             <p class="size-h6 color-paragraph">remote</p>
@@ -129,18 +139,21 @@ in
                         ready:
                           url: ${promQuery "count(kube_pod_status_phase%7Bphase=%22Running%22%7D)"}
                       template: |
+                        {{ $ns    := .Subrequest "ns" }}
+                        {{ $dep   := .Subrequest "dep" }}
+                        {{ $ready := .Subrequest "ready" }}
                         <div class="flex flex-column gap-5">
                           <div class="flex justify-between">
                             <span>pods</span>
-                            <span class="color-highlight">{{ (.JSON.Array "data.result") | first | get "value" | index 1 }} / {{ (.Subrequest "ready").JSON.Array "data.result" | first | get "value" | index 1 }} ready</span>
+                            <span class="color-highlight">{{ .JSON.String "data.result.0.value.1" }} · {{ $ready.JSON.String "data.result.0.value.1" }} ready</span>
                           </div>
                           <div class="flex justify-between">
                             <span>namespaces</span>
-                            <span class="color-highlight">{{ (.Subrequest "ns").JSON.Array "data.result" | first | get "value" | index 1 }}</span>
+                            <span class="color-highlight">{{ $ns.JSON.String "data.result.0.value.1" }}</span>
                           </div>
                           <div class="flex justify-between">
                             <span>deployments</span>
-                            <span class="color-highlight">{{ (.Subrequest "dep").JSON.Array "data.result" | first | get "value" | index 1 }}</span>
+                            <span class="color-highlight">{{ $dep.JSON.String "data.result.0.value.1" }}</span>
                           </div>
                         </div>
 
@@ -149,16 +162,13 @@ in
                       cache: 30s
                       url: ${amgr}/api/v2/alerts?active=true&silenced=false&inhibited=false
                       template: |
-                        {{ $n := .JSON.Array "" | len }}
-                        {{ if eq $n 0 }}
+                        {{ $alerts := .JSON.Array "" }}
+                        {{ if eq (len $alerts) 0 }}
                           <p class="color-positive">none firing</p>
                         {{ else }}
                           <ul class="list collapsible-container" data-collapse-after="5">
-                            {{ range .JSON.Array "" }}
-                              <li>
-                                <span class="color-negative">●</span>
-                                {{ get . "labels.alertname" }} · {{ get . "labels.severity" }}
-                              </li>
+                            {{ range $alerts }}
+                              <li><span class="color-negative">●</span> {{ .String "labels.alertname" }} · {{ .String "labels.severity" }}</li>
                             {{ end }}
                           </ul>
                         {{ end }}
@@ -227,35 +237,32 @@ in
                               url: https://${config.sops.placeholder."pangolin/resources/whoami/domain"}
 
                     # SERVICES — Uptime Kuma's status-page heartbeat JSON.
-                    # On first deploy this returns 404 until you create
-                    # a public status page in Kuma named "homelab".
-                    # Settings → Status Pages → New → slug "homelab".
+                    # The bootstrap Job creates a status page slugged
+                    # "homelab" on first deploy; widget populates after that.
                     - type: custom-api
                       title: Services
                       cache: 1m
                       url: ${kuma}/api/status-page/homelab
                       subrequests:
-                        heartbeat:
+                        hb:
                           url: ${kuma}/api/status-page/heartbeat/homelab
                       template: |
-                        {{ $hb := (.Subrequest "heartbeat").JSON.Object "heartbeatList" }}
-                        {{ $monitors := .JSON.Array "publicGroupList" }}
+                        {{ $hb := .Subrequest "hb" }}
                         <div class="cards-grid">
-                        {{ range $monitors }}
-                          {{ range get . "monitorList" }}
-                            {{ $id := get . "id" | toString }}
-                            {{ $name := get . "name" }}
-                            {{ $last := index ($hb | get $id) -1 }}
+                        {{ range .JSON.Array "publicGroupList" }}
+                          {{ range .Array "monitorList" }}
+                            {{ $id := .String "id" }}
+                            {{ $name := .String "name" }}
+                            {{ $statusPath := printf "heartbeatList.%s.-1.status" $id }}
+                            {{ $pingPath   := printf "heartbeatList.%s.-1.ping"   $id }}
+                            {{ $status := $hb.JSON.Int $statusPath }}
+                            {{ $ping   := $hb.JSON.Int $pingPath }}
                             <div class="card flex flex-column">
                               <span>
-                                {{ if eq (get $last "status" | toString) "1" }}
-                                  <span class="color-positive">●</span>
-                                {{ else }}
-                                  <span class="color-negative">●</span>
-                                {{ end }}
+                                {{ if eq $status 1 }}<span class="color-positive">●</span>{{ else if eq $status 0 }}<span class="color-negative">●</span>{{ else }}<span class="color-paragraph">●</span>{{ end }}
                                 {{ $name }}
                               </span>
-                              {{ if get $last "ping" }}<span class="size-h6 color-paragraph">{{ get $last "ping" }} ms</span>{{ end }}
+                              {{ if gt $ping 0 }}<span class="size-h6 color-paragraph">{{ $ping }} ms</span>{{ end }}
                             </div>
                           {{ end }}
                         {{ end }}
@@ -272,24 +279,16 @@ in
                         head:
                           url: https://api.github.com/repos/NixOS/nixpkgs/commits/nixos-unstable
                       template: |
-                        {{ $pinSha := .JSON.String "nodes.nixpkgs.locked.rev" }}
-                        {{ $pinTs  := .JSON.Int    "nodes.nixpkgs.locked.lastModified" }}
-                        {{ $headSha := (.Subrequest "head").JSON.String "sha" }}
-                        {{ $headDate := (.Subrequest "head").JSON.String "commit.committer.date" }}
-                        {{ $drift := sub (now | unix) $pinTs | div 86400 }}
+                        {{ $head    := .Subrequest "head" }}
+                        {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
+                        {{ $pinTs   := .JSON.Float  "nodes.nixpkgs.locked.lastModified" }}
+                        {{ $headSha := $head.JSON.String "sha" }}
+                        {{ $nowUnix := now.Unix }}
+                        {{ $drift   := div (sub (toFloat $nowUnix) $pinTs) 86400.0 }}
                         <div class="flex flex-column gap-5">
-                          <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ $pinSha | trunc 8 }}</span></div>
-                          <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ $headSha | trunc 8 }}</span></div>
-                          <div class="flex justify-between">
-                            <span>drift</span>
-                            {{ if le $drift 1 }}
-                              <span class="color-positive">{{ $drift }}d</span>
-                            {{ else if le $drift 7 }}
-                              <span>{{ $drift }}d</span>
-                            {{ else }}
-                              <span class="color-negative">{{ $drift }}d</span>
-                            {{ end }}
-                          </div>
+                          <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }}</span></div>
+                          <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }}</span></div>
+                          <div class="flex justify-between"><span>drift</span><span>{{ printf "%.0fd" $drift }}</span></div>
                         </div>
 
                     # NIXPKGS DRIFT — pl-badwater
@@ -303,23 +302,16 @@ in
                         head:
                           url: https://api.github.com/repos/NixOS/nixpkgs/commits/nixos-unstable
                       template: |
-                        {{ $pinSha := .JSON.String "nodes.nixpkgs.locked.rev" }}
-                        {{ $pinTs  := .JSON.Int    "nodes.nixpkgs.locked.lastModified" }}
-                        {{ $headSha := (.Subrequest "head").JSON.String "sha" }}
-                        {{ $drift := sub (now | unix) $pinTs | div 86400 }}
+                        {{ $head    := .Subrequest "head" }}
+                        {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
+                        {{ $pinTs   := .JSON.Float  "nodes.nixpkgs.locked.lastModified" }}
+                        {{ $headSha := $head.JSON.String "sha" }}
+                        {{ $nowUnix := now.Unix }}
+                        {{ $drift   := div (sub (toFloat $nowUnix) $pinTs) 86400.0 }}
                         <div class="flex flex-column gap-5">
-                          <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ $pinSha | trunc 8 }}</span></div>
-                          <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ $headSha | trunc 8 }}</span></div>
-                          <div class="flex justify-between">
-                            <span>drift</span>
-                            {{ if le $drift 1 }}
-                              <span class="color-positive">{{ $drift }}d</span>
-                            {{ else if le $drift 7 }}
-                              <span>{{ $drift }}d</span>
-                            {{ else }}
-                              <span class="color-negative">{{ $drift }}d</span>
-                            {{ end }}
-                          </div>
+                          <div class="flex justify-between"><span>pin</span><span class="color-highlight">{{ slice $pinSha 0 8 }}</span></div>
+                          <div class="flex justify-between"><span>head</span><span class="color-highlight">{{ slice $headSha 0 8 }}</span></div>
+                          <div class="flex justify-between"><span>drift</span><span>{{ printf "%.0fd" $drift }}</span></div>
                         </div>
 
                     - type: rss
@@ -352,16 +344,16 @@ in
                               url: https://pangolin.dobryops.com
 
                     # SPEEDTEST — latest result from speedtest-tracker.
+                    # Path is `data.<field>` on v1.x of the linuxserver image.
                     - type: custom-api
                       title: Speedtest
                       cache: 5m
                       url: ${spdtest}/api/v1/speedtests/latest
                       template: |
-                        {{ $d := .JSON.Object "data" }}
                         <div class="flex flex-column gap-5">
-                          <div class="flex justify-between"><span>↓ download</span><span class="size-h4">{{ get $d "download" | toFloat | printf "%.0f" }} Mbps</span></div>
-                          <div class="flex justify-between"><span>↑ upload</span><span class="size-h4">{{ get $d "upload" | toFloat | printf "%.0f" }} Mbps</span></div>
-                          <div class="flex justify-between"><span>· ping</span><span class="size-h4">{{ get $d "ping" | toFloat | printf "%.0f" }} ms</span></div>
+                          <div class="flex justify-between"><span>↓ download</span><span class="size-h4">{{ printf "%.0f Mbps" (.JSON.Float "data.download") }}</span></div>
+                          <div class="flex justify-between"><span>↑ upload</span><span class="size-h4">{{ printf "%.0f Mbps" (.JSON.Float "data.upload") }}</span></div>
+                          <div class="flex justify-between"><span>· ping</span><span class="size-h4">{{ printf "%.0f ms" (.JSON.Float "data.ping") }}</span></div>
                         </div>
 
                     - type: weather
@@ -436,11 +428,11 @@ in
                             - title: GitLab
                               url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}
                     - type: custom-api
-                      title: Engineer
+                      title: Engineer CPU
                       cache: 30s
                       url: ${promQuery "(1-avg(rate(node_cpu_seconds_total%7Binstance=%22192.0.2.10:9100%22,mode=%22idle%22%7D%5B5m%5D)))*100"}
                       template: |
-                        <p class="size-h3">CPU {{ index (.JSON.Array "data.result") 0 | get "value" | index 1 | toFloat | printf "%.0f" }}%</p>
+                        <p class="size-h3">CPU {{ printf "%.0f" (.JSON.Float "data.result.0.value.1") }}%</p>
                     - type: weather
                       location: Sofia, Bulgaria
                       units: metric
