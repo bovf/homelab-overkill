@@ -135,11 +135,14 @@ in {
         mcpSyncScript = pkgs.writeShellScript "koth-dm-mcp-sync" ''
           set -eu
           HERMES=${cfg.agent.package}/bin/hermes
+          # `hermes mcp add` is interactive: after a successful connect it
+          # prompts `Enable all N tools? [Y/n/select]:`. Headless EOF
+          # cancels — so we pipe `Y` to auto-enable every discovered tool.
           "$HERMES" mcp remove dice-roller  >/dev/null 2>&1 || true
           "$HERMES" mcp remove turn-tracker >/dev/null 2>&1 || true
-          "$HERMES" mcp add dice-roller \
+          printf 'Y\n' | "$HERMES" mcp add dice-roller \
             --command ${diceRollerMcp}/bin/koth-mcp-dice-roller
-          "$HERMES" mcp add turn-tracker \
+          printf 'Y\n' | "$HERMES" mcp add turn-tracker \
             --command ${turnTrackerMcp}/bin/koth-mcp-turn-tracker \
             --env KOTH_STATE_DIR=/home/koth-dm/.hermes/koth-state
         '';
