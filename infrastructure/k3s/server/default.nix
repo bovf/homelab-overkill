@@ -13,7 +13,7 @@ in {
       manifestCleanup.enable = true;
       
       extraFlags = [
-        "--write-kubeconfig-mode=0644"
+        "--write-kubeconfig-mode=0600"
         "--tls-san=${nodeConfig.hostname}"
         "--tls-san=${nodeConfig.ip}"
         "--tls-san=${nodeConfig.domain}"
@@ -54,6 +54,12 @@ in {
     
     environment.sessionVariables.KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
     
+    environment.etc."profile.d/k3s-kubeconfig.sh".text = ''
+      if [ "$(id -u)" -eq 0 ]; then
+        export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
+      fi
+    '';
+
     workloads.enable = true;
   };
 }

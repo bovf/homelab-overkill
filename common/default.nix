@@ -4,5 +4,6 @@
     ./base.nix
     ./users.nix
     ./services.nix
+    ./hale.nix
   ];
 }

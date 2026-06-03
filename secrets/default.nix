@@ -4,7 +4,7 @@
   sops = {
     defaultSopsFile = ./secrets.yaml;
     age.sshKeyPaths = [ "/root/.ssh/id_ed25519" ];
-    age.generateKey = true;
+    age.generateKey = false;
 
     # Pangolin resource domains
     secrets."pangolin/resources/jellyfin/domain"         = {};
