@@ -1,0 +1,16 @@
+# trufflehog per-finding allowlist. Each line is one suppressed finding.
+#
+# Format: <DetectorName>:<full-commit-sha>:<file>:<line> # reason
+#
+# To add a new entry:
+#   1. Run `nix run .#scan`. The wrapper prints each finding's fingerprint
+#      (`[DetectorName] file:line (commit)`).
+#   2. Append the fingerprint in the format above with a `# reason` comment
+#      explaining why it's a false positive. Without a comment, the entry
+#      will not pass review.
+#
+# Empty by default: `--only-verified` is already passed to trufflehog, so
+# unverified pattern matches don't appear. Any finding that DOES appear has
+# been validated against a live API and is by definition a real secret —
+# rotate it, don't whitelist it. The only reason to ever add to this file
+# is a test/expired key that trufflehog still considers valid (rare).
