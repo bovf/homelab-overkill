@@ -71,6 +71,7 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 | grafana-image-renderer | Headless-chromium PNG renderer for Grafana panels | Active   |
 | Squid             | HTTP forward proxy (LAN egress)                      | Active   |
 | ncps              | Nix binary cache proxy (caches `cache.nixos.org`)    | Active   |
+| Hale (Saxton)     | Matrix-connected hermes-agent: media-ordering skills, restricted k8s observer SA, runs as system user `hale` on engineer | Active |
 | pangolin-kwg      | Host-side kernel WG client (engineer ↔ pangolin VPS) | Active   |
 | newt-cicd         | In-cluster userspace WG for CI-managed gitops flow   | Active   |
 | MetalLB           | L2-mode LoadBalancer for per-service LAN IPs         | Active   |
@@ -197,9 +198,21 @@ Supports:
 
 k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `mtime` never changes when target content changes. A patch to `sops-install-secrets` forces symlinks to be **recreated on every activation**, giving them a fresh `mtime` so k3s re-applies updated manifests within **~15 seconds**.
 
-### Pre-commit Hook
+### Git Hooks
 
-`.git/hooks/pre-commit` blocks commits containing `*.dobryops.com` domains or `dobry@` email patterns in any staged `.nix` file. `flake.nix` is allowlisted (k3s TLS SAN requires the domain at build time).
+Two hooks guard the boundary between local work and remote:
+
+- **`pre-commit`** — blocks commits containing `*.dobryops.com` domains or `dobry@` email patterns in any staged `.nix` file. `flake.nix` is allowlisted (k3s TLS SAN requires the domain at build time).
+- **`pre-push`** — runs `gitleaks git . --redact --exit-code 1` against the full history with `.gitleaksignore` allowlist applied. Auto-installed via the devShell `shellHook` on `nix-shell` entry; symlinks `.git/hooks/pre-push` at a Nix-store-managed script. Won't clobber an existing non-symlink hook.
+
+### Secret Scanning
+
+`nix run .#scan` runs both `gitleaks` and `trufflehog` (full scan — no `--only-verified` suppression). The workflow is strict: every finding either gets rotated (real secret) or pinned with a written reason in a per-finding allowlist file.
+
+- **`.gitleaksignore`** — native gitleaks per-finding fingerprints; `# Reason: ...` comment on the line ABOVE each fingerprint (gitleaks doesn't support inline comments)
+- **`.trufflehog-allowlist`** — custom file consumed by the scan app's trufflehog wrapper; same `# Reason:` + fingerprint convention. Fingerprint format: `<DetectorName>:<commit-sha>:<file>:<line>`
+
+No categorical suppression — no path-based allowlists, no regex allowlists. Pin a finding in commit A line 286, and a similar-looking real secret in commit B line 12 still fires. Each pin is a deliberate, reviewable line with a written reason. Both scanners are added to the devShell `packages` so they're on `$PATH` inside `nix-shell` for ad-hoc use too.
 
 ---
 
@@ -207,9 +220,11 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 
 ```
 .
-├── flake.nix                  # Entry point + sops-nix patch overlay
+├── flake.nix                  # Entry point + sops-nix patch overlay + uv2nix
 ├── flake.lock
 ├── .sops.yaml
+├── .gitleaksignore            # gitleaks per-finding allowlist (fingerprints + reasons)
+├── .trufflehog-allowlist      # trufflehog per-finding allowlist (fingerprints + reasons)
 ├── README.md
 │
 ├── nix/                       # Nix apps and tooling
@@ -217,10 +232,11 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │   │   ├── deploy.nix         # nixos-rebuild-ng based deploy script
 │   │   ├── kubeconfig.nix     # Kubeconfig bootstrap for local k9s/kubectl
 │   │   ├── secrets.nix        # Bitwarden secrets management
+│   │   ├── scan.nix           # `nix run .#scan` — gitleaks + trufflehog wrapper
 │   │   └── utilities.nix      # Node status checks
 │   ├── patches/
 │   │   └── sops-always-recreate-symlink.patch
-│   └── shells/
+│   └── shells/                # devShell + auto-installs pre-push gitleaks hook
 │
 ├── nodes/                     # NixOS machines
 │   ├── engineer/              # Main node config
@@ -267,7 +283,17 @@ k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `m
 │       ├── proxy/             # squid, ncps
 │       └── blog/              # whoami personal blog
 │
-├── common/                    # Shared NixOS modules (base, services, users)
+├── common/                    # Shared NixOS modules
+│   ├── base.nix, services.nix, users.nix, default.nix
+│   ├── hale.nix               # Saxton Hale: system user, restricted k8s observer SA,
+│   │                          # hermes-agent systemd unit (built via uv2nix overlay),
+│   │                          # matrix gateway + bootstrap Job, skill auto-discovery
+│   ├── hale-skills/           # SKILL.md files auto-symlinked into ~/.hermes/skills/
+│   │                          # (arr-search, arr-library, arr-releases, arr-grab,
+│   │                          # arr-add-to-library, arr-search-mobile, qbit-list,
+│   │                          # nzbget-list, media-status)
+│   ├── hale-soul.md           # Saxton Hale persona / system prompt
+│   └── hale.png               # Bot's matrix avatar (uploaded by the bootstrap Job)
 │
 ├── secrets/                   # SOPS-encrypted secrets
 │   ├── secrets.yaml           # Encrypted values (age)
