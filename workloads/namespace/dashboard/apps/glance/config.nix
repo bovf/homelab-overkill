@@ -1,5 +1,5 @@
 # Glance dashboard config. Rendered via sops.templates so every
-# *.dobryops.com host is templated from SOPS — no plaintext domains in
+# *.dobryops.com host is templated from SOPS - no plaintext domains in
 # git. API tokens are injected via env at runtime (see glance-env in
 # helm.nix) so rotating one doesn't reroll this whole Secret.
 #
@@ -12,7 +12,7 @@
 #   .Subrequest "name"     (cache in $var before {{ range }} loops)
 #   add sub mul div  now (time.Time)  parseTime formatTime  duration  slice
 #   toFloat(int)→float, toInt(float)→int
-#   No sprig — toJson / parseJSON / humanizeBytes etc. don't exist.
+#   No sprig - toJson / parseJSON / humanizeBytes etc. don't exist.
 #
 # Prometheus queries hardcode instance="192.0.2.10:9100"; WG metrics
 # carry instance="engineer" from monitoring/.../wireguard-scrape.nix.
@@ -30,7 +30,7 @@ let
 
   promQuery = q: "${prom}/api/v1/query?query=${q}";
 
-  # Wide hardcoded date range for *arr calendars — Sonarr/Radarr
+  # Wide hardcoded date range for *arr calendars - Sonarr/Radarr
   # require start+end. Refresh every couple years or so.
   arrStart = "2026-01-01T00:00:00Z";
   arrEnd   = "2027-06-01T00:00:00Z";
@@ -124,7 +124,7 @@ in
                       cache: 30s
                       url: ${promQuery "time()-wireguard_latest_handshake_seconds%7Binstance=%22engineer%22%7D"}
                       subrequests:
-                        # 24-hour rolling delta — yesterday's traffic.
+                        # 24-hour rolling delta - yesterday's traffic.
                         # Fits within the default 10d Prometheus
                         # retention; refreshes continuously.
                         sent:
@@ -199,7 +199,7 @@ in
                           </ul>
                         {{ end }}
 
-                    # SERVICES — Uptime Kuma's status-page heartbeat JSON.
+                    # SERVICES - Uptime Kuma's status-page heartbeat JSON.
                     # Emits a section per group (Media, Dev, Ops, Comms,
                     # Personal, Dashboard, Private) with its own grid.
                     - type: custom-api
@@ -353,11 +353,11 @@ in
                               url: https://console.hetzner.com/projects/11019344/dashboard
                               icon: si:hetzner
 
-                    # NIXPKGS DRIFT — homelab-overkill. Sourced from GitHub
+                    # NIXPKGS DRIFT - homelab-overkill. Sourced from GitHub
                     # raw since the repo isn't mirrored to the in-cluster
                     # GitLab. No auth needed for public read.
                     - type: custom-api
-                      title: nixpkgs — homelab-overkill
+                      title: nixpkgs - homelab-overkill
                       cache: 30m
                       url: https://raw.githubusercontent.com/bovf/homelab-overkill/main/flake.lock
                       subrequests:
@@ -381,9 +381,9 @@ in
                           </div>
                         {{ end }}
 
-                    # NIXPKGS DRIFT — pl-badwater (from in-cluster GitLab).
+                    # NIXPKGS DRIFT - pl-badwater (from in-cluster GitLab).
                     - type: custom-api
-                      title: nixpkgs — pl-badwater
+                      title: nixpkgs - pl-badwater
                       cache: 30m
                       url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}/api/v4/projects/bovf%2Fpl-badwater/repository/files/flake.lock/raw?ref=main
                       headers:
@@ -409,7 +409,7 @@ in
                           </div>
                         {{ end }}
 
-                    # SPEEDTEST — latest result from speedtest-tracker v1.14+
+                    # SPEEDTEST - latest result from speedtest-tracker v1.14+
                     # Requires a Sanctum bearer token. Generate one in the
                     # UI: Settings → API Tokens → Create, then set
                     # speedtest/api_token in sops.
@@ -440,7 +440,7 @@ in
                 # ── left ──────────────────────────────────────────────
                 - size: small
                   widgets:
-                    # Jellyfin library counts — Items/Counts is auth'd
+                    # Jellyfin library counts - Items/Counts is auth'd
                     # via api_key query param. In-cluster Service so we
                     # skip traefik/TLS overhead for this internal fetch.
                     - type: custom-api
@@ -523,7 +523,7 @@ in
 
                     # Sonarr upcoming episodes
                     - type: custom-api
-                      title: Upcoming — TV
+                      title: Upcoming - TV
                       cache: 10m
                       url: http://sonarr.media.svc.cluster.local:8989/api/v3/calendar?start=${arrStart}&end=${arrEnd}&includeSeries=true&unmonitored=false
                       headers:
@@ -551,7 +551,7 @@ in
 
                     # Radarr upcoming movies
                     - type: custom-api
-                      title: Coming Soon — Movies
+                      title: Coming Soon - Movies
                       cache: 10m
                       url: http://radarr.media.svc.cluster.local:7878/api/v3/calendar?start=${arrStart}&end=${arrEnd}&unmonitored=false
                       headers:
@@ -582,7 +582,7 @@ in
 
                     # Jellyseerr request counts. The Global API key in
                     # Settings → General authenticates but lacks user
-                    # context — /api/v1/request returns 403 because
+                    # context - /api/v1/request returns 403 because
                     # requests are per-user. /api/v1/request/count is
                     # the system-level endpoint that works with just
                     # the global key.
@@ -604,7 +604,7 @@ in
                 # ── right ─────────────────────────────────────────────
                 - size: small
                   widgets:
-                    # *arr health from Prowlarr's perspective — Prowlarr
+                    # *arr health from Prowlarr's perspective - Prowlarr
                     # pings every connected indexer + downloader on
                     # /api/v1/health and returns issue list.
                     - type: custom-api

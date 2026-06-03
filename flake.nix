@@ -12,9 +12,30 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    pyproject-nix = {
+      url = "github:pyproject-nix/pyproject.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    uv2nix = {
+      url = "github:pyproject-nix/uv2nix";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    pyproject-build-systems = {
+      url = "github:pyproject-nix/build-system-pkgs";
+      inputs.pyproject-nix.follows = "pyproject-nix";
+      inputs.uv2nix.follows = "uv2nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    hermes-agent-src = {
+      url = "github:NousResearch/hermes-agent";
+      flake = false;
+    };
   };
 
-  outputs = { self, nixpkgs, flake-utils, nixos-anywhere, disko, sops-nix, home-manager, ... }:
+  outputs = { self, nixpkgs, flake-utils, nixos-anywhere, disko, sops-nix, home-manager,
+              pyproject-nix, uv2nix, pyproject-build-systems, hermes-agent-src, ... }:
     let
       nodes = {
         engineer = {
@@ -62,11 +83,44 @@
       shellsLib = import ./nix/shells;
       appsLib = import ./nix/apps { inherit nixpkgs nixos-anywhere; };
 
+      hermesAgentOverlay = final: prev:
+        let
+          workspace = uv2nix.lib.workspace.loadWorkspace { workspaceRoot = hermes-agent-src; };
+          pyprojOverlay = workspace.mkPyprojectOverlay { sourcePreference = "wheel"; };
+          python = final.python3;
+          pyprojectOverrides = pyFinal: pyPrev: {
+            python-olm = pyPrev.python-olm.overrideAttrs (old: {
+              nativeBuildInputs = (old.nativeBuildInputs or []) ++ [
+                pyFinal.setuptools
+                pyFinal.cffi
+                pyFinal.pycparser
+              ];
+              buildInputs = (old.buildInputs or []) ++ [ final.olm ];
+            });
+          };
+          pythonSet = (final.callPackage pyproject-nix.build.packages {
+            inherit python;
+          }).overrideScope (
+            final.lib.composeManyExtensions [
+              pyproject-build-systems.overlays.wheel
+              pyprojOverlay
+              pyprojectOverrides
+            ]
+          );
+        in {
+          hermes-agent = pythonSet.mkVirtualEnv "hermes-agent" (
+            workspace.deps.default // {
+              hermes-agent = [ "matrix" ];
+            }
+          );
+        };
+
       mkNodeConfig = nodeName: nodeConfig:
         nixpkgs.lib.nixosSystem {
           system = nodeConfig.arch;
           specialArgs = { inherit nodeConfig nodes nodeName; };
           modules = [
+            { nixpkgs.overlays = [ hermesAgentOverlay ]; }
             disko.nixosModules.disko
             sops-nix.nixosModules.sops
             home-manager.nixosModules.home-manager
@@ -95,13 +149,18 @@
     in
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import nixpkgs {
+          inherit system;
+          overlays = [ hermesAgentOverlay ];
+        };
       in {
         devShells = shellsLib { inherit pkgs enabledNodes; };
         apps = appsLib.mkApps system enabledNodes;
+        packages.hermes-agent = pkgs.hermes-agent;
       }
     )
     // {
+      overlays.default = hermesAgentOverlay;
       nixosConfigurations = nixpkgs.lib.mapAttrs mkNodeConfig enabledNodes;
     };
 }

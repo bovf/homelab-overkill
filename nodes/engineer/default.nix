@@ -45,4 +45,19 @@ with lib;
   # Enable workloads and k3s infra
   workloads.enable = true;
   infrastructure.enable = true;
+
+  services.hale = {
+    enable = true;
+    kubeAccess.enable = true;
+    agent = {
+      enable = true;
+      matrix = {
+        enable = true;
+        authorizedUsersSopsKey = "hermes/matrix_allowed_users";
+        allowedRoomsSopsKey    = "hermes/matrix_allowed_rooms";
+      };
+      media.enable = true;
+      skills.enable = true;
+    };
+  };
 }
