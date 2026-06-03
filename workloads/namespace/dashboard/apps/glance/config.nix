@@ -57,6 +57,7 @@ in
             host: 0.0.0.0
             port: 8080
             base-url: ""
+            assets-path: /app/custom-assets
 
           pages:
             # ────────────────────────────────────────────────────────────
@@ -268,9 +269,6 @@ in
                             - title: ArgoCD
                               url: https://${config.sops.placeholder."pangolin/resources/argocd/domain"}
                               icon: si:argo
-                            - title: pgAdmin
-                              url: https://${config.sops.placeholder."pangolin/resources/pgadmin/domain"}
-                              icon: si:postgresql
                         - title: Monitor
                           links:
                             - title: Grafana
@@ -279,9 +277,6 @@ in
                             - title: Prometheus
                               url: https://${config.sops.placeholder."pangolin/resources/prometheus/domain"}
                               icon: si:prometheus
-                            - title: Alertmanager
-                              url: https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
-                              icon: di:alertmanager
                         - title: Admin
                           links:
                             - title: Pi-hole
@@ -300,15 +295,15 @@ in
                               icon: si:matrix
                             - title: Mail
                               url: https://${config.sops.placeholder."pangolin/resources/mailadmin/domain"}
-                              icon: di:stalwart
+                              icon: auto-invert /assets/icons/stalwart.svg
                         - title: Personal
                           links:
                             - title: ezBookkeeping
                               url: https://${config.sops.placeholder."pangolin/resources/ezbookkeeping/domain"}
-                              icon: di:ezbookkeeping
+                              icon: auto-invert /assets/icons/ezbookkeeping.svg
                             - title: Blog
                               url: https://${config.sops.placeholder."pangolin/resources/whoami/domain"}
-                              icon: di:hashnode
+                              icon: auto-invert /assets/icons/blog.svg
                         - title: Social
                           links:
                             - title: YouTube
@@ -345,7 +340,7 @@ in
                           links:
                             - title: Pangolin
                               url: https://pangolin.dobryops.com
-                              icon: di:pangolin
+                              icon: /assets/icons/pangolin.svg
                             - title: Traefik
                               url: https://${config.sops.placeholder."pangolin/resources/traefik_dashboard/domain"}
                               icon: si:traefikproxy
