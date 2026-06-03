@@ -128,9 +128,14 @@
                 mkdir -p "$out/bin"
                 for f in "$d"/*; do
                   bname=$(basename "$f")
-                  if [ -L "$f" ] || [ -f "$f" ]; then
+                  # Wrap only executable entry points; symlink venv activate
+                  # scripts (Activate.ps1, activate.csh, …) which are sourced
+                  # by shells and would fail makeWrapper's assertExecutable.
+                  if [ -x "$f" ] && [ ! -d "$f" ]; then
                     makeWrapper "$f" "$out/bin/$bname" \
                       --suffix PYTHONPATH : "${mcpSdkEnv}/${python.sitePackages}"
+                  else
+                    ln -s "$f" "$out/bin/$bname"
                   fi
                 done
               else
