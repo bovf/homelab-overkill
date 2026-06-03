@@ -61,4 +61,13 @@ with lib;
       skills.enable = true;
     };
   };
+
+  services.koth-dm = {
+    enable = true;
+    agent = {
+      enable = true;
+      matrix.enable = true;
+      skills.enable = true;
+    };
+  };
 }
