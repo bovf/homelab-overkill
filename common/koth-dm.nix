@@ -89,6 +89,11 @@ in {
         };
       };
       skills.enable = lib.mkEnableOption "publish bundled koth-dm skills from common/koth-dm-skills/ into /home/koth-dm/.hermes/skills/";
+      skills.dropBundled = lib.mkOption {
+        type = lib.types.bool;
+        default = true;
+        description = "Run `hermes skills opt-out --remove --yes` as koth-dm on every service start. Writes a `.no-bundled-skills` marker so hermes stops seeding its built-in skill tree (devops/, software-development/, kanban-*, etc.) into koth-dm's profile, and removes any unmodified bundled skills currently on disk. Idempotent. Curated skills come exclusively from common/koth-dm-skills/.";
+      };
     };
   };
 
@@ -152,6 +157,8 @@ in {
           User  = "koth-dm";
           Group = "koth-dm";
           WorkingDirectory = "/home/koth-dm";
+          ExecStartPre = lib.optional cfg.agent.skills.dropBundled
+            "${cfg.agent.package}/bin/hermes skills opt-out --remove --yes";
           ExecStart = "${cfg.agent.package}/bin/hermes gateway";
           Restart = "on-failure";
           RestartSec = 10;
