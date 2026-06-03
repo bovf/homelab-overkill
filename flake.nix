@@ -107,12 +107,37 @@
               pyprojectOverrides
             ]
           );
-        in {
-          hermes-agent = pythonSet.mkVirtualEnv "hermes-agent" (
+          baseHermes = pythonSet.mkVirtualEnv "hermes-agent-base" (
             workspace.deps.default // {
               hermes-agent = [ "matrix" ];
             }
           );
+          # mcp Python SDK is not in hermes-agent's pyproject; ship it in
+          # a sibling env and append to PYTHONPATH so `hermes mcp` can talk
+          # to user-registered MCP servers (e.g. koth-dm's dice/turn MCPs).
+          mcpSdkEnv = python.withPackages (ps: [ ps.mcp ]);
+        in {
+          hermes-agent = final.runCommand "hermes-agent" {
+            nativeBuildInputs = [ final.makeWrapper ];
+            passthru = { inherit baseHermes mcpSdkEnv; };
+          } ''
+            mkdir -p $out
+            for d in ${baseHermes}/*; do
+              name=$(basename "$d")
+              if [ "$name" = "bin" ]; then
+                mkdir -p "$out/bin"
+                for f in "$d"/*; do
+                  bname=$(basename "$f")
+                  if [ -L "$f" ] || [ -f "$f" ]; then
+                    makeWrapper "$f" "$out/bin/$bname" \
+                      --suffix PYTHONPATH : "${mcpSdkEnv}/${python.sitePackages}"
+                  fi
+                done
+              else
+                ln -s "$d" "$out/$name"
+              fi
+            done
+          '';
         };
 
       mkNodeConfig = nodeName: nodeConfig:
