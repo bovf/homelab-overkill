@@ -136,7 +136,7 @@
                 cpu: 250m
                 memory: 256Mi
               limits:
-                cpu: 500m
+                cpu: 1
                 memory: 1Gi
             concurrency: 10
             checkInterval: 30
