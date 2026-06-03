@@ -49,7 +49,7 @@ in {
         };
         avatarImage = lib.mkOption {
           type = lib.types.nullOr lib.types.path;
-          default = null;
+          default = ./koth-dm.png;
           description = "Path to the bot's avatar image. Null skips avatar upload (bot will appear with no avatar — Matrix default).";
         };
         avatarMimeType = lib.mkOption {
