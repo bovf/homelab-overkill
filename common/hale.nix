@@ -21,6 +21,11 @@ in {
         type = lib.types.str;
         default = "100.89.128.16";
       };
+      soulFile = lib.mkOption {
+        type = lib.types.nullOr lib.types.path;
+        default = ./hale-soul.md;
+        description = "Path to SOUL.md — hermes auto-loads this as the agent's identity (slot #1 in the system prompt). Copied to /home/hale/.hermes/SOUL.md on activation. Null disables deployment.";
+      };
       matrix = {
         enable = lib.mkEnableOption "Matrix adapter — bootstraps @<localpart>:<server> on Synapse";
         serverDomainSopsKey = lib.mkOption {
@@ -59,6 +64,12 @@ in {
           default = null;
           example = "hermes/matrix_allowed_rooms";
           description = "sops key holding a CSV list of Matrix room IDs the bot will respond in. Null omits MATRIX_ALLOWED_ROOMS (bot responds in any room it's been invited to). When set, combines with authorizedUsersSopsKey via AND — both checks must pass.";
+        };
+        homeChannelChatIdSopsKey = lib.mkOption {
+          type = lib.types.nullOr lib.types.str;
+          default = null;
+          example = "hermes/matrix_home_channel";
+          description = "sops key holding a single Matrix room ID rendered as MATRIX_HOME_ROOM in hale's .env. Hermes reads this env var directly (gateway/run.py:9215) to silence the 'No home channel' prompt and to populate platforms.matrix.home_channel in memory for cron/proactive delivery. Null skips both.";
         };
         passwordSopsKey = lib.mkOption {
           type = lib.types.str;
@@ -270,8 +281,16 @@ in {
     ))
 
     (lib.mkIf cfg.agent.enable {
+      systemd.tmpfiles.rules = [
+        "d /home/hale/.hermes 0700 hale hale -"
+      ] ++ lib.optionals (cfg.agent.soulFile != null) [
+        "L+ /home/hale/.hermes/SOUL.md - - - - ${cfg.agent.soulFile}"
+        "h /home/hale/.hermes/SOUL.md - hale hale - -"
+      ];
+
       systemd.services.hermes-agent = {
         description = "Hermes Agent (Saxton Hale)";
+        restartTriggers = lib.optional (cfg.agent.soulFile != null) cfg.agent.soulFile;
         after = [ "network-online.target" ]
           ++ lib.optional cfg.kubeAccess.enable "hale-kubeconfig.service";
         wants = [ "network-online.target" ];
@@ -323,6 +342,8 @@ in {
           ${cfg.agent.matrix.authorizedUsersSopsKey} = { };
         } // lib.optionalAttrs (cfg.agent.matrix.allowedRoomsSopsKey != null) {
           ${cfg.agent.matrix.allowedRoomsSopsKey} = { };
+        } // lib.optionalAttrs (cfg.agent.matrix.homeChannelChatIdSopsKey != null) {
+          ${cfg.agent.matrix.homeChannelChatIdSopsKey} = { };
         } // lib.optionalAttrs cfg.agent.media.enable {
           "hermes/radarr_api_key"       = { };
           "hermes/sonarr_api_key"       = { };
@@ -370,6 +391,10 @@ in {
               "MATRIX_ALLOWED_USERS=${config.sops.placeholder.${cfg.agent.matrix.authorizedUsersSopsKey}}"}
             ${lib.optionalString (cfg.agent.matrix.allowedRoomsSopsKey != null)
               "MATRIX_ALLOWED_ROOMS=${config.sops.placeholder.${cfg.agent.matrix.allowedRoomsSopsKey}}"}
+            ${lib.optionalString (cfg.agent.matrix.homeChannelChatIdSopsKey != null) ''
+              MATRIX_HOME_ROOM=${config.sops.placeholder.${cfg.agent.matrix.homeChannelChatIdSopsKey}}
+              MATRIX_HOME_ROOM_NAME=Matrix Home
+            ''}
             ${lib.optionalString cfg.agent.media.enable ''
               RADARR_URL=http://radarr.media.svc.cluster.local:7878
               RADARR_API_KEY=${config.sops.placeholder."hermes/radarr_api_key"}

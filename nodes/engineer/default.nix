@@ -53,8 +53,9 @@ with lib;
       enable = true;
       matrix = {
         enable = true;
-        authorizedUsersSopsKey = "hermes/matrix_allowed_users";
-        allowedRoomsSopsKey    = "hermes/matrix_allowed_rooms";
+        authorizedUsersSopsKey   = "hermes/matrix_allowed_users";
+        allowedRoomsSopsKey      = "hermes/matrix_allowed_rooms";
+        homeChannelChatIdSopsKey = "hermes/matrix_home_channel";
       };
       media.enable = true;
       skills.enable = true;

@@ -1,6 +1,21 @@
 { config, ... }:
 
 {
+  services.k3s.manifests.glance-icons.content = {
+    apiVersion = "v1";
+    kind = "ConfigMap";
+    metadata = {
+      name = "glance-icons";
+      namespace = "dashboard";
+    };
+    data = {
+      "stalwart.svg"      = builtins.readFile ./icons/stalwart.svg;
+      "ezbookkeeping.svg" = builtins.readFile ./icons/ezbookkeeping.svg;
+      "blog.svg"          = builtins.readFile ./icons/blog.svg;
+      "pangolin.svg"      = builtins.readFile ./icons/pangolin.svg;
+    };
+  };
+
   sops.templates."helm/glance.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -20,6 +35,7 @@
               # Roll on glance.yml changes (it's mounted from the Secret
               # below) and on the GitLab token secret churning.
               secret.reloader.stakater.com/reload: "glance-config,glance-env"
+              configmap.reloader.stakater.com/reload: "glance-icons"
 
           controllers:
             main:
@@ -99,6 +115,12 @@
               globalMounts:
                 - path: /app/config/glance.yml
                   subPath: glance.yml
+                  readOnly: true
+            icons:
+              type: configMap
+              name: glance-icons
+              globalMounts:
+                - path: /app/custom-assets/icons
                   readOnly: true
     '';
     path  = "/var/lib/rancher/k3s/server/manifests/glance.yaml";
