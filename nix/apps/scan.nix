@@ -13,13 +13,13 @@
           gitleaks git . --no-banner --redact || gl=$?
           echo ""
 
-          echo "=== trufflehog (verified only, .trufflehog-allowlist applied) ==="
+          echo "=== trufflehog (full scan, .trufflehog-allowlist applied) ==="
           allowlist_file=".trufflehog-allowlist"
           findings_count=0
           tmp_json=$(mktemp)
           trap 'rm -f "$tmp_json"' EXIT
 
-          trufflehog --no-update --no-color --json git file://. --only-verified \
+          trufflehog --no-update --no-color --json git file://. \
             > "$tmp_json" 2>/dev/null || true
 
           while IFS= read -r line; do
