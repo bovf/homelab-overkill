@@ -1,0 +1,16 @@
+[project]
+name = "koth-mcp-turn-tracker"
+version = "0.1.0"
+description = "Combat turn-tracking MCP server for the koth-dm hermes-agent"
+requires-python = ">=3.10"
+dependencies = ["mcp"]
+
+[project.scripts]
+koth-mcp-turn-tracker = "koth_mcp_turn_tracker.server:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

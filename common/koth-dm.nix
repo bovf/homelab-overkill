@@ -94,6 +94,7 @@ in {
         default = true;
         description = "Run `hermes skills opt-out --remove --yes` as koth-dm on every service start. Writes a `.no-bundled-skills` marker so hermes stops seeding its built-in skill tree (devops/, software-development/, kanban-*, etc.) into koth-dm's profile, and removes any unmodified bundled skills currently on disk. Idempotent. Curated skills come exclusively from common/koth-dm-skills/.";
       };
+      mcps.enable = lib.mkEnableOption "register the koth-dm MCP servers (dice-roller, turn-tracker) with hermes via ExecStartPre. The MCPs are Python apps built from common/mcps/, registered as stdio commands. State (combat.json) lives at /home/koth-dm/.hermes/koth-state/.";
     };
   };
 
@@ -127,60 +128,80 @@ in {
       }
     ))
 
-    (lib.mkIf cfg.agent.enable {
-      systemd.tmpfiles.rules = [
-        "d /home/koth-dm/.hermes 0700 koth-dm koth-dm -"
-      ] ++ lib.optionals (cfg.agent.soulFile != null) [
-        "L+ /home/koth-dm/.hermes/SOUL.md - - - - ${cfg.agent.soulFile}"
-        "h /home/koth-dm/.hermes/SOUL.md - koth-dm koth-dm - -"
-      ] ++ lib.optionals (cfg.agent.campaignFile != null) [
-        "L+ /home/koth-dm/.hermes/CAMPAIGN.md - - - - ${cfg.agent.campaignFile}"
-        "h /home/koth-dm/.hermes/CAMPAIGN.md - koth-dm koth-dm - -"
-      ];
+    (lib.mkIf cfg.agent.enable (
+      let
+        diceRollerMcp  = pkgs.callPackage ./mcps/dice-roller  { };
+        turnTrackerMcp = pkgs.callPackage ./mcps/turn-tracker { };
+        mcpSyncScript = pkgs.writeShellScript "koth-dm-mcp-sync" ''
+          set -eu
+          HERMES=${cfg.agent.package}/bin/hermes
+          "$HERMES" mcp remove dice-roller  >/dev/null 2>&1 || true
+          "$HERMES" mcp remove turn-tracker >/dev/null 2>&1 || true
+          "$HERMES" mcp add dice-roller \
+            --command ${diceRollerMcp}/bin/koth-mcp-dice-roller
+          "$HERMES" mcp add turn-tracker \
+            --command ${turnTrackerMcp}/bin/koth-mcp-turn-tracker \
+            --env KOTH_STATE_DIR=/home/koth-dm/.hermes/koth-state
+        '';
+      in {
+        systemd.tmpfiles.rules = [
+          "d /home/koth-dm/.hermes 0700 koth-dm koth-dm -"
+        ] ++ lib.optionals (cfg.agent.soulFile != null) [
+          "L+ /home/koth-dm/.hermes/SOUL.md - - - - ${cfg.agent.soulFile}"
+          "h /home/koth-dm/.hermes/SOUL.md - koth-dm koth-dm - -"
+        ] ++ lib.optionals (cfg.agent.campaignFile != null) [
+          "L+ /home/koth-dm/.hermes/CAMPAIGN.md - - - - ${cfg.agent.campaignFile}"
+          "h /home/koth-dm/.hermes/CAMPAIGN.md - koth-dm koth-dm - -"
+        ] ++ lib.optionals cfg.agent.mcps.enable [
+          "d /home/koth-dm/.hermes/koth-state 0700 koth-dm koth-dm -"
+        ];
 
-      systemd.services."hermes-agent.koth-dm" = {
-        description = "Hermes Agent (KotH GM)";
-        restartTriggers =
-          lib.optional (cfg.agent.soulFile != null) cfg.agent.soulFile
-          ++ lib.optional (cfg.agent.campaignFile != null) cfg.agent.campaignFile;
-        after = [ "network-online.target" ];
-        wants = [ "network-online.target" ];
-        wantedBy = [ "multi-user.target" ];
-        environment = {
-          HOME = "/home/koth-dm";
-          HERMES_HOME = "/home/koth-dm/.hermes";
-          HERMES_GATEWAY_HOST = cfg.agent.gatewayBind;
-          HERMES_GATEWAY_PORT = toString cfg.agent.gatewayPort;
-          PYTHONUNBUFFERED = "1";
-        };
-        serviceConfig = {
-          User  = "koth-dm";
-          Group = "koth-dm";
-          WorkingDirectory = "/home/koth-dm";
-          ExecStartPre = lib.optional cfg.agent.skills.dropBundled
-            "${cfg.agent.package}/bin/hermes skills opt-out --remove --yes";
-          ExecStart = "${cfg.agent.package}/bin/hermes gateway";
-          Restart = "on-failure";
-          RestartSec = 10;
-          TimeoutStopSec = "240s";
+        systemd.services."hermes-agent.koth-dm" = {
+          description = "Hermes Agent (KotH GM)";
+          restartTriggers =
+            lib.optional (cfg.agent.soulFile != null) cfg.agent.soulFile
+            ++ lib.optional (cfg.agent.campaignFile != null) cfg.agent.campaignFile;
+          after = [ "network-online.target" ];
+          wants = [ "network-online.target" ];
+          wantedBy = [ "multi-user.target" ];
+          environment = {
+            HOME = "/home/koth-dm";
+            HERMES_HOME = "/home/koth-dm/.hermes";
+            HERMES_GATEWAY_HOST = cfg.agent.gatewayBind;
+            HERMES_GATEWAY_PORT = toString cfg.agent.gatewayPort;
+            PYTHONUNBUFFERED = "1";
+          };
+          serviceConfig = {
+            User  = "koth-dm";
+            Group = "koth-dm";
+            WorkingDirectory = "/home/koth-dm";
+            ExecStartPre =
+              lib.optional cfg.agent.skills.dropBundled
+                "${cfg.agent.package}/bin/hermes skills opt-out --remove --yes"
+              ++ lib.optional cfg.agent.mcps.enable "${mcpSyncScript}";
+            ExecStart = "${cfg.agent.package}/bin/hermes gateway";
+            Restart = "on-failure";
+            RestartSec = 10;
+            TimeoutStopSec = "240s";
 
-          NoNewPrivileges = true;
-          ProtectSystem = "strict";
-          ProtectHome = "read-only";
-          ReadWritePaths = [ "/home/koth-dm" ];
-          PrivateTmp = true;
-          PrivateDevices = true;
-          ProtectKernelTunables = true;
-          ProtectKernelModules = true;
-          ProtectControlGroups = true;
-          RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
-          RestrictNamespaces = true;
-          LockPersonality = true;
-          CapabilityBoundingSet = "";
-          AmbientCapabilities = "";
+            NoNewPrivileges = true;
+            ProtectSystem = "strict";
+            ProtectHome = "read-only";
+            ReadWritePaths = [ "/home/koth-dm" ];
+            PrivateTmp = true;
+            PrivateDevices = true;
+            ProtectKernelTunables = true;
+            ProtectKernelModules = true;
+            ProtectControlGroups = true;
+            RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
+            RestrictNamespaces = true;
+            LockPersonality = true;
+            CapabilityBoundingSet = "";
+            AmbientCapabilities = "";
+          };
         };
-      };
-    })
+      }
+    ))
 
     (lib.mkIf (cfg.enable && cfg.agent.matrix.enable) {
         nixpkgs.config.permittedInsecurePackages = [ "olm-3.2.16" ];

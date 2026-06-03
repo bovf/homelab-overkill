@@ -68,6 +68,7 @@ with lib;
       enable = true;
       matrix.enable = true;
       skills.enable = true;
+      mcps.enable = true;
     };
   };
 }
