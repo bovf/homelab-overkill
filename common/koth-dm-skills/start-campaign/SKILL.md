@@ -73,15 +73,16 @@ re-pitch. If no, accept.
 
 For each player, ask in this order:
 
-1. **Concept** — one or two sentences. Who are they within their faction?
+1. **Name** — the character's name (NOT the player's mxid).
+2. **Concept** — one or two sentences. Who are they within their faction?
    Veteran, defector, foundling, true believer, mercenary?
-2. **Standout trait** — one phrase. The thing that makes them *them*.
-3. **Key relationship** — one NPC (existing or new) they're tied to. If
+3. **Standout trait** — one phrase. The thing that makes them *them*.
+4. **Key relationship** — one NPC (existing or new) they're tied to. If
    new, name + one-line who-are-they. Log them for the journal.
-4. **Open thread** — one unresolved hook from before play started. A debt,
+5. **Open thread** — one unresolved hook from before play started. A debt,
    a missing person, a stolen artifact, a vow. This is the GM's hook into
    their character's plotline.
-5. **Stat mods** — keep it light. Two attributes: **Brawn** (physical),
+6. **Stat mods** — keep it light. Two attributes: **Brawn** (physical),
    **Cunning** (mental/social). Each ranges from **-1 to +3**. Players
    assign +2 to one and +1 to the other; -1 is optional flavour. (For
    advantage/disadvantage situations or initiative, default DEX-style
@@ -89,6 +90,32 @@ For each player, ask in this order:
 
 Confirm each PC summary aloud before moving on. Players can edit until
 they're happy.
+
+**Once the player has approved their sheet, IMMEDIATELY call
+`character_sheets.create_character`** with all the agreed fields. Do this
+in the same turn the player approves — don't batch all three at the end.
+The PC sheet must exist in state before play begins so future `roll for
+me` requests can look it up.
+
+Example call shape:
+
+```
+character_sheets.create_character(
+  name="Bovf",
+  player="@bovf:matrix.dobryops.com",
+  faction="Mann Co. Industrial — orphaned-blast-tech division",
+  concept="Veteran blast-tech who outlived three quotas …",
+  standout_trait="Always rigs a backup detonator",
+  key_relationship="Former second-shift boss, name TBD",
+  open_thread="Owes a personal favour to someone in the Order",
+  brawn=2,
+  cunning=1,
+)
+```
+
+If the player wants to revise after creation, call `update_character`. If
+they want to scrap and start over, call `delete_character` then
+`create_character` fresh.
 
 ### 4. The Hill — pick its nature
 

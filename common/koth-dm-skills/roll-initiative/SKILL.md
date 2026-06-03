@@ -39,10 +39,23 @@ multi-combatant scenes.
    `CAMPAIGN_JOURNAL.md` — if you haven't named them yet, name them now and
    log them later.
 
-2. **Roll initiative for each.** For PCs, ASK them to roll
-   `1d20+<their_dex_mod>` and report results in the room. For NPCs, you roll
-   via the `dice-roller` MCP — call `roll("1d20+<mod>")` for each. Tie-breaks:
-   PC beats NPC.
+2. **Roll initiative for each.** This campaign treats initiative as a
+   Cunning check (no separate DEX stat — Cunning covers reflexes and read
+   of the room). For each PC:
+
+   - Call `character_sheets.get_character(player='<their mxid>')` to fetch
+     the sheet.
+   - Compose `f"1d20+{cunning}"` from `stats.cunning`.
+   - Call `dice_roller.roll(expr)` and record the total against the PC's
+     name.
+
+   For each NPC, call `dice_roller.roll("1d20+<NPC mod>")` directly — NPCs
+   don't have sheets in v1; you assign mods on the fly based on what feels
+   right for the encounter (typical goon: +0, elite: +2, boss: +3).
+
+   If a player explicitly wants to roll their own initiative (matter of
+   table preference), accept their reported number and skip the
+   character-sheets lookup for that one PC. Tie-breaks: PC beats NPC.
 
 3. **Sort the order.** Build the list of names from highest-rolled to
    lowest-rolled. This is your initiative order.
