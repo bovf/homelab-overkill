@@ -1,16 +1,28 @@
-# trufflehog per-finding allowlist. Each line is one suppressed finding.
+# trufflehog per-finding allowlist. Each suppressed finding is one
+# fingerprint on its own line, with a # comment line immediately above
+# explaining why it's a false positive. Inline comments are NOT supported.
 #
-# Format: <DetectorName>:<full-commit-sha>:<file>:<line> # reason
+# Format: <DetectorName>:<full-commit-sha>:<file>:<line>
+#
+# trufflehog is run WITHOUT --only-verified — every finding (verified OR
+# unverified) must either be a real secret (rotate it, don't pin it) or
+# get an explicit fingerprint entry here with a written reason.
 #
 # To add a new entry:
 #   1. Run `nix run .#scan`. The wrapper prints each finding's fingerprint
-#      (`[DetectorName] file:line (commit)`).
-#   2. Append the fingerprint in the format above with a `# reason` comment
-#      explaining why it's a false positive. Without a comment, the entry
-#      will not pass review.
-#
-# Empty by default: `--only-verified` is already passed to trufflehog, so
-# unverified pattern matches don't appear. Any finding that DOES appear has
-# been validated against a live API and is by definition a real secret —
-# rotate it, don't whitelist it. The only reason to ever add to this file
-# is a test/expired key that trufflehog still considers valid (rare).
+#      as `[DetectorName] file:line (commit)`.
+#   2. Reconstruct the full fingerprint and write it on its own line below
+#      a `# Reason: <why>` comment line.
+
+# Reason: sops envelope base64 chunk matched Gitlab's token shape by
+# entropy chance — secrets.yaml is sops-encrypted, plaintext is impossible.
+Gitlab:2487377176f2014f2718ae268fa816b5b6221d71:secrets/secrets.yaml:152
+
+# Reason: sops envelope base64 chunk matched Box's token shape by entropy
+# chance — same file, same reason as above.
+Box:bb0eb9a27627f3bb78346ca0f89740cd889978a1:secrets/secrets.yaml:191
+
+# Reason: literal HTTP header name `X-Gitlab-Wildcard-Host` in a pangolin
+# newt configmap — trufflehog's Gitlab detector fires on the substring
+# "Gitlab" near header-like syntax. Not a token; just a header name.
+Gitlab:2c587214f3797ec704857f93321b86a37c7ee13c:workloads/namespace/pangolin/apps/newt/configmap.nix:183
