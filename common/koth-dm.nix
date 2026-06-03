@@ -163,7 +163,8 @@ in {
           description = "Hermes Agent (KotH GM)";
           restartTriggers =
             lib.optional (cfg.agent.soulFile != null) cfg.agent.soulFile
-            ++ lib.optional (cfg.agent.campaignFile != null) cfg.agent.campaignFile;
+            ++ lib.optional (cfg.agent.campaignFile != null) cfg.agent.campaignFile
+            ++ lib.optional cfg.agent.skills.enable ./koth-dm-skills;
           after = [ "network-online.target" ];
           wants = [ "network-online.target" ];
           wantedBy = [ "multi-user.target" ];
