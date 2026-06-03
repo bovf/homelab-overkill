@@ -10,6 +10,12 @@ let
     fi
   '';
 
+  prePushHook = pkgs.writeShellScript "homelab-pre-push" ''
+    set -e
+    echo "→ pre-push: gitleaks secret scan" >&2
+    ${pkgs.gitleaks}/bin/gitleaks git . --no-banner --redact --exit-code 1
+  '';
+
 in
 {
   default = pkgs.mkShell {
@@ -18,12 +24,19 @@ in
     ] ++ (with pkgs; [
       kubectl kubernetes-helm k9s sops age ssh-to-age bitwarden-cli jq yq-go
       curl wget git vim nixos-anywhere nixos-rebuild-ng
+      gitleaks trufflehog
     ] ++ lib.optionals stdenv.isLinux [ iproute2 ]);
 
     shellHook = ''
       set -euo pipefail
 
       export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt"
+
+      if [ -d .git ]; then
+        if [ ! -e .git/hooks/pre-push ] || [ -L .git/hooks/pre-push ]; then
+          ln -sf "${prePushHook}" .git/hooks/pre-push
+        fi
+      fi
 
       # Silence Node DEP0040 (built-in `punycode` deprecation) emitted by
       # bitwarden-cli's transitive deps. Cosmetic only; does not affect bw.
@@ -220,6 +233,7 @@ in
       echo "  ssh <node>-remote                                - ssh to node (remote)"
       echo "  eval \$(nix run .#kubeconfig -- <node>-local)    - bootstrap kubeconfig (local)"
       echo "  eval \$(nix run .#kubeconfig -- <node>-remote)   - bootstrap kubeconfig (remote)"
+      echo "  nix run .#scan                                   - gitleaks + trufflehog secret scan"
       echo
       echo
     '';
