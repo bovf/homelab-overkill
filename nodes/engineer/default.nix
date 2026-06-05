@@ -61,4 +61,28 @@ with lib;
       skills.enable = true;
     };
   };
+
+  # Third hermes-agent instance — MS research librarian. Independent unix
+  # user, mxid, HERMES_HOME, gateway port. See plan-ms-research-agent.md.
+  # Sops keys required before rebuild:
+  #   hermes/ms_researcher_matrix_password
+  #   hermes/ms_researcher_matrix_allowed_users
+  #   hermes/ms_researcher_matrix_allowed_rooms
+  #   hermes/ms_researcher_matrix_home_channel
+  services.ms-researcher = {
+    enable = true;
+    agent = {
+      enable = true;
+      mcps = [ "pubmed" "searxng" "crossref" ];
+      kb.enable = true;
+      skills.enable = true;
+      cron.enable = true;
+      matrix = {
+        enable = true;
+        authorizedUsersSopsKey   = "hermes/ms_researcher_matrix_allowed_users";
+        allowedRoomsSopsKey      = "hermes/ms_researcher_matrix_allowed_rooms";
+        homeChannelChatIdSopsKey = "hermes/ms_researcher_matrix_home_channel";
+      };
+    };
+  };
 }
