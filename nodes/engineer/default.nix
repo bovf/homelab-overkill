@@ -62,6 +62,16 @@ with lib;
     };
   };
 
+  services.koth-dm = {
+    enable = true;
+    agent = {
+      enable = true;
+      matrix.enable = true;
+      skills.enable = true;
+      mcps.enable = true;
+    };
+  };
+
   # Third hermes-agent instance — MS research librarian. Independent unix
   # user, mxid, HERMES_HOME, gateway port. See plan-ms-research-agent.md.
   # Sops keys required before rebuild:
