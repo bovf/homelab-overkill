@@ -31,7 +31,8 @@ For the Matrix message:
   `(KB: kb/pages/<slug>.md)` or `(Full digest: kb/reports/<YYYY>_W<NN>.md)`.
 - Always include web navigation links when the KB web UI is available:
   - Start Here: `https://ms-kb.dobryops.com/#/page/Start%20Here`
-  - Browse whole KB: `https://ms-kb.dobryops.com/kb/`
+  - KB Index: `https://ms-kb.dobryops.com/#/page/Index`
+  - Raw file tree: `https://ms-kb.dobryops.com/kb/`
   - Full digest in Logseq: `https://ms-kb.dobryops.com/#/page/<URL-encoded report page title or slug>`
 - If a future `LOGSEQ_BASE_URL` env var exists, use it instead of the hardcoded
   `https://ms-kb.dobryops.com` base. Until then, use the hardcoded web URL plus
@@ -193,7 +194,8 @@ Bottom line:
 Full digest: kb/reports/<YYYY>_W<NN>.md
 Logseq digest: https://ms-kb.dobryops.com/#/page/<URL-encoded report page title or slug>
 Start Here: https://ms-kb.dobryops.com/#/page/Start%20Here
-Browse whole KB: https://ms-kb.dobryops.com/kb/
+KB Index: https://ms-kb.dobryops.com/#/page/Index
+Raw file tree: https://ms-kb.dobryops.com/kb/
 ```
 
 Keep the Matrix message short enough to read quickly. If there are many items,
@@ -201,17 +203,19 @@ choose the best 3 and put the rest in the report file.
 
 ## After delivery
 
-Refresh `$KB_ROOT/pages/Start Here.md` so the KB front door points at this new
-weekly digest, highlights the best current pages, and includes `[Browse the
-whole KB](/kb/)` for raw file-tree browsing. Keep this page reader-first: no
-feed-count headlines, no operational backlog language, no Logseq wikilinks.
-Never write `[[/kb/]]`; it is a broken Logseq page link, not a URL.
+Refresh `$KB_ROOT/pages/Start Here.md` and `$KB_ROOT/pages/Index.md` so the KB
+front door points at this new weekly digest, highlights the best current pages,
+and the index gives a human-browseable whole-KB navigation page. Keep both pages
+reader-first: no feed-count headlines, no operational backlog language, no
+broken Logseq URL wikilinks. Never write `[[/kb/]]`; it creates the broken
+Logseq page `#/page/kb`.
 
 The Matrix message must also include three web links at the bottom:
 
 - `Logseq digest: https://ms-kb.dobryops.com/#/page/<URL-encoded report page title or slug>`
 - `Start Here: https://ms-kb.dobryops.com/#/page/Start%20Here`
-- `Browse whole KB: https://ms-kb.dobryops.com/kb/`
+- `KB Index: https://ms-kb.dobryops.com/#/page/Index`
+- `Raw file tree: https://ms-kb.dobryops.com/kb/`
 
 If `LOGSEQ_BASE_URL` is set in the future, replace the hardcoded base with that
 env value. Keep the links plain and clickable; do not wrap them in Logseq

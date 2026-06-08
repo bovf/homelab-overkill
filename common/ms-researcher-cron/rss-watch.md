@@ -32,7 +32,7 @@ Required outputs for this run:
 2. Candidate report under `$KB_ROOT/raw/rss/YYYY_MM_DD/HHMM_candidates.md`.
 3. Query/run report under `$KB_ROOT/queries/rss_watch_YYYY_MM_DD_HHMM.md`.
 4. Up to 4 citation-grounded KB pages for high-confidence verified items, with at least one non-trial peer-reviewed item when available.
-5. Refresh `$KB_ROOT/pages/Start Here.md` so the published KB front door links to the latest useful pages, the latest digest/report, and `/kb/` for raw file-tree browsing.
+5. Refresh `$KB_ROOT/pages/Start Here.md` and `$KB_ROOT/pages/Index.md` so the published KB has both a curated front door and a human-browseable whole-KB index.
 6. One `kb-journal` entry with processed/pages/verify/watch/rejected counts.
 
 Credibility rules:
@@ -53,22 +53,28 @@ Do not post a Matrix message unless something requires urgent human review.
 Do not treat large queue/watchlist counts as user-facing news. The Monday digest
 will summarize the genuinely useful KB highlights in a readable format.
 
-## Start Here maintenance
+## Start Here and Index maintenance
 
-After the run report and any page writes, update `$KB_ROOT/pages/Start Here.md`.
-Keep it human-facing, not operational. It should include:
+After the run report and any page writes, update `$KB_ROOT/pages/Start Here.md`
+and `$KB_ROOT/pages/Index.md`. Keep both human-facing, not operational.
+
+`Start Here.md` should include:
 
 - A one-paragraph "Start here" explanation.
 - Link to the newest weekly digest/report if one exists.
 - A small "Recent updates" list from meaningful pages/reports touched recently.
 - Topic sections for clinical research, trials worth watching, practical living,
   biomarkers/monitoring, and treatments/safety when pages exist.
-- A "Browse the whole KB" link written exactly as `[Browse the whole KB](/kb/)`,
-  noting that it opens the raw file tree (`pages/`, `journals/`, `reports/`,
-  `queries/`, `raw/`).
+- A `KB Index` link to `https://ms-kb.dobryops.com/#/page/Index` for human navigation.
+- Optional raw file tree link to `https://ms-kb.dobryops.com/kb/`, but do not make raw files the primary navigation path.
 - An evidence legend explaining peer-reviewed, registry-only, official MS org,
   and news lead/watchlist.
 
-Do not use Logseq wikilinks on this page; prefer normal markdown links and KB
-paths so the published web view and raw file-tree view both stay readable.
-Specifically, never write `[[/kb/]]`; use `[Browse the whole KB](/kb/)`.
+`Index.md` should be the whole-KB navigation page. Organize links by topic:
+clinical research, trials, treatments/safety, biomarkers/monitoring, practical
+living, reports, queries, journals/activity, and raw files. Include the raw file
+tree as `https://ms-kb.dobryops.com/kb/`, but keep the index itself as the main
+human-browseable entry point.
+
+Do not use `[[/kb/]]`; it creates the broken Logseq page `#/page/kb`. Prefer
+normal markdown links, full web URLs, or plain KB paths.

@@ -27,19 +27,43 @@ ones.
 
 ## Knowledgebase front door
 
-Maintain `$KB_ROOT/pages/Start Here.md` as the curated entry point for the
-published KB. Whenever a scheduled RSS watch, weekly digest, or substantial KB
-update changes what a human should read first, refresh this page.
+Maintain two human navigation pages for the published KB:
+
+- `$KB_ROOT/pages/Start Here.md` — curated front door: what to read first.
+- `$KB_ROOT/pages/Index.md` — comprehensive human-browseable index of the KB.
+
+Whenever a scheduled RSS watch, weekly digest, or substantial KB update changes
+what a human should read first, refresh both pages.
 
 `Start Here.md` should be calm, useful, and browseable:
 
 - Open with a short "where to begin" paragraph for Dobry and his partner.
 - Link to the latest weekly digest in `$KB_ROOT/reports/`.
 - Link to the most important current topic pages by category.
-- Include a "Browse the whole KB" section using a real markdown link: `[Browse the whole KB](/kb/)`. Never write `[[/kb/]]`; that is a broken Logseq wikilink, not a URL.
+- Include a "KB Index" section linking to `https://ms-kb.dobryops.com/#/page/Index` for human navigation.
+- If you mention raw files, use `https://ms-kb.dobryops.com/kb/`, but do not make this the primary navigation path.
+- Never write `[[/kb/]]`; that is a broken Logseq wikilink, not a URL.
 - Include "Recent updates" from the last few meaningful pages/reports.
 - Include an evidence legend: peer-reviewed, trial registry, official MS org,
   news lead/watchlist.
+
+`Index.md` should be the whole-KB navigation page. Keep it updated and organized
+by section:
+
+- Latest digest/report
+- Clinical research
+- Trials worth watching
+- Treatments and safety
+- Biomarkers / monitoring
+- Practical living
+- Queries and reports
+- Journals / activity trail
+- Raw file tree: `https://ms-kb.dobryops.com/kb/`
+
+The index should link to meaningful pages/reports with normal markdown links or
+plain KB paths. It should be broad enough to browse the whole KB, but curated
+enough that a human can scan it. Do not turn it into a dump of every raw RSS
+item.
 - Do not use it as an ops log. Do not lead with feed counts or queue counts.
 - Every factual claim still follows cite-or-silent; navigation labels do not
   need citations, but medical claims do.

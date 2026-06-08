@@ -254,27 +254,34 @@ rejected: N
 - title — source, score, red flags
 ```
 
-### 9. Start Here page
+### 9. Start Here and Index pages
 
-Create or refresh `$KB_ROOT/pages/Start Here.md` after every run. This is the
-published KB entry point, so it should be useful even when a human lands on the
-site without context.
+Create or refresh `$KB_ROOT/pages/Start Here.md` and `$KB_ROOT/pages/Index.md`
+after every run. `Start Here.md` is the curated front door. `Index.md` is the
+human-browseable whole-KB index.
 
-Use normal markdown links and paths rather than Logseq wikilinks. Include:
+Use normal markdown links, full web URLs, and KB paths rather than broken
+Logseq URL wikilinks. `Start Here.md` should include:
 
 - Short "where to begin" paragraph.
 - Latest weekly digest/report from `$KB_ROOT/reports/`, if present.
 - Recent meaningful pages/reports touched in the last 7 days.
 - Topic sections that link to current pages: clinical research, trials worth
   watching, practical living, biomarkers/monitoring, treatments/safety.
-- `[Browse the whole KB](/kb/)` with a note that this opens the raw file tree
-  for `pages/`, `journals/`, `reports/`, `queries/`, and `raw/`.
+- `KB Index: https://ms-kb.dobryops.com/#/page/Index` for human navigation.
+- Optional raw file tree: `https://ms-kb.dobryops.com/kb/`.
 - Evidence legend for peer-reviewed, registry-only, official MS org, and news
   lead/watchlist.
 
-Do not make `Start Here.md` an ops log. Do not lead with item counts, queue
-sizes, or rejected totals. Medical claims on this page still require citations.
-Never write `[[/kb/]]`; it is a broken Logseq wikilink, not a URL.
+`Index.md` should organize the whole KB by topic: clinical research, trials,
+treatments/safety, biomarkers/monitoring, practical living, reports, queries,
+journals/activity, and raw files. It may link to raw file browsing at
+`https://ms-kb.dobryops.com/kb/`, but raw files should not be the primary human
+navigation experience.
+
+Do not make either page an ops log. Do not lead with item counts, queue sizes,
+or rejected totals. Medical claims on these pages still require citations.
+Never write `[[/kb/]]`; it creates the broken Logseq page `#/page/kb`.
 
 ### 10. Journal
 
