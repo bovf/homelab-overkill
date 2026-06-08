@@ -207,10 +207,13 @@ choose the best 3 and put the rest in the report file.
 Run `kb-maintain` after writing the digest. It must refresh
 `$KB_ROOT/pages/Start Here.md`, `$KB_ROOT/pages/Index.md`, and sub-indexes under
 `$KB_ROOT/pages/indexes/`; migrate legacy flat files into the V2 layout; and
-ensure the new digest is linked from the front door and reports index. Keep all
+ensure the new digest is linked from the front door and reports index. `Start
+Here.md` must link to `https://ms-kb.dobryops.com/#/page/Index`; `Index.md` must
+link back to `https://ms-kb.dobryops.com/#/page/Start%20Here`. Keep all
 navigation pages reader-first: no feed-count headlines, no operational backlog
 language, no broken Logseq URL wikilinks. Never write `[[/kb/]]`; it creates the
-broken Logseq page `#/page/kb`.
+broken Logseq page `#/page/kb`. Prefer Logseq `#/page/...` web routes over raw
+`/kb/content/...md` file URLs for human navigation.
 
 The Matrix message must also include these web links at the bottom:
 

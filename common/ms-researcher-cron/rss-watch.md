@@ -64,20 +64,22 @@ layout. Keep all navigation pages human-facing, not operational.
 `Start Here.md` should include:
 
 - A one-paragraph "Start here" explanation.
+- A prominent `KB Index` link to `https://ms-kb.dobryops.com/#/page/Index` for human navigation.
 - Link to the newest weekly digest/report if one exists.
 - A small "Recent updates" list from meaningful pages/reports touched recently.
 - Topic sections for clinical research, trials worth watching, practical living,
   biomarkers/monitoring, and treatments/safety when pages exist.
-- A `KB Index` link to `https://ms-kb.dobryops.com/#/page/Index` for human navigation.
 - Optional raw file tree link to `https://ms-kb.dobryops.com/kb/`, but do not make raw files the primary navigation path.
 - An evidence legend explaining peer-reviewed, registry-only, official MS org,
   and news lead/watchlist.
 
-`Index.md` should be the whole-KB navigation page. Organize links by topic:
-clinical research, trials, treatments/safety, biomarkers/monitoring, practical
-living, reports, queries, journals/activity, and raw files. Include the raw file
-tree as `https://ms-kb.dobryops.com/kb/`, but keep the index itself as the main
-human-browseable entry point.
+`Index.md` should be the whole-KB navigation page. It must include a prominent
+`Start Here` link to `https://ms-kb.dobryops.com/#/page/Start%20Here`. Organize
+links by topic: clinical research, trials, treatments/safety,
+biomarkers/monitoring, practical living, reports, queries, journals/activity,
+and raw files. Include the raw file tree as `https://ms-kb.dobryops.com/kb/`,
+but keep the index itself as the main human-browseable entry point.
 
 Do not use `[[/kb/]]`; it creates the broken Logseq page `#/page/kb`. Prefer
-normal markdown links, full web URLs, or plain KB paths.
+normal markdown links, full web URLs, or plain KB paths. For human navigation,
+prefer Logseq `#/page/...` web routes over raw `/kb/content/...md` file URLs.

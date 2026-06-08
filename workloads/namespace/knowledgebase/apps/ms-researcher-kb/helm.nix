@@ -235,6 +235,12 @@
           autoindex on;
           autoindex_exact_size off;
           autoindex_localtime on;
+          types {
+            text/markdown md markdown;
+            text/plain txt log json jsonl yaml yml edn;
+          }
+          default_type text/plain;
+          add_header Content-Disposition inline always;
         }
 
         location / {

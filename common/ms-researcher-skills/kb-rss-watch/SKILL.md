@@ -273,24 +273,27 @@ Use normal markdown links, full web URLs, and KB paths rather than broken
 Logseq URL wikilinks. `Start Here.md` should include:
 
 - Short "where to begin" paragraph.
+- Prominent `KB Index: https://ms-kb.dobryops.com/#/page/Index` link.
 - Latest weekly digest/report from `$KB_ROOT/content/reports/`, if present.
 - Recent meaningful pages/reports touched in the last 7 days.
 - Topic sections that link to current pages: clinical research, trials worth
   watching, practical living, biomarkers/monitoring, treatments/safety.
-- `KB Index: https://ms-kb.dobryops.com/#/page/Index` for human navigation.
 - Optional raw file tree: `https://ms-kb.dobryops.com/kb/`.
 - Evidence legend for peer-reviewed, registry-only, official MS org, and news
   lead/watchlist.
 
-`Index.md` should organize the whole KB by topic: clinical research, trials,
-treatments/safety, biomarkers/monitoring, practical living, reports, queries,
-journals/activity, and raw files. It may link to raw file browsing at
-`https://ms-kb.dobryops.com/kb/`, but raw files should not be the primary human
-navigation experience.
+`Index.md` should include a prominent `Start Here` link to
+`https://ms-kb.dobryops.com/#/page/Start%20Here`, then organize the whole KB by
+topic: clinical research, trials, treatments/safety, biomarkers/monitoring,
+practical living, reports, queries, journals/activity, and raw files. It may
+link to raw file browsing at `https://ms-kb.dobryops.com/kb/`, but raw files
+should not be the primary human navigation experience.
 
 Do not make either page an ops log. Do not lead with item counts, queue sizes,
 or rejected totals. Medical claims on these pages still require citations.
-Never write `[[/kb/]]`; it creates the broken Logseq page `#/page/kb`.
+Never write `[[/kb/]]`; it creates the broken Logseq page `#/page/kb`. For
+human navigation, prefer Logseq `#/page/...` web routes over raw
+`/kb/content/...md` file URLs.
 
 ### 10. Journal
 

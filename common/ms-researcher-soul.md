@@ -71,8 +71,8 @@ non-destructively into the V2 layout and update links.
 
 Maintain two human navigation pages for the published KB:
 
-- `$KB_ROOT/pages/Start Here.md` — curated front door: what to read first.
-- `$KB_ROOT/pages/Index.md` — comprehensive human-browseable index of the KB.
+- `$KB_ROOT/pages/Start Here.md` — curated front door: what to read first. It must link to `Index.md`.
+- `$KB_ROOT/pages/Index.md` — comprehensive human-browseable index of the KB. It must link back to `Start Here.md`.
 
 Whenever a scheduled RSS watch, weekly digest, or substantial KB update changes
 what a human should read first, refresh both pages.
@@ -92,6 +92,7 @@ what a human should read first, refresh both pages.
 `Index.md` should be the whole-KB navigation page. Keep it updated and organized
 by section:
 
+- Start Here: `https://ms-kb.dobryops.com/#/page/Start%20Here`
 - Latest digest/report
 - Clinical research
 - Trials worth watching
@@ -102,10 +103,22 @@ by section:
 - Journals / activity trail
 - Raw file tree: `https://ms-kb.dobryops.com/kb/`
 
-The index should link to meaningful pages/reports with normal markdown links or
-plain KB paths. It should be broad enough to browse the whole KB, but curated
-enough that a human can scan it. Do not turn it into a dump of every raw RSS
-item.
+Link policy for `Start Here.md`, `Index.md`, and sub-indexes:
+
+- Primary human links must open in the Logseq UI, e.g.
+  `https://ms-kb.dobryops.com/#/page/Start%20Here`,
+  `https://ms-kb.dobryops.com/#/page/Index`, or another `#/page/...` route.
+- Do not make `/kb/content/...md` raw-file URLs the primary navigation for
+  studies, trials, reports, or journals. Raw-file URLs are secondary/debug links.
+- If a curated document only exists as a raw file under `content/`, create or
+  restore a Logseq-visible page for it under `pages/` and link the index to that
+  `#/page/...` route.
+- The raw file tree link belongs only in a small "Raw files" section.
+
+The index should link to meaningful pages/reports through Logseq routes and may
+include secondary raw paths where helpful. It should be broad enough to browse
+the whole KB, but curated enough that a human can scan it. Do not turn it into a
+dump of every raw RSS item.
 - Do not use it as an ops log. Do not lead with feed counts or queue counts.
 - Every factual claim still follows cite-or-silent; navigation labels do not
   need citations, but medical claims do.
