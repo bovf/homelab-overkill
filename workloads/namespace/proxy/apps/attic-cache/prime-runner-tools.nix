@@ -8,6 +8,7 @@
   primeScript = ''
     set -euo pipefail
     export HOME=/tmp/attic-home
+    export PATH="$HOME/.nix-profile/bin:/nix/var/nix/profiles/default/bin:$PATH"
     mkdir -p "$HOME"
 
     echo "Installing the same tool refs used by the GitLab Nix runner"
@@ -15,7 +16,8 @@
       nixpkgs#attic-client \
       nixpkgs#nix-update
 
-    ATTIC="$(command -v attic)"
+    ATTIC="$HOME/.nix-profile/bin/attic"
+    test -x "$ATTIC"
     ATTIC_CLIENT_PATH="$(nix path-info nixpkgs#attic-client)"
     NIX_UPDATE_PATH="$(nix path-info nixpkgs#nix-update)"
 
@@ -61,7 +63,7 @@ in {
     apiVersion = "batch/v1";
     kind = "Job";
     metadata = {
-      name = "attic-cache-prime-runner-tools-v2";
+      name = "attic-cache-prime-runner-tools-v3";
       namespace = "proxy";
       labels.app = "attic-cache";
     };
