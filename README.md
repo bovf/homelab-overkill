@@ -72,6 +72,7 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 | Squid             | HTTP forward proxy (LAN egress)                      | Active   |
 | ncps              | Nix binary cache proxy (caches `cache.nixos.org`)    | Active   |
 | Hale (Saxton)     | Matrix-connected hermes-agent: media-ordering skills, restricted k8s observer SA, runs as system user `hale` on engineer | Active |
+| MS Researcher     | Matrix-connected hermes-agent for MS research KB, RSS enrichment, PubMed/CrossRef/SearXNG verification, and Monday digest | Active |
 | pangolin-kwg      | Host-side kernel WG client (engineer ↔ pangolin VPS) | Active   |
 | newt-cicd         | In-cluster userspace WG for CI-managed gitops flow   | Active   |
 | MetalLB           | L2-mode LoadBalancer for per-service LAN IPs         | Active   |
@@ -80,6 +81,25 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 </div>
 
 > \* Pi-hole serves DNS for the cluster's domains via per-workload `local-dns.nix` declarations aggregated into `FTLCONF_dns_hosts`. Setting it as the LAN's upstream DNS is a router-side change.
+
+### MS Researcher Agent
+
+`services.ms-researcher` runs a dedicated Hermes Matrix bot on `engineer` for Multiple Sclerosis research tracking. It maintains a mutable Logseq-style KB at `/var/lib/ms-researcher/kb` and exposes it under `/home/ms-researcher/kb` for the agent.
+
+What it does:
+- Watches curated MS research/news/trial/practical-living RSS feeds every 6 hours.
+- Scores source credibility and filters out low-trust, miracle-cure, product-pitch, or unverified claims.
+- Verifies research through PubMed, CrossRef, ClinicalTrials.gov, SearXNG, and official/recognized MS sources before writing KB pages.
+- Writes citation-grounded pages, run reports, journals, and weekly reports under the KB tree.
+- Publishes a reader-friendly Monday morning "This week in MS" digest at 08:00 Europe/Sofia.
+- Cleans generated RSS raw cache weekly after the digest while preserving manual raw ingests and the RSS seen ledger.
+- Syncs the KB to GitLab every 10 minutes when `/var/lib/ms-researcher/kb` has been initialized as a git repo.
+
+Operational notes:
+- Codex subscription auth is mutable user state. Authenticate with:
+  `sudo -u ms-researcher -H /run/current-system/sw/bin/hermes auth add openai-codex --type oauth --no-browser`
+- The KB git repo is initialized manually as `ms-researcher`; Nix wires git/ssh/sops credentials but does not clone over mutable state.
+- `koth-dm` is disabled on `engineer`; `hale` is unchanged.
 
 ---
 
@@ -293,7 +313,11 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   │                          # arr-add-to-library, arr-search-mobile, qbit-list,
 │   │                          # nzbget-list, media-status)
 │   ├── hale-soul.md           # Saxton Hale persona / system prompt
-│   └── hale.png               # Bot's matrix avatar (uploaded by the bootstrap Job)
+│   ├── hale.png               # Bot's matrix avatar (uploaded by the bootstrap Job)
+│   ├── ms-researcher.nix      # MS research Hermes agent, Matrix bootstrap, KB git sync,
+│   │                          # RSS cron jobs, PubMed/CrossRef/SearXNG MCP wiring
+│   ├── ms-researcher-skills/  # KB research, ingest, journal, RSS watch, RSS cleanup skills
+│   └── ms-researcher-cron/    # 6-hour RSS enrichment, Monday digest, RSS raw cleanup
 │
 ├── secrets/                   # SOPS-encrypted secrets
 │   ├── secrets.yaml           # Encrypted values (age)
