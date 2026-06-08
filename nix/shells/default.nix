@@ -277,6 +277,15 @@ in {
       echo "  nix run .#fmt -- [files...]                      - format tracked/all Nix files"
       echo "  nix run .#fmt -- --check [files...]              - check formatting without edits"
       echo "  nix run .#scan                                   - gitleaks + trufflehog secret scan"
+      echo "  nix run .#update                                 - update flake, fmt, scan; builds cache targets on Linux"
+      echo "  HOMELAB_UPDATE_PUSH_CACHE=1 nix run .#update     - also push built outputs to Attic badwater"
+      echo ""
+      echo "ci/cache automation:"
+      echo "  GitLab schedule/web/RUN_FLAKE_UPDATE=1 runs flake:update-cache on the protected nix-cache runner."
+      echo "  It updates flake.lock, formats/scans, builds Linux cache targets with .#update, pushes to Attic,"
+      echo "  and opens a merge request when there is a diff. Schedule weekly in the evening, offset from pl-badwater."
+      echo "  Pushes to main run mirror:main; configure GITHUB_MIRROR_URL and CODEBERG_MIRROR_URL CI variables."
+      echo "  Darwin outputs are not built by the Linux/k8s runner; use a Darwin builder/runner for those."
       echo
       echo
     '';
