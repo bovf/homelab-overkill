@@ -1,5 +1,8 @@
-{ pkgs, ... }:
 {
+  lib,
+  pkgs,
+  ...
+}: {
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
 
@@ -70,8 +73,18 @@
 
   nix = {
     settings = {
-      experimental-features = [ "nix-command" "flakes" ];
+      experimental-features = ["nix-command" "flakes"];
       auto-optimise-store = true;
+      connect-timeout = 5;
+      stalled-download-timeout = 60;
+      substituters = lib.mkForce [
+        "https://cache.dobryops.com/badwater"
+        "https://cache.nixos.org"
+      ];
+      trusted-public-keys = lib.mkForce [
+        "badwater:GfR4TMrcaFJYnsldgBY+P27G620qwd9JRz831f6OxpU="
+        "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      ];
     };
     gc = {
       automatic = true;

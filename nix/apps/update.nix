@@ -7,10 +7,7 @@
         name: _node: ''.#nixosConfigurations.${name}.config.system.build.toplevel''
       )
       enabledNodes;
-    packageTargets = [
-      ''.#packages.${system}.hermes-agent''
-    ];
-    buildTargets = nixosTargets ++ packageTargets;
+    buildTargets = nixosTargets;
     targetLines = lib.concatMapStringsSep "\n" (target: ''"${target}" \'') buildTargets;
     defaultBuild =
       if system == "x86_64-linux"
@@ -30,8 +27,13 @@
                 echo "==> updating flake inputs"
                 nix flake update
 
-                echo "==> formatting"
-                nix run .#fmt
+                echo "==> formatting changed Nix files"
+                mapfile -t changed_nix < <(git diff --name-only -- '*.nix')
+                if [ "''${#changed_nix[@]}" -gt 0 ]; then
+                  nix run .#fmt -- "''${changed_nix[@]}"
+                else
+                  echo "==> no changed Nix files to format"
+                fi
 
                 echo "==> scanning"
                 nix run .#scan
