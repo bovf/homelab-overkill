@@ -31,8 +31,8 @@ Required outputs for this run:
 1. Raw JSONL item audit trail under `$KB_ROOT/raw/rss/YYYY_MM_DD/HHMM_items.jsonl`.
 2. Candidate report under `$KB_ROOT/raw/rss/YYYY_MM_DD/HHMM_candidates.md`.
 3. Query/run report under `$KB_ROOT/queries/rss_watch_YYYY_MM_DD_HHMM.md`.
-4. Up to 3 citation-grounded KB pages for high-confidence verified items.
-5. One `kb-journal` entry with processed/pages/queued/rejected counts.
+4. Up to 4 citation-grounded KB pages for high-confidence verified items, with at least one non-trial peer-reviewed item when available.
+5. One `kb-journal` entry with processed/pages/verify/watch/rejected counts.
 
 Credibility rules:
 
@@ -49,4 +49,5 @@ Credibility rules:
   evidence.
 
 Do not post a Matrix message unless something requires urgent human review.
-The weekly digest will summarize normal activity.
+Do not treat large queue/watchlist counts as user-facing news. The Monday digest
+will summarize the genuinely useful KB highlights in a readable format.

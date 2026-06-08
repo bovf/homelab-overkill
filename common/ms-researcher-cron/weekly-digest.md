@@ -1,6 +1,6 @@
 ---
 name: weekly-digest
-description: Every Monday 08:00 (Europe/Sofia) — summarize the last 7 days of kb activity and deliver to the home Matrix room.
+description: Every Monday 08:00 (Europe/Sofia) — publish a readable MS field update for Dobry and GF, based on citation-grounded KB activity from the last week.
 schedule: "0 8 * * MON"
 timezone: "Europe/Sofia"
 delivery:
@@ -8,33 +8,60 @@ delivery:
   target: env:MATRIX_HOME_ROOM
 ---
 
-# Weekly digest
+# Monday MS field digest
 
-It is Monday morning. Write the weekly knowledgebase digest for the last
-seven calendar days and deliver it to the home Matrix room.
+It is Monday morning. Write a calm, useful, citation-grounded digest that
+Dobry and his girlfriend can read together as a weekly tradition.
 
-## Inputs you must read (in order)
+This is **not** an operations report. Do not lead with raw queue counts, feed
+item totals, or internal processing mechanics. The goal is: "What changed in
+the MS field this week, what is worth reading, and what should we treat with
+caution?"
 
-1. `$KB_ROOT/journals/` — every file with `last-modified` within the last
-   7 days. Each is a bulleted timeline.
-2. `$KB_ROOT/pages/` — every file with `last-modified` within the last
-   7 days. Read the frontmatter for `type`, `evidence_grade`, and
-   `sources`.
-3. `$KB_ROOT/queries/` — every file with `last-modified` within the last
-   7 days. These are real questions the household asked.
+## Inputs you must read, in order
 
-If a week has zero activity, deliver a one-line digest:
+1. `$KB_ROOT/journals/` — files with `last-modified` in the last 7 days.
+2. `$KB_ROOT/pages/` — files with `last-modified` in the last 7 days. Read
+   frontmatter for `type`, `evidence_grade`, `sources`, and `last_reviewed`.
+3. `$KB_ROOT/reports/` — last week's digest, if present, so you do not repeat
+   unchanged items.
+4. `$KB_ROOT/queries/rss_watch_*.md` from the last 7 days — use only for
+   context on what was queued/rejected; do not present feed totals as news.
+5. `$KB_ROOT/raw/rss/YYYY_MM_DD/*_candidates.md` from the last 7 days only
+   for "watchlist / honourable mention" context. Do not cite raw RSS as
+   evidence unless it points to an official source/DOI/PMID/NCT.
 
-> "📚 No new research this week."
+If a week has zero meaningful activity, deliver exactly:
+
+> "📚 No new MS research highlights this week. The KB is quiet; we'll keep watching."
 
 Do not pad. Do not invent activity.
 
+## Selection rules
+
+Pick items that are household-useful, field-relevant, or clinically meaningful.
+Prefer:
+
+1. Peer-reviewed or DOI/PMID-backed pages.
+2. ClinicalTrials.gov/NCT pages that represent meaningful trial movement.
+3. Safety updates, treatment evidence, biomarkers, rehabilitation, lifestyle,
+   symptom-management, or care-navigation items from recognized sources.
+4. Practical living items from MS Trust/MSAA/NMSS/MSIF when clearly sourced and
+   non-prescriptive.
+
+Down-rank or omit:
+
+- Generic feed noise.
+- Queue-only items that were not verified.
+- Registry entries that do not change practical understanding.
+- Repeated items already highlighted last week.
+- Promotional/sponsored/miracle-cure/product-pitch material.
+
 ## Output: write the report file
 
-Path: `$KB_ROOT/reports/<YYYY>_W<NN>.md`, where `NN` is the ISO week
-number, two digits, zero-padded.
+Path: `$KB_ROOT/reports/<YYYY>_W<NN>.md`, ISO week number two digits.
 
-Template:
+Use this readable template:
 
 ```markdown
 ---
@@ -43,51 +70,79 @@ period: "<YYYY>-W<NN>"
 generated: <YYYY-MM-DD HH:MM:SS Europe/Sofia>
 pages_touched: <integer>
 queries_answered: <integer>
-ingests: <integer>
+new_trials: <integer>
+watchlist_items: <integer>
 ---
 
-# Week <NN> of <YYYY>
+# MS field notes — Week <NN> of <YYYY>
 
-## What we added or updated
+## At a glance
 
-- [[<page-slug>]] — one-line plain-English description. `evidence_grade: <grade>`. <N> sources.
-- ...
+A 3–5 bullet executive summary in plain language. Each bullet must point to a
+KB page/report with sources. No internal queue statistics here.
 
-## What we were asked
+## Top highlights
 
-- [[<query-slug>]] — the question, in one line.
-- ...
+Pick 3–5. For each:
 
-## Three things worth reading
+### <Plain-language title>
 
-(Pick the three most consequential — strong evidence, household-relevant,
-or a meaningful change in the field. State plainly why each made the cut.)
+- **Why it matters:** 2–4 sentences for a human reader living with MS.
+- **What changed this week:** one concrete change from the KB/source.
+- **Evidence level:** high | medium | low | registry-only.
+- **Caveat:** the main limitation.
+- **Read in KB:** `kb/pages/<slug>.md`
 
-1. **[[<page-slug>]]** — one paragraph on why this matters this week.
-2. **[[<page-slug>]]** — one paragraph.
-3. **[[<page-slug>]]** — one paragraph.
+## Clinical trial watch
 
-## Caveats
+Short bullets for new/recruiting/changed trials that matter. Make clear when
+an item is registry-only and has no outcome data yet.
 
-(Anything from this week's pages with `evidence_grade: low` or where the
-"Caveats" section flagged something serious. Surface it — don't bury it.)
+## Practical living / care navigation
+
+Only include practical tips from recognized MS organizations or official
+sources. Do not give individualized medical advice.
+
+## Honourable mentions / watchlist
+
+2–6 short bullets for credible queued items, conference/news leads, or early
+signals that are worth watching but not yet strong enough for a top highlight.
+Say what verification is still needed.
+
+## Caveats this week
+
+Plain-language uncertainty: small samples, registry-only, abstract-only,
+paywalled full text, preliminary signal, news not yet peer-reviewed, etc.
+
+## KB changes
+
+Small operational footer, not the headline:
+
+- Pages added/updated: <N>
+- Queries answered: <N>
+- RSS/watch reports reviewed: <N>
+- Cleanup/report paths if relevant
 ```
 
-## Output: the chat message
+## Output: Matrix message
 
-Deliver the report's markdown body to `$MATRIX_HOME_ROOM` (the home
-channel — Dobry + GF). Lead with a single-line headline so it renders
-sanely on mobile:
+Send a warm compact version to `$MATRIX_HOME_ROOM`.
 
-> "📚 Week <NN> digest — <pages_touched> pages, <queries_answered>
-> queries answered. Top read this week: <one-line on #1>."
+Start with:
 
-Then the full markdown body.
+> "📚 Monday MS field notes — Week <NN>: <one-sentence human headline>."
 
-End with a single line pointing at the report path:
+Then include:
 
-> "Full digest: `kb/reports/<YYYY>_W<NN>.md` (open in Logseq for the
-> backlinks)."
+- `Top 3 this week` — three short bullets.
+- `Trial watch` — 0–3 bullets.
+- `Practical / living with MS` — 0–3 bullets.
+- `Honourable mentions` — 0–3 bullets.
+- `Main caveat` — one sentence.
+- `Full digest: kb/reports/<YYYY>_W<NN>.md`
+
+Keep the Matrix message readable on mobile. Do not paste a giant markdown file
+unless the week is genuinely dense. The report file can be longer.
 
 ## After delivery
 
@@ -95,11 +150,10 @@ Call `kb-journal` with `event: digest written: <YYYY>_W<NN>`.
 
 ## Rules
 
-- **Cite-or-silent applies here too.** A "thing worth reading" must
-  reference a page that itself has citations. Do not summarize content
-  the kb doesn't have sources for.
-- **Don't editorialize the field.** "BTK inhibitor news this week" is
-  fine if a new page covers it. "BTK inhibitors are the future" is not.
-- **Don't repeat last week.** If a page is unchanged from last week's
-  digest, skip it.
-- **Don't apologize for low activity.** A quiet week is a quiet week.
+- Cite-or-silent applies. A highlight must point to a KB page/report with
+  sources, DOI/PMID/NCT/official URL, or it does not get highlighted.
+- Do not present ClinicalTrials.gov registry entries as results.
+- Do not write treatment recommendations. Use: "this is what was reported; a
+  clinician interprets this for individual care."
+- Be warm, calm, and practical. This is for people living with the disease,
+  not for a lab meeting.

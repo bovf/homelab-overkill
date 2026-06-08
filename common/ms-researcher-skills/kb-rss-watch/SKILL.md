@@ -134,21 +134,46 @@ For every new item:
 4. Append accepted/queued/rejected sections to `HHMM_candidates.md`.
 5. Append every non-rejected URL to `seen_urls.txt` only after it is recorded.
 
-### 4. Processing budget
+### 4. Select enrichment candidates
 
-Avoid noisy or expensive scheduled runs:
+Each 6-hour run has two jobs:
 
-- Process at most **5** items per run.
-- Of those, auto-write/update at most **3** KB pages per run.
+1. **Intake:** fetch new feed items, score them, and preserve the raw audit
+   trail.
+2. **Enrichment:** promote a small number of high-signal items into useful KB
+   pages so the Monday digest has something human-readable to summarize.
+
+Do not try to clear every queued item. Queue size is not a success metric.
+The queue is a watchlist, not a work order.
+
+Build the enrichment candidate list from:
+
+- new `process_now` items from this run;
+- new `verify_then_process` items from this run;
+- still-unprocessed `process_now` / `verify_then_process` entries from the
+  last 7 days of `$KB_ROOT/raw/rss/*/*_candidates.md` and
+  `$KB_ROOT/queries/rss_watch_*.md`.
+
+Deduplicate by normalized URL and title. Exclude any item that already has a
+matching page in `$KB_ROOT/pages/` by NCT number, DOI slug, PMID, or title slug.
+
+### 5. Processing budget
+
+Avoid noisy or expensive scheduled runs, but ensure continuous enrichment:
+
+- Verify/process at most **8** candidate items per run.
+- Auto-write/update at most **4** KB pages per run.
+- Keep at least one slot for non-trial peer-reviewed research when available;
+  otherwise ClinicalTrials.gov can dominate the digest.
 - Prefer, in order:
-  1. ClinicalTrials.gov recruiting/new trial changes.
-  2. SAGE MSJ / Nature / Frontiers peer-reviewed research.
+  1. SAGE MSJ / Nature / Frontiers peer-reviewed research with DOI/PMID.
+  2. ClinicalTrials.gov recruiting/new/changed trial records.
   3. ScienceDaily items that verify to a PubMed PMID/DOI.
   4. MS Trust/MSAA practical items with concrete official guidance.
   5. MS News Today items only if independently verified by PubMed or an
      official trial/source page.
 
-### 5. Trigger KB processing
+### 6. Trigger KB processing
 
 For each selected `process_now` / verified item:
 
@@ -175,7 +200,22 @@ For each selected `process_now` / verified item:
   "Practical guidance source, not individualized medical advice. Discuss care
   decisions with the MS clinician."
 
-### 6. Run report
+### 7. Candidate report hygiene
+
+The raw JSONL can contain every fetched item. The markdown candidate report
+should be readable:
+
+- Show all `processed now` items.
+- Show at most 25 `verify_then_process` items, sorted by credibility and
+  household relevance.
+- Show at most 25 `queue_only` items as a watchlist.
+- Show at most 25 rejected examples with red flags.
+- Summarize additional counts as `+N more in raw JSONL`.
+
+Do not announce giant queue counts to Matrix as if they were a digest. They are
+internal backlog/triage counts.
+
+### 8. Run report
 
 Always write `$KB_ROOT/queries/rss_watch_YYYY_MM_DD_HHMM.md` with:
 
@@ -190,7 +230,8 @@ items_seen: N
 items_new: N
 processed: N
 pages_written: N
-queued: N
+verify_backlog: N
+watchlist_count: N
 rejected: N
 ---
 
@@ -202,18 +243,24 @@ rejected: N
 ## Processed now
 - [[page_slug]] — source, score, why it passed
 
-## Queued for human review
-- title — source, score, URL, why queued
+## Verification backlog
+- title — source, score, URL, what verification is needed
+
+## Watchlist / queued only
+- title — source, score, URL, why not promoted
 
 ## Rejected / low credibility
 - title — source, score, red flags
 ```
 
-### 7. Journal
+### 9. Journal
 
 Call `kb-journal` with:
 
-`event: rss-watch processed=<N>, pages=<N>, queued=<N>, rejected=<N>`
+`event: rss-watch processed=<N>, pages=<N>, verify=<N>, watch=<N>, rejected=<N>`
+
+If pages were written, include Logseq refs to the most important 1–3 pages.
+Do not journal enormous queue totals as the headline.
 
 ## Rules
 
