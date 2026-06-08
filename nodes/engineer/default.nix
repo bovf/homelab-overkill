@@ -1,7 +1,10 @@
 # Engineer node
-{ lib, pkgs, ... }:
-with lib;
 {
+  lib,
+  pkgs,
+  ...
+}:
+with lib; {
   imports = [
     ./hardware.nix
     ./services.nix
@@ -9,13 +12,11 @@ with lib;
     ./pangolin-kwg.nix
     ./pangolin-resources.nix
     ./metallb.nix
-    ./nix-cache-client.nix
-    ./gitlab-runner.nix
     ./audio.nix
     ./wireguard-exporter.nix
     ./uptime.nix
   ];
-        
+
   # Keyboard US
   services.xserver = {
     xkb = {
@@ -23,23 +24,23 @@ with lib;
       variant = "";
     };
   };
-  
+
   # Intel graphics
   hardware.graphics = {
     enable = true;
     extraPackages = with pkgs; [
       intel-vaapi-driver
       libva-vdpau-driver
-      vpl-gpu-rt          # oneVPL GPU runtime for QSV (replaces deprecated intel-media-sdk)
-      intel-media-driver  # iHD VA-API driver required for QSV on 6th gen+ Intel CPUs
+      vpl-gpu-rt # oneVPL GPU runtime for QSV (replaces deprecated intel-media-sdk)
+      intel-media-driver # iHD VA-API driver required for QSV on 6th gen+ Intel CPUs
     ];
   };
-  
+
   # Development tools
   environment.systemPackages = with pkgs; [
-    neovim 
-    vim 
-    git 
+    neovim
+    vim
+    git
     zellij
     btop
   ];
@@ -55,8 +56,8 @@ with lib;
       enable = true;
       matrix = {
         enable = true;
-        authorizedUsersSopsKey   = "hermes/matrix_allowed_users";
-        allowedRoomsSopsKey      = "hermes/matrix_allowed_rooms";
+        authorizedUsersSopsKey = "hermes/matrix_allowed_users";
+        allowedRoomsSopsKey = "hermes/matrix_allowed_rooms";
         homeChannelChatIdSopsKey = "hermes/matrix_home_channel";
       };
       media.enable = true;

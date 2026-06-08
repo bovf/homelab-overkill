@@ -1,38 +1,36 @@
-{ ... }:
-
-{
+{...}: {
   sops = {
     defaultSopsFile = ./secrets.yaml;
-    age.sshKeyPaths = [ "/root/.ssh/id_ed25519" ];
+    age.sshKeyPaths = ["/root/.ssh/id_ed25519"];
     age.generateKey = false;
 
     # Pangolin resource domains
-    secrets."pangolin/resources/jellyfin/domain"         = {};
-    secrets."pangolin/resources/sonarr/domain"           = {};
-    secrets."pangolin/resources/radarr/domain"           = {};
-    secrets."pangolin/resources/bazarr/domain"           = {};
-    secrets."pangolin/resources/prowlarr/domain"         = {};
-    secrets."pangolin/resources/jellyseerr/domain"       = {};
-    secrets."pangolin/resources/qbittorrent/domain"      = {};
-    secrets."pangolin/resources/nzbget/domain"           = {};
-    secrets."pangolin/resources/grafana/domain"          = {};
-    secrets."pangolin/resources/prometheus/domain"       = {};
-    secrets."pangolin/resources/alertmanager/domain"     = {};
-    secrets."pangolin/resources/minio/domain"            = {};
-    secrets."pangolin/resources/minio_console/domain"    = {};
-    secrets."pangolin/resources/pgadmin/domain"          = {};
-    secrets."pangolin/resources/gitlab/domain"           = {};
-    secrets."pangolin/resources/registry/domain"         = {};
-    secrets."pangolin/resources/postgres/domain"         = {};
+    secrets."pangolin/resources/jellyfin/domain" = {};
+    secrets."pangolin/resources/sonarr/domain" = {};
+    secrets."pangolin/resources/radarr/domain" = {};
+    secrets."pangolin/resources/bazarr/domain" = {};
+    secrets."pangolin/resources/prowlarr/domain" = {};
+    secrets."pangolin/resources/jellyseerr/domain" = {};
+    secrets."pangolin/resources/qbittorrent/domain" = {};
+    secrets."pangolin/resources/nzbget/domain" = {};
+    secrets."pangolin/resources/grafana/domain" = {};
+    secrets."pangolin/resources/prometheus/domain" = {};
+    secrets."pangolin/resources/alertmanager/domain" = {};
+    secrets."pangolin/resources/minio/domain" = {};
+    secrets."pangolin/resources/minio_console/domain" = {};
+    secrets."pangolin/resources/pgadmin/domain" = {};
+    secrets."pangolin/resources/gitlab/domain" = {};
+    secrets."pangolin/resources/registry/domain" = {};
+    secrets."pangolin/resources/postgres/domain" = {};
     secrets."pangolin/resources/traefik_dashboard/domain" = {};
-    secrets."pangolin/resources/cam/domain"              = {};
-    secrets."pangolin/resources/uptime/domain"           = {};
+    secrets."pangolin/resources/cam/domain" = {};
+    secrets."pangolin/resources/uptime/domain" = {};
     # Uptime Kuma admin (created by the bootstrap Job on first run).
-    secrets."uptime-kuma/admin_user"     = {};
+    secrets."uptime-kuma/admin_user" = {};
     secrets."uptime-kuma/admin_password" = {};
-    secrets."pangolin/resources/search/domain"           = {};
-    secrets."pangolin/resources/speedtest/domain"        = {};
-    secrets."pangolin/resources/ms_kb/domain"            = {};
+    secrets."pangolin/resources/search/domain" = {};
+    secrets."pangolin/resources/speedtest/domain" = {};
+    secrets."pangolin/resources/ms_kb/domain" = {};
 
     # SearXNG session/image-proxy signing key — `openssl rand -hex 32`.
     secrets."searxng/secret" = {};
@@ -47,12 +45,12 @@
     # Pangolin TCP tunnel ports. The matching domain keys are consumed
     # at runtime by nix apps (not sops-nix on the node) so they're not
     # declared here.
-    secrets."pangolin/resources/engineer_ssh/port"     = {};
+    secrets."pangolin/resources/engineer_ssh/port" = {};
     secrets."pangolin/resources/engineer_k8s_api/port" = {};
-    secrets."pangolin/resources/gitlab_ssh/port"       = {};
+    secrets."pangolin/resources/gitlab_ssh/port" = {};
 
     secrets."admin/base_domain" = {};
-    secrets."admin/email"       = {};
+    secrets."admin/email" = {};
 
     # Cloudflare API token scoped to Zone:Read + Zone.DNS:Edit on the
     # dobryops.com zone. Used by cert-manager's DNS-01 solver for the
@@ -61,7 +59,7 @@
 
     secrets."media/nzbget/username" = {};
     secrets."media/nzbget/password" = {};
-    secrets."media/nzbget/news_server/host"     = {};
+    secrets."media/nzbget/news_server/host" = {};
     secrets."media/nzbget/news_server/username" = {};
     secrets."media/nzbget/news_server/password" = {};
 
@@ -109,6 +107,7 @@
     secrets."gitlab/root_password" = {};
     secrets."gitlab/runner_token" = {};
     secrets."gitlab/runner_registration_token" = {};
+    secrets."gitlab/nix_cache_runner_token" = {};
 
     secrets."argocd/admin_password" = {};
     secrets."argocd/gitlab_token" = {};
@@ -140,7 +139,7 @@
     # they're declared here so a single `sops -d` reveals everything Homarr
     # ever needs in one place.
     secrets."homarr/auth_secret" = {};
-    secrets."homarr/db_encryption_key" = {};   # `openssl rand -hex 32` — 64-char hex
+    secrets."homarr/db_encryption_key" = {}; # `openssl rand -hex 32` — 64-char hex
     secrets."homarr/admin_password" = {};
     secrets."homarr/integrations/openweathermap_key" = {};
     secrets."homarr/integrations/jellyfin_key" = {};
@@ -155,12 +154,12 @@
     # Mail (Stalwart in-cluster, Brevo as outbound relay). DKIM private
     # key is generated once locally (`openssl genrsa -out dkim.key 2048`),
     # base64-DER public published as TXT at default._domainkey.dobryops.com.
-    secrets."mail/server_hostname"               = {};   # e.g. mail.dobryops.com (Stalwart server.hostname + MX target)
+    secrets."mail/server_hostname" = {}; # e.g. mail.dobryops.com (Stalwart server.hostname + MX target)
     secrets."pangolin/resources/mailadmin/domain" = {};
-    secrets."mail/brevo/smtp_user"               = {};
-    secrets."mail/brevo/smtp_key"                = {};
-    secrets."mail/stalwart/admin_password"       = {};
-    secrets."mail/stalwart/dkim_private_key_b64" = {};   # single-line base64 of the PEM
+    secrets."mail/brevo/smtp_user" = {};
+    secrets."mail/brevo/smtp_key" = {};
+    secrets."mail/stalwart/admin_password" = {};
+    secrets."mail/stalwart/dkim_private_key_b64" = {}; # single-line base64 of the PEM
     secrets."mail/stalwart/users/dobry/password" = {};
 
     secrets."ssh_keys/dobrynikolov" = {};

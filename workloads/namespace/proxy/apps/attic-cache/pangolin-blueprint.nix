@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   workloads.pangolinResources.cache = {
     name = "Attic Nix Cache";
     protocol = "http";
@@ -9,13 +7,13 @@
     ssoEnabled = false;
     targetHostname = "attic-cache.proxy.svc.cluster.local";
     targetMethod = "http";
-    targetPort = 8090;
+    targetPort = 8102;
     newtInstance = "engineer-kernel";
     viaKernelWg = true;
     lanIP = "192.168.2.23";
     healthcheck = {
       hostname = "attic-cache.proxy.svc.cluster.local";
-      port = 8090;
+      port = 8102;
       path = "/";
     };
   };

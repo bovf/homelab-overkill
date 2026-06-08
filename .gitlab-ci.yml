@@ -1,0 +1,23 @@
+stages:
+  - verify
+
+verify:nix-cache-local:
+  stage: verify
+  tags:
+    - nix-cache
+  rules:
+    - when: manual
+  script:
+    - set -euo pipefail
+    - echo "DNS:"
+    - getent hosts cache.dobryops.com || true
+    - echo "Cache endpoint:"
+    - curl -v https://cache.dobryops.com/badwater/nix-cache-info
+    - echo "Nix config:"
+    - nix config show substituters trusted-public-keys
+    - echo "Try fetching a known runner tool from cache:"
+    - nix build nixpkgs#attic-client --no-link -L --print-build-logs --option fallback false
+    - echo "Store path:"
+    - nix path-info nixpkgs#attic-client
+    - echo "Query cache directly:"
+    - nix path-info --store https://cache.dobryops.com/badwater nixpkgs#attic-client

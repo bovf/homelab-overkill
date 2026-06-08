@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./configmap.nix
     ./deployment.nix
@@ -10,6 +8,7 @@
     ./local-dns.nix
     ./pangolin-blueprint.nix
     ./persistent-volume-claim.nix
+    ./prime-runner-tools.nix
     ./secret.nix
     ./service.nix
   ];
