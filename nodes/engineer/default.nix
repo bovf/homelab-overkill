@@ -62,13 +62,15 @@ with lib;
     };
   };
 
+  # KotH DM is intentionally disabled; keep the module imported so its
+  # data/config can be re-enabled later without running the agent now.
   services.koth-dm = {
-    enable = true;
+    enable = false;
     agent = {
-      enable = true;
-      matrix.enable = true;
-      skills.enable = true;
-      mcps.enable = true;
+      enable = false;
+      matrix.enable = false;
+      skills.enable = false;
+      mcps.enable = false;
     };
   };
 
@@ -83,16 +85,17 @@ with lib;
     enable = true;
     agent = {
       enable = true;
-      mcps = [ "pubmed" "searxng" "crossref" ];
-      kb.enable = true;
+      matrix.enable = true;
       skills.enable = true;
       cron.enable = true;
-      matrix = {
+      kb = {
         enable = true;
-        authorizedUsersSopsKey   = "hermes/ms_researcher_matrix_allowed_users";
-        allowedRoomsSopsKey      = "hermes/ms_researcher_matrix_allowed_rooms";
-        homeChannelChatIdSopsKey = "hermes/ms_researcher_matrix_home_channel";
+        git = {
+          enable = true;
+          sync.enable = true;
+        };
       };
+      mcps.enable = true;
     };
   };
 }

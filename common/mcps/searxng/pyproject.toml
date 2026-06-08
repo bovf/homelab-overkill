@@ -1,0 +1,16 @@
+[project]
+name = "ms-mcp-searxng"
+version = "0.1.0"
+description = "SearXNG MCP server (homelab self-hosted) for the ms-researcher hermes-agent"
+requires-python = ">=3.10"
+dependencies = ["mcp", "httpx"]
+
+[project.scripts]
+ms-mcp-searxng = "ms_mcp_searxng.server:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
