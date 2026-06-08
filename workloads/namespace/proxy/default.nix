@@ -2,6 +2,7 @@
 
 {
   imports = [
+    ./apps/attic-cache
     ./apps/ncps
     ./apps/squid
   ];

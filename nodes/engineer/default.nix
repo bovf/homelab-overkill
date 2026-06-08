@@ -9,6 +9,8 @@ with lib;
     ./pangolin-kwg.nix
     ./pangolin-resources.nix
     ./metallb.nix
+    ./nix-cache-client.nix
+    ./gitlab-runner.nix
     ./audio.nix
     ./wireguard-exporter.nix
     ./uptime.nix
