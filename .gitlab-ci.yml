@@ -14,9 +14,11 @@ verify:nix-cache-local:
     - echo "Cache endpoint:"
     - curl -v https://cache.dobryops.com/badwater/nix-cache-info
     - echo "Nix config:"
-    - nix config show substituters trusted-public-keys
-    - echo "Try fetching a known runner tool from cache:"
+    - nix config show | grep -E '^(substituters|trusted-public-keys) = '
+    - echo "Try fetching a known runner tool from configured caches:"
     - nix build nixpkgs#attic-client --no-link -L --print-build-logs --option fallback false
+    - echo "Force fetching a known runner tool from Attic only:"
+    - nix build nixpkgs#attic-client --no-link -L --print-build-logs --option substituters "https://cache.dobryops.com/badwater" --option trusted-public-keys "badwater:GfR4TMrcaFJYnsldgBY+P27G620qwd9JRz831f6OxpU=" --option fallback false
     - echo "Store path:"
     - nix path-info nixpkgs#attic-client
     - echo "Query cache directly:"
