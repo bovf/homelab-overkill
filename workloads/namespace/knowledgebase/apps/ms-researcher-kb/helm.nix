@@ -118,21 +118,7 @@
                           test -f /tmp/logseq-export/index.html
                           rm -rf /export/*
                           cp -a /tmp/logseq-export/. /export/
-                          python3 - <<'PY'
-                          from pathlib import Path
-                          p = Path('/export/index.html')
-                          html = p.read_text()
-                          script = """<script>
-                          (function () {
-                            if (window.location.hash === "" || window.location.hash === "#" || window.location.hash === "#/") {
-                              window.location.replace(window.location.pathname + window.location.search + "#/page/Start%20Here");
-                            }
-                          }());
-                          </script>"""
-                          if '#/page/Start%20Here' not in html:
-                              html = html.replace('</head>', script + '\n</head>', 1)
-                              p.write_text(html)
-                          PY
+                          python3 -c 'from pathlib import Path; p=Path("/export/index.html"); html=p.read_text(); marker="#/page/Start%20Here"; script="<script>(function () { if (window.location.hash === \"\" || window.location.hash === \"#\" || window.location.hash === \"#/\") { window.location.replace(window.location.pathname + window.location.search + \"#/page/Start%20Here\"); } }());</script>"; p.write_text(html if marker in html else html.replace("</head>", script + "\n</head>", 1))'
                           git rev-parse HEAD > /export/.published-head
                           date -Is > /export/.published-at
                           chown -R "''${PUBLISH_UID_GID}" /export || true
