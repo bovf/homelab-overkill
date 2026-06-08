@@ -104,6 +104,7 @@
               className: traefik
               annotations:
                 traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+                traefik.ingress.kubernetes.io/router.middlewares: surveillance-go2rtc-headers@kubernetescrd
               hosts:
                 - host: ${config.sops.placeholder."pangolin/resources/cam/domain"}
                   paths:

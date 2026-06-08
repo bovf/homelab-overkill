@@ -63,4 +63,41 @@ with lib;
       skills.enable = true;
     };
   };
+
+  # KotH DM is intentionally disabled; keep the module imported so its
+  # data/config can be re-enabled later without running the agent now.
+  services.koth-dm = {
+    enable = false;
+    agent = {
+      enable = false;
+      matrix.enable = false;
+      skills.enable = false;
+      mcps.enable = false;
+    };
+  };
+
+  # Third hermes-agent instance — MS research librarian. Independent unix
+  # user, mxid, HERMES_HOME, gateway port. See plan-ms-research-agent.md.
+  # Sops keys required before rebuild:
+  #   hermes/ms_researcher_matrix_password
+  #   hermes/ms_researcher_matrix_allowed_users
+  #   hermes/ms_researcher_matrix_allowed_rooms
+  #   hermes/ms_researcher_matrix_home_channel
+  services.ms-researcher = {
+    enable = true;
+    agent = {
+      enable = true;
+      matrix.enable = true;
+      skills.enable = true;
+      cron.enable = true;
+      kb = {
+        enable = true;
+        git = {
+          enable = true;
+          sync.enable = true;
+        };
+      };
+      mcps.enable = true;
+    };
+  };
 }

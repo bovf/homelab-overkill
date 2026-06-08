@@ -121,6 +121,7 @@
               className: traefik
               annotations:
                 traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+                traefik.ingress.kubernetes.io/router.middlewares: mail-mailadmin-headers@kubernetescrd
               hosts:
                 - host: ${config.sops.placeholder."pangolin/resources/mailadmin/domain"}
                   paths:

@@ -1,6 +1,8 @@
-{ pkgs, enabledNodes, ... }:
-
-let
+{
+  pkgs,
+  enabledNodes,
+  ...
+}: let
   sshWrapper = pkgs.writeShellScriptBin "ssh" ''
     set -euo pipefail
     if [ -n "''${SSH_CONFIG_FILE:-}" ]; then
@@ -10,22 +12,47 @@ let
     fi
   '';
 
+  preCommitHook = pkgs.writeShellScript "homelab-pre-commit" ''
+    set -euo pipefail
+    cd "$(${pkgs.git}/bin/git rev-parse --show-toplevel)"
+    mapfile -t files < <(${pkgs.git}/bin/git diff --cached --name-only --diff-filter=ACMR -- '*.nix')
+    [ "''${#files[@]}" -eq 0 ] && exit 0
+    exec nix run .#fmt -- --check "''${files[@]}"
+  '';
+
   prePushHook = pkgs.writeShellScript "homelab-pre-push" ''
     set -e
     echo "→ pre-push: gitleaks secret scan" >&2
     ${pkgs.gitleaks}/bin/gitleaks git . --no-banner --redact --exit-code 1
   '';
-
-in
-{
+in {
   default = pkgs.mkShell {
-    packages = [
-      sshWrapper
-    ] ++ (with pkgs; [
-      kubectl kubernetes-helm k9s sops age ssh-to-age bitwarden-cli jq yq-go
-      curl wget git vim nixos-anywhere nixos-rebuild-ng
-      gitleaks trufflehog
-    ] ++ lib.optionals stdenv.isLinux [ iproute2 ]);
+    packages =
+      [
+        sshWrapper
+      ]
+      ++ (with pkgs;
+        [
+          kubectl
+          kubernetes-helm
+          k9s
+          sops
+          age
+          ssh-to-age
+          bitwarden-cli
+          jq
+          yq-go
+          curl
+          wget
+          git
+          vim
+          nixos-anywhere
+          nixos-rebuild-ng
+          alejandra
+          gitleaks
+          trufflehog
+        ]
+        ++ lib.optionals stdenv.isLinux [iproute2]);
 
     shellHook = ''
       set -euo pipefail
@@ -33,8 +60,16 @@ in
       export SOPS_AGE_KEY_FILE="$HOME/.config/sops/age/keys.txt"
 
       if [ -d .git ]; then
+        if [ ! -e .git/hooks/pre-commit ] || [ -L .git/hooks/pre-commit ]; then
+          ln -sf "${preCommitHook}" .git/hooks/pre-commit
+        else
+          echo "Existing manual pre-commit hook left untouched: .git/hooks/pre-commit"
+        fi
+
         if [ ! -e .git/hooks/pre-push ] || [ -L .git/hooks/pre-push ]; then
           ln -sf "${prePushHook}" .git/hooks/pre-push
+        else
+          echo "Existing manual pre-push hook left untouched: .git/hooks/pre-push"
         fi
       fi
 
@@ -93,77 +128,78 @@ in
       NODE_SUMMARIES=""
 
       # Generate per-node SSH config from decrypted secrets
-      ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (name: node:
-        let
-          localPort = toString (node.localPort or 22);
-          remoteHostKey = node.remoteHostSecretKey or "";
-          remotePortKey = node.remotePortSecretKey or "";
-          sshUser = node.sshUser or "root";
-          # Candidate identity files baked in at Nix eval time; resolved at runtime
-          configuredIdentity = node.identityFile or "";
-        in ''
-          # ${name}
-          {
-            local local_ip="${node.ip}"
-            local local_port="${localPort}"
-
-            local remote_host default_remote_host
-            local remote_port default_remote_port
-
-            default_remote_host="$local_ip"
-            default_remote_port="$local_port"
-
-            remote_host="$(get_secret "${remoteHostKey}" "$default_remote_host")"
-            remote_port="$(get_secret "${remotePortKey}" "$default_remote_port")"
-
-            # Resolve SSH identity file at runtime
-            local identity_line=""
-            local configured_id="${configuredIdentity}"
-            local user_id="$HOME/.ssh/$USER"
-
-            if [ -n "$configured_id" ]; then
-              eval configured_id="$configured_id"  # expand ~ and vars
-            fi
-
-            if [ -n "$configured_id" ] && [ -f "$configured_id" ]; then
-              identity_line="  IdentityFile $configured_id"
-            elif [ -f "$user_id" ]; then
-              identity_line="  IdentityFile $user_id"
-            else
-              echo "Warning: No SSH identity file found for ${name}" >&2
-              echo "  tried: ${configuredIdentity} and ~/.ssh/$USER" >&2
-              echo "  SSH connections to ${name} may require a password" >&2
-            fi
-
-            # Append actual values to summary
-            NODE_SUMMARIES="$NODE_SUMMARIES"'  '"${name} - ${node.role}/${node.nodeType}"$'\n'
-            NODE_SUMMARIES="$NODE_SUMMARIES"'    local:  '"$local_ip:$local_port  (ssh ${name}-local)"$'\n'
-            NODE_SUMMARIES="$NODE_SUMMARIES"'    remote: '"$remote_host:$remote_port  (ssh ${name}-remote)"$'\n'
-
-            # Write SSH config
+      ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (
+          name: node: let
+            localPort = toString (node.localPort or 22);
+            remoteHostKey = node.remoteHostSecretKey or "";
+            remotePortKey = node.remotePortSecretKey or "";
+            sshUser = node.sshUser or "root";
+            # Candidate identity files baked in at Nix eval time; resolved at runtime
+            configuredIdentity = node.identityFile or "";
+          in ''
+            # ${name}
             {
-              echo "# === ${name} ==="
-              echo "Host ${name}-local"
-              echo "  HostName $local_ip"
-              echo "  Port $local_port"
-              echo "  User ${sshUser}"
-              [ -n "$identity_line" ] && echo "$identity_line"
-              echo "  StrictHostKeyChecking accept-new"
-              echo "  ConnectTimeout 10"
-              echo ""
-              echo "Host ${name}-remote"
-              echo "  HostName $remote_host"
-              echo "  Port $remote_port"
-              echo "  User ${sshUser}"
-              [ -n "$identity_line" ] && echo "$identity_line"
-              echo "  StrictHostKeyChecking accept-new"
-              echo "  ConnectTimeout 10"
-              echo "  ServerAliveInterval 60"
-              echo ""
-            } >>"$SSH_CONFIG_FILE"
-          }
-        ''
-      ) enabledNodes)}
+              local local_ip="${node.ip}"
+              local local_port="${localPort}"
+
+              local remote_host default_remote_host
+              local remote_port default_remote_port
+
+              default_remote_host="$local_ip"
+              default_remote_port="$local_port"
+
+              remote_host="$(get_secret "${remoteHostKey}" "$default_remote_host")"
+              remote_port="$(get_secret "${remotePortKey}" "$default_remote_port")"
+
+              # Resolve SSH identity file at runtime
+              local identity_line=""
+              local configured_id="${configuredIdentity}"
+              local user_id="$HOME/.ssh/$USER"
+
+              if [ -n "$configured_id" ]; then
+                eval configured_id="$configured_id"  # expand ~ and vars
+              fi
+
+              if [ -n "$configured_id" ] && [ -f "$configured_id" ]; then
+                identity_line="  IdentityFile $configured_id"
+              elif [ -f "$user_id" ]; then
+                identity_line="  IdentityFile $user_id"
+              else
+                echo "Warning: No SSH identity file found for ${name}" >&2
+                echo "  tried: ${configuredIdentity} and ~/.ssh/$USER" >&2
+                echo "  SSH connections to ${name} may require a password" >&2
+              fi
+
+              # Append actual values to summary
+              NODE_SUMMARIES="$NODE_SUMMARIES"'  '"${name} - ${node.role}/${node.nodeType}"$'\n'
+              NODE_SUMMARIES="$NODE_SUMMARIES"'    local:  '"$local_ip:$local_port  (ssh ${name}-local)"$'\n'
+              NODE_SUMMARIES="$NODE_SUMMARIES"'    remote: '"$remote_host:$remote_port  (ssh ${name}-remote)"$'\n'
+
+              # Write SSH config
+              {
+                echo "# === ${name} ==="
+                echo "Host ${name}-local"
+                echo "  HostName $local_ip"
+                echo "  Port $local_port"
+                echo "  User ${sshUser}"
+                [ -n "$identity_line" ] && echo "$identity_line"
+                echo "  StrictHostKeyChecking accept-new"
+                echo "  ConnectTimeout 10"
+                echo ""
+                echo "Host ${name}-remote"
+                echo "  HostName $remote_host"
+                echo "  Port $remote_port"
+                echo "  User ${sshUser}"
+                [ -n "$identity_line" ] && echo "$identity_line"
+                echo "  StrictHostKeyChecking accept-new"
+                echo "  ConnectTimeout 10"
+                echo "  ServerAliveInterval 60"
+                echo ""
+              } >>"$SSH_CONFIG_FILE"
+            }
+          ''
+        )
+        enabledNodes)}
 
       # Clean up decrypted secrets
       if [ -n "$SSH_SECRETS_FILE" ] && [ -f "$SSH_SECRETS_FILE" ]; then
@@ -174,37 +210,38 @@ in
       KEYS_MISSING=""
       KEYS_LOADED=""
 
-      ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (name: node:
-        let
-          configuredIdentity = node.identityFile or "";
-        in ''
-          # Resolve actual identity for ${name} (same logic as SSH config above)
-          key_path=""
-          configured_id="${configuredIdentity}"
-          user_id="$HOME/.ssh/$USER"
+      ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (
+          name: node: let
+            configuredIdentity = node.identityFile or "";
+          in ''
+            # Resolve actual identity for ${name} (same logic as SSH config above)
+            key_path=""
+            configured_id="${configuredIdentity}"
+            user_id="$HOME/.ssh/$USER"
 
-          if [ -n "$configured_id" ]; then
-            eval configured_id="$configured_id"
-          fi
+            if [ -n "$configured_id" ]; then
+              eval configured_id="$configured_id"
+            fi
 
-          if [ -n "$configured_id" ] && [ -f "$configured_id" ]; then
-            key_path="$configured_id"
-          elif [ -f "$user_id" ]; then
-            key_path="$user_id"
-          fi
+            if [ -n "$configured_id" ] && [ -f "$configured_id" ]; then
+              key_path="$configured_id"
+            elif [ -f "$user_id" ]; then
+              key_path="$user_id"
+            fi
 
-          if [ -n "$key_path" ]; then
-            fp="$(${pkgs.openssh}/bin/ssh-keygen -lf "$key_path" 2>/dev/null | awk '{print $2}')"
-            if [ -n "$fp" ]; then
-              if ${pkgs.openssh}/bin/ssh-add -l 2>/dev/null | awk '{print $2}' | grep -q "^$fp$"; then
-                KEYS_LOADED="$KEYS_LOADED"'  '"$key_path  ($fp)"$'\n'
-              else
-                KEYS_MISSING="$KEYS_MISSING"'  ssh-add "'"$key_path"'"  # '"${name}"$'\n'
+            if [ -n "$key_path" ]; then
+              fp="$(${pkgs.openssh}/bin/ssh-keygen -lf "$key_path" 2>/dev/null | awk '{print $2}')"
+              if [ -n "$fp" ]; then
+                if ${pkgs.openssh}/bin/ssh-add -l 2>/dev/null | awk '{print $2}' | grep -q "^$fp$"; then
+                  KEYS_LOADED="$KEYS_LOADED"'  '"$key_path  ($fp)"$'\n'
+                else
+                  KEYS_MISSING="$KEYS_MISSING"'  ssh-add "'"$key_path"'"  # '"${name}"$'\n'
+                fi
               fi
             fi
-          fi
-        ''
-      ) enabledNodes)}
+          ''
+        )
+        enabledNodes)}
 
       if [ -n "$KEYS_MISSING" ] || [ -n "$KEYS_LOADED" ]; then
         echo ""
@@ -225,6 +262,10 @@ in
       echo
       echo "nodes:"
       echo "$NODE_SUMMARIES"
+      echo "dev hooks:"
+      echo "  pre-commit                                      - nix run .#fmt -- --check staged *.nix"
+      echo "  pre-push                                        - gitleaks secret scan"
+      echo ""
       echo "commands:"
       echo "  deploy <install/update/test> <node>-local        - deploy via local connection"
       echo "  deploy <install/update/test> <node>-remote       - deploy via remote connection"
@@ -233,6 +274,8 @@ in
       echo "  ssh <node>-remote                                - ssh to node (remote)"
       echo "  eval \$(nix run .#kubeconfig -- <node>-local)    - bootstrap kubeconfig (local)"
       echo "  eval \$(nix run .#kubeconfig -- <node>-remote)   - bootstrap kubeconfig (remote)"
+      echo "  nix run .#fmt -- [files...]                      - format tracked/all Nix files"
+      echo "  nix run .#fmt -- --check [files...]              - check formatting without edits"
       echo "  nix run .#scan                                   - gitleaks + trufflehog secret scan"
       echo
       echo

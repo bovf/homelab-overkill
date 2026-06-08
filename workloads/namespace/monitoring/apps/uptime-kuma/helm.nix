@@ -76,6 +76,7 @@
               className: traefik
               annotations:
                 traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+                traefik.ingress.kubernetes.io/router.middlewares: monitoring-uptime-kuma-headers@kubernetescrd
               hosts:
                 - host: ${config.sops.placeholder."pangolin/resources/uptime/domain"}
                   paths:

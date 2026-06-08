@@ -12,6 +12,7 @@
     ./homarr
     ./intel-device-plugins
     ./kube-system
+    ./knowledgebase
     ./mail
     ./matrix
     ./media
