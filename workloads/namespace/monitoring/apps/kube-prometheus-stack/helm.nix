@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/kube-prometheus-stack.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -76,7 +74,19 @@
             service:
               type: ClusterIP
               # Tunnel-side ingress on a sibling Service — see alertmanager above.
+            ingress:
+              enabled: true
+              ingressClassName: traefik
+              annotations:
+                traefik.ingress.kubernetes.io/router.middlewares: monitoring-prometheus-headers@kubernetescrd
+                traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+              path: /
+              pathType: Prefix
+              hosts:
+                - ${config.sops.placeholder."pangolin/resources/prometheus/domain"}
             prometheusSpec:
+              # Makes Prometheus generate public absolute links behind Traefik/Pangolin.
+              externalUrl: "https://${config.sops.placeholder."pangolin/resources/prometheus/domain"}"
               enableFeatures:
                 - otlp-write-receiver
               enableRemoteWriteReceiver: true
@@ -123,9 +133,9 @@
               hosts:
                 - ${config.sops.placeholder."pangolin/resources/grafana/domain"}
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/kube-prometheus-stack.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/kube-prometheus-stack.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

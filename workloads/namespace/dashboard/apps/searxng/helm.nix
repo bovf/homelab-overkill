@@ -83,6 +83,7 @@
               className: traefik
               annotations:
                 traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+                traefik.ingress.kubernetes.io/router.middlewares: dashboard-searxng-headers@kubernetescrd
               hosts:
                 - host: ${config.sops.placeholder."pangolin/resources/search/domain"}
                   paths:

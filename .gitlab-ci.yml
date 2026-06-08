@@ -1,0 +1,97 @@
+stages:
+  - update-cache
+  - mirror
+
+workflow:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$RUN_FLAKE_UPDATE == "1"'
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - when: never
+
+variables:
+  GIT_STRATEGY: clone
+  GIT_DEPTH: "0"
+  NIX_CONFIG: |
+    experimental-features = nix-command flakes
+    max-jobs = 1
+    cores = 8
+    connect-timeout = 5
+    stalled-download-timeout = 60
+    substituters = https://cache.dobryops.com/badwater https://cache.nixos.org
+    trusted-public-keys = badwater:GfR4TMrcaFJYnsldgBY+P27G620qwd9JRz831f6OxpU= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+
+flake:update-cache:
+  stage: update-cache
+  tags:
+    - nix-cache
+  resource_group: nix-cache-update
+  timeout: 6h
+  rules:
+    # Configure the GitLab schedule for a protected main ref, once weekly in the
+    # evening, offset from pl-badwater. The dedicated runner has concurrent=1, so
+    # cache-heavy jobs serialize if schedules ever overlap.
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web"'
+    - if: '$RUN_FLAKE_UPDATE == "1"'
+  before_script:
+    - git config user.name "Badwater Flake Bot"
+    - git config user.email "flake-bot@gitlab.dobryops.com"
+    - git config --global url."https://oauth2:${GITLAB_TOKEN:-$CI_JOB_TOKEN}@gitlab.dobryops.com/".insteadOf "https://gitlab.dobryops.com/"
+  script:
+    - |
+      set -euo pipefail
+
+      branch="chore/flake-update-${CI_PIPELINE_ID}"
+      git checkout -B "$branch"
+
+      HOMELAB_UPDATE_BUILD=1 \
+      HOMELAB_UPDATE_PUSH_CACHE=1 \
+        nix run --accept-flake-config .#update
+
+      if git diff --quiet --exit-code; then
+        echo "No update diff after successful cache build."
+        exit 0
+      fi
+
+      git status --short
+      git add flake.lock
+      git commit -m "chore(flake): update inputs"
+
+      remote_url="${CI_SERVER_PROTOCOL}://oauth2:${GITLAB_TOKEN:-$CI_JOB_TOKEN}@${CI_SERVER_HOST}/${CI_PROJECT_PATH}.git"
+      git push "$remote_url" "HEAD:$branch" \
+        -o merge_request.create \
+        -o merge_request.target=main \
+        -o merge_request.remove_source_branch \
+        -o merge_request.title="chore(flake): update inputs"
+
+mirror:main:
+  stage: mirror
+  tags:
+    - nix-cache
+  resource_group: main-mirror-push
+  timeout: 30m
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+  script:
+    - |
+      set -euo pipefail
+
+      git checkout -B "$CI_DEFAULT_BRANCH" "origin/$CI_DEFAULT_BRANCH"
+
+      mirror_push() {
+        local name="$1"
+        local url="$2"
+
+        if [ -z "$url" ]; then
+          echo "Skipping $name mirror; URL variable is not configured."
+          return 0
+        fi
+
+        echo "Pushing $CI_DEFAULT_BRANCH to $name mirror"
+        git push --force "$url" "$CI_DEFAULT_BRANCH:$CI_DEFAULT_BRANCH"
+      }
+
+      mirror_push github "${GITHUB_MIRROR_URL:-}"
+      mirror_push codeberg "${CODEBERG_MIRROR_URL:-}"

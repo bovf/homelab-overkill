@@ -1,0 +1,16 @@
+[project]
+name = "koth-mcp-character-sheets"
+version = "0.1.0"
+description = "Character-sheet CRUD MCP server for the koth-dm hermes-agent"
+requires-python = ">=3.10"
+dependencies = ["mcp"]
+
+[project.scripts]
+koth-mcp-character-sheets = "koth_mcp_character_sheets.server:main"
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]

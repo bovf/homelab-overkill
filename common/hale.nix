@@ -396,20 +396,20 @@ in {
               MATRIX_HOME_ROOM_NAME=Matrix Home
             ''}
             ${lib.optionalString cfg.agent.media.enable ''
-              RADARR_URL=http://radarr.media.svc.cluster.local:7878
+              RADARR_URL=https://${config.sops.placeholder."pangolin/resources/radarr/domain"}
               RADARR_API_KEY=${config.sops.placeholder."hermes/radarr_api_key"}
-              SONARR_URL=http://sonarr.media.svc.cluster.local:8989
+              SONARR_URL=https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}
               SONARR_API_KEY=${config.sops.placeholder."hermes/sonarr_api_key"}
-              SPORTARR_URL=http://sportarr.media.svc.cluster.local:8989
+              SPORTARR_URL=https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
               SPORTARR_API_KEY=${config.sops.placeholder."hermes/sportarr_api_key"}
-              PROWLARR_URL=http://prowlarr.media.svc.cluster.local:9696
+              PROWLARR_URL=https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}
               PROWLARR_API_KEY=${config.sops.placeholder."hermes/prowlarr_api_key"}
-              BAZARR_URL=http://bazarr.media.svc.cluster.local:6767
+              BAZARR_URL=https://${config.sops.placeholder."pangolin/resources/bazarr/domain"}
               BAZARR_API_KEY=${config.sops.placeholder."hermes/bazarr_api_key"}
-              QBITTORRENT_URL=http://qbittorrent.media.svc.cluster.local:8080
+              QBITTORRENT_URL=https://${config.sops.placeholder."pangolin/resources/qbittorrent/domain"}
               QBITTORRENT_USERNAME=${config.sops.placeholder."hermes/qbittorrent_username"}
               QBITTORRENT_PASSWORD=${config.sops.placeholder."hermes/qbittorrent_password"}
-              NZBGET_URL=http://nzbget.media.svc.cluster.local:6789
+              NZBGET_URL=https://${config.sops.placeholder."pangolin/resources/nzbget/domain"}
               NZBGET_USERNAME=${config.sops.placeholder."hermes/nzbget_hale_username"}
               NZBGET_PASSWORD=${config.sops.placeholder."hermes/nzbget_hale_password"}
             ''}

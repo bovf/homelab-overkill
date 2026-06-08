@@ -6,6 +6,7 @@
     ./certificate.nix
     ./secret.nix
     ./helm.nix
+    ./middleware.nix
     ./init-job.nix
     ./pangolin-blueprint.nix
     ./local-dns.nix

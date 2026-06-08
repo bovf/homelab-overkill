@@ -99,6 +99,7 @@
               className: traefik
               annotations:
                 traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+                traefik.ingress.kubernetes.io/router.middlewares: dashboard-glance-headers@kubernetescrd
               hosts:
                 - host: ${config.sops.placeholder."pangolin/resources/glance/domain"}
                   paths:

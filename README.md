@@ -72,6 +72,7 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 | Squid             | HTTP forward proxy (LAN egress)                      | Active   |
 | ncps              | Nix binary cache proxy (caches `cache.nixos.org`)    | Active   |
 | Hale (Saxton)     | Matrix-connected hermes-agent: media-ordering skills, restricted k8s observer SA, runs as system user `hale` on engineer | Active |
+| MS Researcher     | Matrix-connected hermes-agent for MS research KB, RSS enrichment, PubMed/CrossRef/SearXNG verification, and Monday digest | Active |
 | pangolin-kwg      | Host-side kernel WG client (engineer ↔ pangolin VPS) | Active   |
 | newt-cicd         | In-cluster userspace WG for CI-managed gitops flow   | Active   |
 | MetalLB           | L2-mode LoadBalancer for per-service LAN IPs         | Active   |
@@ -80,6 +81,32 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 </div>
 
 > \* Pi-hole serves DNS for the cluster's domains via per-workload `local-dns.nix` declarations aggregated into `FTLCONF_dns_hosts`. Setting it as the LAN's upstream DNS is a router-side change.
+
+### MS Researcher Agent
+
+`services.ms-researcher` runs a dedicated Hermes Matrix bot on `engineer` for Multiple Sclerosis research tracking. It maintains a mutable Logseq-style KB at `/var/lib/ms-researcher/kb` and exposes it under `/home/ms-researcher/kb` for the agent.
+
+What it does:
+- Watches curated MS research/news/trial/practical-living RSS feeds every 6 hours.
+- Scores source credibility and filters out low-trust, miracle-cure, product-pitch, or unverified claims.
+- Verifies research through PubMed, CrossRef, ClinicalTrials.gov, SearXNG, and official/recognized MS sources before writing KB pages.
+- Writes citation-grounded pages, run reports, journals, and weekly reports under the KB tree.
+- Publishes a reader-friendly Monday morning "This week in MS" digest at 08:00 Europe/Sofia.
+- Exposes the KB as a read-only Logseq-style web view at `ms-kb.dobryops.com` via the `knowledgebase` namespace.
+- Cleans generated RSS raw cache weekly after the digest while preserving manual raw ingests and the RSS seen ledger.
+- Syncs the KB to GitLab every 10 minutes when `/var/lib/ms-researcher/kb` has been initialized as a git repo.
+
+Operational notes:
+- Codex subscription auth is mutable user state. Authenticate with:
+  `sudo -u ms-researcher -H /run/current-system/sw/bin/hermes auth add openai-codex --type oauth --no-browser`
+- The KB git repo is initialized manually as `ms-researcher`; Nix wires git/ssh/sops credentials but does not clone over mutable state.
+- The web viewer pulls `git@gitlab.dobryops.com:knowledge-base/ms-researcher-kb.git` over SSH every few minutes and republishes the static Logseq view when the repo changes.
+- The viewer redirects the empty Logseq landing route to `Start Here`, which the agent keeps updated as the curated KB front door.
+- The KB uses a V2 date/type layout: canonical content in `content/{studies,trials,practical,reports,queries}/...`, journals in `journals/YYYY/MM/YYYY_MM_DD.md`, and navigation pages in `pages/`.
+- The agent's `kb-maintain` skill self-heals legacy flat files into that layout and refreshes `Start Here`, `Index`, and sub-index pages.
+- The viewer also exposes raw KB file-tree browsing at `/kb/`; `.git` paths are blocked.
+- The viewer is read-only; editing remains through the agent, GitLab, or local Logseq.
+- `koth-dm` is disabled on `engineer`; `hale` is unchanged.
 
 ---
 
@@ -116,7 +143,17 @@ nix run .#deploy -- install engineer-local
 nix run .#deploy -- update engineer-local
 ```
 
-**5. Bootstrap kubeconfig for local k9s/kubectl access**
+**5. Format/check Nix changes**
+```bash
+nix run .#fmt --                 # format all tracked *.nix files
+nix run .#fmt -- --check         # check all tracked *.nix files
+nix run .#fmt -- --check flake.nix nix/shells/default.nix
+```
+
+The dev shell also auto-installs a pre-commit hook that checks staged `.nix`
+files with `nix run .#fmt -- --check`.
+
+**6. Bootstrap kubeconfig for local k9s/kubectl access**
 ```bash
 eval $(nix run .#kubeconfig -- engineer-local)
 kubectl get nodes
@@ -165,6 +202,9 @@ k9s
 
 ## Security Model
 
+For the known places where setup or app configuration is intentionally not fully
+Nix-declarative, see `notes/not-declerative-functionality.md`.
+
 > **No sensitive data exists in plain text in this repository.**  
 > Every domain name, credential, email, and API key is encrypted at rest via SOPS and injected at runtime.
 
@@ -198,12 +238,25 @@ Supports:
 
 k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `mtime` never changes when target content changes. A patch to `sops-install-secrets` forces symlinks to be **recreated on every activation**, giving them a fresh `mtime` so k3s re-applies updated manifests within **~15 seconds**.
 
-### Git Hooks
+### Git Hooks and Formatting
 
-Two hooks guard the boundary between local work and remote:
+The dev shell auto-installs two Nix-store-managed hooks when entering `nix-shell`
+(or any shell that evaluates `.#devShells.<system>.default`). Existing manual,
+non-symlink hooks are left untouched.
 
-- **`pre-commit`** — blocks commits containing `*.dobryops.com` domains or `dobry@` email patterns in any staged `.nix` file. `flake.nix` is allowlisted (k3s TLS SAN requires the domain at build time).
-- **`pre-push`** — runs `gitleaks git . --redact --exit-code 1` against the full history with `.gitleaksignore` allowlist applied. Auto-installed via the devShell `shellHook` on `nix-shell` entry; symlinks `.git/hooks/pre-push` at a Nix-store-managed script. Won't clobber an existing non-symlink hook.
+- **`pre-commit`** — checks staged `.nix` files with `nix run .#fmt -- --check <files>`. It fails fast if Alejandra would reformat them.
+- **`pre-push`** — runs `gitleaks git . --redact --exit-code 1` against the full history with `.gitleaksignore` allowlist applied.
+
+Formatting commands:
+
+```bash
+nix run .#fmt --                 # format all tracked *.nix files
+nix run .#fmt -- --check         # check all tracked *.nix files
+nix run .#fmt -- file1.nix ...   # format selected files
+```
+
+`alejandra` is also in the dev shell for ad-hoc use, but `nix run .#fmt` is the
+repo-native entry point and the one used by the hook.
 
 ### Secret Scanning
 
@@ -226,17 +279,20 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 ├── .gitleaksignore            # gitleaks per-finding allowlist (fingerprints + reasons)
 ├── .trufflehog-allowlist      # trufflehog per-finding allowlist (fingerprints + reasons)
 ├── README.md
+├── notes/
+│   └── not-declerative-functionality.md  # Inventory/runbook for imperative state and setup
 │
 ├── nix/                       # Nix apps and tooling
 │   ├── apps/
 │   │   ├── deploy.nix         # nixos-rebuild-ng based deploy script
 │   │   ├── kubeconfig.nix     # Kubeconfig bootstrap for local k9s/kubectl
 │   │   ├── secrets.nix        # Bitwarden secrets management
+│   │   ├── fmt.nix            # `nix run .#fmt` — Alejandra formatter/check app
 │   │   ├── scan.nix           # `nix run .#scan` — gitleaks + trufflehog wrapper
 │   │   └── utilities.nix      # Node status checks
 │   ├── patches/
 │   │   └── sops-always-recreate-symlink.patch
-│   └── shells/                # devShell + auto-installs pre-push gitleaks hook
+│   └── shells/                # devShell + auto-installs fmt pre-commit and gitleaks pre-push hooks
 │
 ├── nodes/                     # NixOS machines
 │   ├── engineer/              # Main node config
@@ -265,6 +321,7 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   └── namespace/
 │       ├── kube-system/       # traefik, node-feature-discovery
 │       ├── intel-device-plugins/  # Intel GPU device plugin + operator
+│       ├── knowledgebase/     # MS Researcher KB read-only Logseq published web UI
 │       ├── database/          # postgresql, minio (+ loki bucket init), pgadmin
 │       ├── cicd/              # gitlab, argocd, reloader, keel, newt
 │       ├── media/             # jellyfin, sonarr, radarr, prowlarr, bazarr,
@@ -293,7 +350,11 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   │                          # arr-add-to-library, arr-search-mobile, qbit-list,
 │   │                          # nzbget-list, media-status)
 │   ├── hale-soul.md           # Saxton Hale persona / system prompt
-│   └── hale.png               # Bot's matrix avatar (uploaded by the bootstrap Job)
+│   ├── hale.png               # Bot's matrix avatar (uploaded by the bootstrap Job)
+│   ├── ms-researcher.nix      # MS research Hermes agent, Matrix bootstrap, KB git sync,
+│   │                          # RSS cron jobs, PubMed/CrossRef/SearXNG MCP wiring
+│   ├── ms-researcher-skills/  # KB research, ingest, journal, RSS watch, RSS cleanup skills
+│   └── ms-researcher-cron/    # 6-hour RSS enrichment, Monday digest, RSS raw cleanup
 │
 ├── secrets/                   # SOPS-encrypted secrets
 │   ├── secrets.yaml           # Encrypted values (age)

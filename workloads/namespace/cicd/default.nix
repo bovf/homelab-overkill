@@ -1,8 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./apps/gitlab
+    ./apps/gitlab-nix-runner
     ./apps/argocd
     ./apps/reloader
     ./apps/keel

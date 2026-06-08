@@ -86,6 +86,7 @@
               className: traefik
               annotations:
                 traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+                traefik.ingress.kubernetes.io/router.middlewares: homarr-homarr-headers@kubernetescrd
               hosts:
                 - host: ${config.sops.placeholder."pangolin/resources/home/domain"}
                   paths:

@@ -1,8 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./helm.nix
+    ./coredns-custom.nix
     ./secret.nix
     ./middleware.nix
     ./pangolin-blueprint.nix
