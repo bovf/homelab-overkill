@@ -26,7 +26,7 @@
     echo "Priming badwater with runner tool closures:"
     echo "  $ATTIC_CLIENT_PATH"
     echo "  $NIX_UPDATE_PATH"
-    "$ATTIC" push badwater "$ATTIC_CLIENT_PATH" "$NIX_UPDATE_PATH"
+    "$ATTIC" push --ignore-upstream-cache-filter badwater "$ATTIC_CLIENT_PATH" "$NIX_UPDATE_PATH"
   '';
 
   container = {
@@ -63,7 +63,7 @@ in {
     apiVersion = "batch/v1";
     kind = "Job";
     metadata = {
-      name = "attic-cache-prime-runner-tools-v3";
+      name = "attic-cache-prime-runner-tools-v4";
       namespace = "proxy";
       labels.app = "attic-cache";
     };
