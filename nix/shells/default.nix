@@ -285,7 +285,6 @@ in {
       echo "  It updates flake.lock, formats/scans, builds Linux cache targets with .#update, pushes to Attic,"
       echo "  and opens a merge request when there is a diff. Schedule weekly in the evening, offset from pl-badwater."
       echo "  Pushes to main run mirror:main; configure GITHUB_MIRROR_URL and CODEBERG_MIRROR_URL CI variables."
-      echo "  Darwin outputs are not built by the Linux/k8s runner; use a Darwin builder/runner for those."
       echo
       echo
     '';
