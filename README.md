@@ -202,6 +202,9 @@ k9s
 
 ## Security Model
 
+For the known places where setup or app configuration is intentionally not fully
+Nix-declarative, see `notes/not-declerative-functionality.md`.
+
 > **No sensitive data exists in plain text in this repository.**  
 > Every domain name, credential, email, and API key is encrypted at rest via SOPS and injected at runtime.
 
@@ -276,6 +279,8 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 ├── .gitleaksignore            # gitleaks per-finding allowlist (fingerprints + reasons)
 ├── .trufflehog-allowlist      # trufflehog per-finding allowlist (fingerprints + reasons)
 ├── README.md
+├── notes/
+│   └── not-declerative-functionality.md  # Inventory/runbook for imperative state and setup
 │
 ├── nix/                       # Nix apps and tooling
 │   ├── apps/
