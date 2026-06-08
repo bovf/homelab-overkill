@@ -72,6 +72,9 @@
                     - -ceu
                     - |
                       shopt -s dotglob nullglob
+                      if ! command -v ssh >/dev/null 2>&1; then
+                        apk add --no-cache openssh-client
+                      fi
                       mkdir -p /repo /export /tmp/ssh
                       cp /ssh-secret/id_ed25519 /tmp/ssh/id_ed25519
                       chmod 600 /tmp/ssh/id_ed25519
