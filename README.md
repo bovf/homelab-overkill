@@ -143,7 +143,17 @@ nix run .#deploy -- install engineer-local
 nix run .#deploy -- update engineer-local
 ```
 
-**5. Bootstrap kubeconfig for local k9s/kubectl access**
+**5. Format/check Nix changes**
+```bash
+nix run .#fmt --                 # format all tracked *.nix files
+nix run .#fmt -- --check         # check all tracked *.nix files
+nix run .#fmt -- --check flake.nix nix/shells/default.nix
+```
+
+The dev shell also auto-installs a pre-commit hook that checks staged `.nix`
+files with `nix run .#fmt -- --check`.
+
+**6. Bootstrap kubeconfig for local k9s/kubectl access**
 ```bash
 eval $(nix run .#kubeconfig -- engineer-local)
 kubectl get nodes
@@ -225,12 +235,25 @@ Supports:
 
 k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `mtime` never changes when target content changes. A patch to `sops-install-secrets` forces symlinks to be **recreated on every activation**, giving them a fresh `mtime` so k3s re-applies updated manifests within **~15 seconds**.
 
-### Git Hooks
+### Git Hooks and Formatting
 
-Two hooks guard the boundary between local work and remote:
+The dev shell auto-installs two Nix-store-managed hooks when entering `nix-shell`
+(or any shell that evaluates `.#devShells.<system>.default`). Existing manual,
+non-symlink hooks are left untouched.
 
-- **`pre-commit`** — blocks commits containing `*.dobryops.com` domains or `dobry@` email patterns in any staged `.nix` file. `flake.nix` is allowlisted (k3s TLS SAN requires the domain at build time).
-- **`pre-push`** — runs `gitleaks git . --redact --exit-code 1` against the full history with `.gitleaksignore` allowlist applied. Auto-installed via the devShell `shellHook` on `nix-shell` entry; symlinks `.git/hooks/pre-push` at a Nix-store-managed script. Won't clobber an existing non-symlink hook.
+- **`pre-commit`** — checks staged `.nix` files with `nix run .#fmt -- --check <files>`. It fails fast if Alejandra would reformat them.
+- **`pre-push`** — runs `gitleaks git . --redact --exit-code 1` against the full history with `.gitleaksignore` allowlist applied.
+
+Formatting commands:
+
+```bash
+nix run .#fmt --                 # format all tracked *.nix files
+nix run .#fmt -- --check         # check all tracked *.nix files
+nix run .#fmt -- file1.nix ...   # format selected files
+```
+
+`alejandra` is also in the dev shell for ad-hoc use, but `nix run .#fmt` is the
+repo-native entry point and the one used by the hook.
 
 ### Secret Scanning
 
@@ -259,11 +282,12 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   │   ├── deploy.nix         # nixos-rebuild-ng based deploy script
 │   │   ├── kubeconfig.nix     # Kubeconfig bootstrap for local k9s/kubectl
 │   │   ├── secrets.nix        # Bitwarden secrets management
+│   │   ├── fmt.nix            # `nix run .#fmt` — Alejandra formatter/check app
 │   │   ├── scan.nix           # `nix run .#scan` — gitleaks + trufflehog wrapper
 │   │   └── utilities.nix      # Node status checks
 │   ├── patches/
 │   │   └── sops-always-recreate-symlink.patch
-│   └── shells/                # devShell + auto-installs pre-push gitleaks hook
+│   └── shells/                # devShell + auto-installs fmt pre-commit and gitleaks pre-push hooks
 │
 ├── nodes/                     # NixOS machines
 │   ├── engineer/              # Main node config

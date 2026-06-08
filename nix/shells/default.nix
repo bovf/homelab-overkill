@@ -262,6 +262,10 @@ in {
       echo
       echo "nodes:"
       echo "$NODE_SUMMARIES"
+      echo "dev hooks:"
+      echo "  pre-commit                                      - nix run .#fmt -- --check staged *.nix"
+      echo "  pre-push                                        - gitleaks secret scan"
+      echo ""
       echo "commands:"
       echo "  deploy <install/update/test> <node>-local        - deploy via local connection"
       echo "  deploy <install/update/test> <node>-remote       - deploy via remote connection"
@@ -270,7 +274,8 @@ in {
       echo "  ssh <node>-remote                                - ssh to node (remote)"
       echo "  eval \$(nix run .#kubeconfig -- <node>-local)    - bootstrap kubeconfig (local)"
       echo "  eval \$(nix run .#kubeconfig -- <node>-remote)   - bootstrap kubeconfig (remote)"
-      echo "  nix run .#fmt [-- --check]                       - format/check tracked Nix files"
+      echo "  nix run .#fmt -- [files...]                      - format tracked/all Nix files"
+      echo "  nix run .#fmt -- --check [files...]              - check formatting without edits"
       echo "  nix run .#scan                                   - gitleaks + trufflehog secret scan"
       echo
       echo
