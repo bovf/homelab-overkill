@@ -29,8 +29,13 @@ For the Matrix message:
 - Use plain titles and short paragraphs/bullets.
 - When pointing to KB material, use a simple path in parentheses:
   `(KB: kb/pages/<slug>.md)` or `(Full digest: kb/reports/<YYYY>_W<NN>.md)`.
-- If a future `LOGSEQ_BASE_URL` exists, prefer direct links:
-  `<LOGSEQ_BASE_URL>/...`; until then, use KB paths.
+- Always include web navigation links when the KB web UI is available:
+  - Start Here: `https://ms-kb.dobryops.com/#/page/Start%20Here`
+  - Browse whole KB: `https://ms-kb.dobryops.com/kb/`
+  - Full digest in Logseq: `https://ms-kb.dobryops.com/#/page/<URL-encoded report page title or slug>`
+- If a future `LOGSEQ_BASE_URL` env var exists, use it instead of the hardcoded
+  `https://ms-kb.dobryops.com` base. Until then, use the hardcoded web URL plus
+  KB paths.
 
 ## Inputs you must read, in order
 
@@ -186,6 +191,9 @@ Bottom line:
 <one calm sentence. Example: "Useful tracking week, not a practice-changing week." >
 
 Full digest: kb/reports/<YYYY>_W<NN>.md
+Logseq digest: https://ms-kb.dobryops.com/#/page/<URL-encoded report page title or slug>
+Start Here: https://ms-kb.dobryops.com/#/page/Start%20Here
+Browse whole KB: https://ms-kb.dobryops.com/kb/
 ```
 
 Keep the Matrix message short enough to read quickly. If there are many items,
@@ -194,9 +202,20 @@ choose the best 3 and put the rest in the report file.
 ## After delivery
 
 Refresh `$KB_ROOT/pages/Start Here.md` so the KB front door points at this new
-weekly digest, highlights the best current pages, and includes a `Browse the
-whole KB` link to `/kb/` for raw file-tree browsing. Keep this page reader-first:
-no feed-count headlines, no operational backlog language, no Logseq wikilinks.
+weekly digest, highlights the best current pages, and includes `[Browse the
+whole KB](/kb/)` for raw file-tree browsing. Keep this page reader-first: no
+feed-count headlines, no operational backlog language, no Logseq wikilinks.
+Never write `[[/kb/]]`; it is a broken Logseq page link, not a URL.
+
+The Matrix message must also include three web links at the bottom:
+
+- `Logseq digest: https://ms-kb.dobryops.com/#/page/<URL-encoded report page title or slug>`
+- `Start Here: https://ms-kb.dobryops.com/#/page/Start%20Here`
+- `Browse whole KB: https://ms-kb.dobryops.com/kb/`
+
+If `LOGSEQ_BASE_URL` is set in the future, replace the hardcoded base with that
+env value. Keep the links plain and clickable; do not wrap them in Logseq
+wikilinks.
 
 Call `kb-journal` with `event: digest written: <YYYY>_W<NN>`.
 
