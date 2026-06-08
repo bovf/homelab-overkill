@@ -1,24 +1,67 @@
-{pkgs, ...}: let
-  atticClient = pkgs.attic-client;
-  nixUpdate = pkgs.nix-update;
+{...}: let
+  nixConfig = ''
+    experimental-features = nix-command flakes
+    substituters = https://cache.dobryops.com/badwater https://cache.nixos.org
+    trusted-public-keys = badwater:GfR4TMrcaFJYnsldgBY+P27G620qwd9JRz831f6OxpU= cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY=
+  '';
 
   primeScript = ''
+    set -euo pipefail
     export HOME=/tmp/attic-home
     mkdir -p "$HOME"
 
-    ${atticClient}/bin/attic login --set-default local http://attic-cache.proxy.svc.cluster.local:8102 "$ATTIC_TOKEN"
+    echo "Installing the same tool refs used by the GitLab Nix runner"
+    nix profile install \
+      nixpkgs#attic-client \
+      nixpkgs#nix-update
 
-    echo "Priming badwater with GitLab Nix runner tool closures"
-    ${atticClient}/bin/attic push badwater \
-      ${atticClient} \
-      ${nixUpdate}
+    ATTIC="$(command -v attic)"
+    ATTIC_CLIENT_PATH="$(nix path-info nixpkgs#attic-client)"
+    NIX_UPDATE_PATH="$(nix path-info nixpkgs#nix-update)"
+
+    "$ATTIC" login --set-default local http://attic-cache.proxy.svc.cluster.local:8102 "$ATTIC_TOKEN"
+
+    echo "Priming badwater with runner tool closures:"
+    echo "  $ATTIC_CLIENT_PATH"
+    echo "  $NIX_UPDATE_PATH"
+    "$ATTIC" push badwater "$ATTIC_CLIENT_PATH" "$NIX_UPDATE_PATH"
   '';
+
+  container = {
+    name = "prime";
+    image = "nixos/nix:2.28.3";
+    imagePullPolicy = "IfNotPresent";
+    command = ["/bin/sh" "-ec"];
+    args = [primeScript];
+    env = [
+      {
+        name = "NIX_CONFIG";
+        value = nixConfig;
+      }
+    ];
+    envFrom = [{secretRef.name = "attic-cache-secret";}];
+    resources = {
+      requests = {
+        cpu = "1";
+        memory = "2Gi";
+      };
+      limits = {
+        cpu = "4";
+        memory = "8Gi";
+      };
+    };
+  };
+
+  podSpec = {
+    restartPolicy = "OnFailure";
+    containers = [container];
+  };
 in {
   services.k3s.manifests.attic-cache-prime-runner-tools-job.content = {
     apiVersion = "batch/v1";
     kind = "Job";
     metadata = {
-      name = "attic-cache-prime-runner-tools-v1";
+      name = "attic-cache-prime-runner-tools-v2";
       namespace = "proxy";
       labels.app = "attic-cache";
     };
@@ -26,45 +69,7 @@ in {
       backoffLimit = 3;
       template = {
         metadata.labels.app = "attic-cache-prime-runner-tools";
-        spec = {
-          restartPolicy = "OnFailure";
-          containers = [
-            {
-              name = "prime";
-              image = "busybox:latest";
-              imagePullPolicy = "IfNotPresent";
-              command = ["/bin/sh" "-ec"];
-              args = [primeScript];
-              envFrom = [{secretRef.name = "attic-cache-secret";}];
-              volumeMounts = [
-                {
-                  name = "nix-store";
-                  mountPath = "/nix/store";
-                  readOnly = true;
-                }
-              ];
-              resources = {
-                requests = {
-                  cpu = "100m";
-                  memory = "256Mi";
-                };
-                limits = {
-                  cpu = "2";
-                  memory = "2Gi";
-                };
-              };
-            }
-          ];
-          volumes = [
-            {
-              name = "nix-store";
-              hostPath = {
-                path = "/nix/store";
-                type = "Directory";
-              };
-            }
-          ];
-        };
+        spec = podSpec;
       };
     };
   };
@@ -86,45 +91,7 @@ in {
         backoffLimit = 3;
         template = {
           metadata.labels.app = "attic-cache-prime-runner-tools";
-          spec = {
-            restartPolicy = "OnFailure";
-            containers = [
-              {
-                name = "prime";
-                image = "busybox:latest";
-                imagePullPolicy = "IfNotPresent";
-                command = ["/bin/sh" "-ec"];
-                args = [primeScript];
-                envFrom = [{secretRef.name = "attic-cache-secret";}];
-                volumeMounts = [
-                  {
-                    name = "nix-store";
-                    mountPath = "/nix/store";
-                    readOnly = true;
-                  }
-                ];
-                resources = {
-                  requests = {
-                    cpu = "100m";
-                    memory = "256Mi";
-                  };
-                  limits = {
-                    cpu = "2";
-                    memory = "2Gi";
-                  };
-                };
-              }
-            ];
-            volumes = [
-              {
-                name = "nix-store";
-                hostPath = {
-                  path = "/nix/store";
-                  type = "Directory";
-                };
-              }
-            ];
-          };
+          spec = podSpec;
         };
       };
     };

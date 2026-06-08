@@ -10,7 +10,7 @@ verify:nix-cache-local:
   script:
     - set -euo pipefail
     - echo "DNS:"
-    - getent hosts cache.dobryops.com || true
+    - curl -v https://cache.dobryops.com/badwater/nix-cache-info 2>&1 | grep -E 'IPv4:|Connected to cache\.dobryops\.com'
     - echo "Cache endpoint:"
     - curl -v https://cache.dobryops.com/badwater/nix-cache-info
     - echo "Nix config:"
@@ -20,6 +20,8 @@ verify:nix-cache-local:
     - echo "Force fetching a known runner tool from Attic only:"
     - nix build nixpkgs#attic-client --no-link -L --print-build-logs --option substituters "https://cache.dobryops.com/badwater" --option trusted-public-keys "badwater:GfR4TMrcaFJYnsldgBY+P27G620qwd9JRz831f6OxpU=" --option fallback false
     - echo "Store path:"
-    - nix path-info nixpkgs#attic-client
-    - echo "Query cache directly:"
-    - nix path-info --store https://cache.dobryops.com/badwater nixpkgs#attic-client
+    - STORE_PATH="$(nix path-info nixpkgs#attic-client)"
+    - echo "$STORE_PATH"
+    - echo "Query cache narinfo directly:"
+    - NARINFO="$(basename "$STORE_PATH" | cut -d- -f1).narinfo"
+    - curl -fsS "https://cache.dobryops.com/badwater/$NARINFO" | head -40
