@@ -102,6 +102,8 @@ Operational notes:
 - The KB git repo is initialized manually as `ms-researcher`; Nix wires git/ssh/sops credentials but does not clone over mutable state.
 - The web viewer pulls `git@gitlab.dobryops.com:knowledge-base/ms-researcher-kb.git` over SSH every few minutes and republishes the static Logseq view when the repo changes.
 - The viewer redirects the empty Logseq landing route to `Start Here`, which the agent keeps updated as the curated KB front door.
+- The KB uses a V2 date/type layout: canonical content in `content/{studies,trials,practical,reports,queries}/...`, journals in `journals/YYYY/MM/YYYY_MM_DD.md`, and navigation pages in `pages/`.
+- The agent's `kb-maintain` skill self-heals legacy flat files into that layout and refreshes `Start Here`, `Index`, and sub-index pages.
 - The viewer also exposes raw KB file-tree browsing at `/kb/`; `.git` paths are blocked.
 - The viewer is read-only; editing remains through the agent, GitLab, or local Logseq.
 - `koth-dm` is disabled on `engineer`; `hale` is unchanged.

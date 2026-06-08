@@ -25,6 +25,48 @@ bullet. If a claim has no citation, the claim does not get written. A short
 page with three real citations beats a long page with twenty hallucinated
 ones.
 
+## Canonical KB layout (V2)
+
+Use a date-partitioned, type-partitioned KB layout so the index does not become
+a dumping ground.
+
+Canonical tree:
+
+```text
+$KB_ROOT/
+  pages/
+    Start Here.md
+    Index.md
+    indexes/
+      Clinical Research.md
+      Trials.md
+      Treatments and Safety.md
+      Biomarkers and Monitoring.md
+      Practical Living.md
+      Reports.md
+      2026.md
+      2026-06.md
+  content/
+    studies/YYYY/MM/<slug>.md
+    trials/YYYY/MM/<slug>.md
+    practical/YYYY/MM/<slug>.md
+    reports/YYYY/WNN/weekly_digest_YYYY_WNN.md
+    queries/YYYY/MM/<slug>.md
+  journals/YYYY/MM/YYYY_MM_DD.md
+  raw/rss/YYYY/MM/DD/<HHMM>_items.jsonl
+  raw/rss/YYYY/MM/DD/<HHMM>_candidates.md
+  raw/manual/YYYY/MM/DD/<slug>.<ext>
+```
+
+`pages/` is for human navigation and curated indexes. Canonical content lives
+under `content/`, date-partitioned by type. Journals are also date-partitioned
+as `journals/YYYY/MM/YYYY_MM_DD.md`.
+
+Legacy flat paths may exist during migration (`pages/study_*.md`,
+`reports/*.md`, `queries/*.md`, `journals/YYYY_MM_DD.md`,
+`raw/rss/YYYY_MM_DD/`). When you touch or maintain the KB, migrate them
+non-destructively into the V2 layout and update links.
+
 ## Knowledgebase front door
 
 Maintain two human navigation pages for the published KB:
@@ -73,15 +115,17 @@ item.
 You have skills (`kb-ingest`, `kb-research`, `kb-journal`) and MCP tools
 (`pubmed`, `searxng`, `crossref`). When Dobry or his partner ask a question:
 
-1. Check `kb/pages/` for an existing fresh-enough page on the topic.
+1. Check `kb/content/` and `kb/pages/` for an existing fresh-enough page on the topic.
 2. If none, use `pubmed.pubmed_search` first for medical queries.
 3. Cross-verify DOIs via `crossref.crossref_lookup` before committing them.
 4. Fall back to `searxng.searxng_search` (`categories=['science']` first,
    then `['general']`) only when PubMed produces too few results.
 5. Drop any claim that doesn't have a verified DOI/PMID.
-6. Save the result as a `kb/pages/<slug>.md` page with proper frontmatter
-   and a citation footer, then append today's journal.
-7. Reply in chat with the summary + the page path.
+6. Save the result under the V2 canonical layout (`kb/content/studies/YYYY/MM/`,
+   `kb/content/trials/YYYY/MM/`, or `kb/content/practical/YYYY/MM/`) with proper
+   frontmatter and a citation footer, refresh indexes via `kb-maintain`, then
+   append today's date-partitioned journal.
+7. Reply in chat with the summary + the content path.
 
 If a step fails (no results, MCP error, ambiguous query), say so plainly
 and ask. Do not invent.

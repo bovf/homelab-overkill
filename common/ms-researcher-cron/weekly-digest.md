@@ -3,6 +3,9 @@ name: weekly-digest
 description: Every Monday 08:00 (Europe/Sofia) — publish a plain, reader-friendly MS weekly field update for Dobry and GF.
 schedule: "0 8 * * MON"
 timezone: "Europe/Sofia"
+skills:
+  - kb-maintain
+  - kb-journal
 delivery:
   channel: matrix
   target: env:MATRIX_HOME_ROOM
@@ -28,7 +31,9 @@ For the Matrix message:
 - Do **not** lead with queue counts, feed counts, or internal job mechanics.
 - Use plain titles and short paragraphs/bullets.
 - When pointing to KB material, use a simple path in parentheses:
-  `(KB: kb/pages/<slug>.md)` or `(Full digest: kb/reports/<YYYY>_W<NN>.md)`.
+  `(KB: kb/content/studies/YYYY/MM/<slug>.md)`,
+  `(KB: kb/content/trials/YYYY/MM/<slug>.md)`, or
+  `(Full digest: kb/content/reports/YYYY/WNN/weekly_digest_<YYYY>_W<NN>.md)`.
 - Always include web navigation links when the KB web UI is available:
   - Start Here: `https://ms-kb.dobryops.com/#/page/Start%20Here`
   - KB Index: `https://ms-kb.dobryops.com/#/page/Index`
@@ -40,16 +45,12 @@ For the Matrix message:
 
 ## Inputs you must read, in order
 
-1. `$KB_ROOT/journals/` — files with `last-modified` in the last 7 days.
-2. `$KB_ROOT/pages/` — files with `last-modified` in the last 7 days. Read
-   frontmatter for `type`, `evidence_grade`, `sources`, and `last_reviewed`.
-3. `$KB_ROOT/reports/` — last week's digest, if present, so you do not repeat
-   unchanged items.
-4. `$KB_ROOT/queries/rss_watch_*.md` from the last 7 days — use only for
-   context. Do not present feed/backlog totals as news.
-5. `$KB_ROOT/raw/rss/YYYY_MM_DD/*_candidates.md` from the last 7 days only for
-   watchlist context. Do not cite raw RSS as evidence unless it points to an
-   official source/DOI/PMID/NCT.
+1. `$KB_ROOT/journals/YYYY/MM/` — files with `last-modified` in the last 7 days. Read legacy `$KB_ROOT/journals/YYYY_MM_DD.md` too during migration.
+2. `$KB_ROOT/content/` — files with `last-modified` in the last 7 days. Read frontmatter for `type`, `evidence_grade`, `sources`, and `last_reviewed`.
+3. `$KB_ROOT/pages/` — navigation pages and sub-indexes; use for context, not as the canonical content source.
+4. `$KB_ROOT/content/reports/YYYY/WNN/` — last week's digest, if present, so you do not repeat unchanged items. Read legacy `$KB_ROOT/reports/` too during migration.
+5. `$KB_ROOT/content/queries/YYYY/MM/rss_watch_*.md` from the last 7 days — use only for context. Do not present feed/backlog totals as news. Read legacy `$KB_ROOT/queries/rss_watch_*.md` too during migration.
+6. `$KB_ROOT/raw/rss/YYYY/MM/DD/*_candidates.md` from the last 7 days only for watchlist context. Legacy `$KB_ROOT/raw/rss/YYYY_MM_DD/*_candidates.md` may be read during migration. Do not cite raw RSS as evidence unless it points to an official source/DOI/PMID/NCT.
 
 If a week has zero meaningful activity, deliver exactly:
 
@@ -80,7 +81,7 @@ Down-rank or omit:
 
 ## Output: write the report file
 
-Path: `$KB_ROOT/reports/<YYYY>_W<NN>.md`, ISO week number two digits.
+Path: `$KB_ROOT/content/reports/<YYYY>/W<NN>/weekly_digest_<YYYY>_W<NN>.md`, ISO week number two digits.
 
 The report file may use markdown links/KB paths, but still keep it readable.
 Prefer paths over Logseq wikilinks until we have a hosted Logseq URL.
@@ -119,7 +120,7 @@ Why it matters: 1–3 sentences.
 What we know so far: 1–3 bullets.
 What we do not know yet: 1–2 bullets.
 Evidence level: high | medium | low | registry-only.
-KB: `kb/pages/<slug>.md`
+KB: `kb/content/<type>/YYYY/MM/<slug>.md`
 Source: DOI/PMID/NCT/official URL in plain text.
 
 ## Better MS / practical living
@@ -174,13 +175,13 @@ Clinical research:
    What it is: <one sentence>
    Why it matters: <one or two sentences>
    Caveat: <one sentence>
-   KB: kb/pages/<slug>.md
+   KB: kb/content/<type>/YYYY/MM/<slug>.md
 
 2. <Plain title>
    What it is: ...
    Why it matters: ...
    Caveat: ...
-   KB: kb/pages/<slug>.md
+   KB: kb/content/<type>/YYYY/MM/<slug>.md
 
 Better MS / practical living:
 - <0–3 useful practical bullets; omit section if none this week>
@@ -191,7 +192,7 @@ Worth watching:
 Bottom line:
 <one calm sentence. Example: "Useful tracking week, not a practice-changing week." >
 
-Full digest: kb/reports/<YYYY>_W<NN>.md
+Full digest: kb/content/reports/<YYYY>/W<NN>/weekly_digest_<YYYY>_W<NN>.md
 Logseq digest: https://ms-kb.dobryops.com/#/page/<URL-encoded report page title or slug>
 Start Here: https://ms-kb.dobryops.com/#/page/Start%20Here
 KB Index: https://ms-kb.dobryops.com/#/page/Index
@@ -203,14 +204,15 @@ choose the best 3 and put the rest in the report file.
 
 ## After delivery
 
-Refresh `$KB_ROOT/pages/Start Here.md` and `$KB_ROOT/pages/Index.md` so the KB
-front door points at this new weekly digest, highlights the best current pages,
-and the index gives a human-browseable whole-KB navigation page. Keep both pages
-reader-first: no feed-count headlines, no operational backlog language, no
-broken Logseq URL wikilinks. Never write `[[/kb/]]`; it creates the broken
-Logseq page `#/page/kb`.
+Run `kb-maintain` after writing the digest. It must refresh
+`$KB_ROOT/pages/Start Here.md`, `$KB_ROOT/pages/Index.md`, and sub-indexes under
+`$KB_ROOT/pages/indexes/`; migrate legacy flat files into the V2 layout; and
+ensure the new digest is linked from the front door and reports index. Keep all
+navigation pages reader-first: no feed-count headlines, no operational backlog
+language, no broken Logseq URL wikilinks. Never write `[[/kb/]]`; it creates the
+broken Logseq page `#/page/kb`.
 
-The Matrix message must also include three web links at the bottom:
+The Matrix message must also include these web links at the bottom:
 
 - `Logseq digest: https://ms-kb.dobryops.com/#/page/<URL-encoded report page title or slug>`
 - `Start Here: https://ms-kb.dobryops.com/#/page/Start%20Here`
@@ -221,7 +223,7 @@ If `LOGSEQ_BASE_URL` is set in the future, replace the hardcoded base with that
 env value. Keep the links plain and clickable; do not wrap them in Logseq
 wikilinks.
 
-Call `kb-journal` with `event: digest written: <YYYY>_W<NN>`.
+Call `kb-journal` with `event: digest written: weekly_digest_<YYYY>_W<NN>`.
 
 ## Rules
 

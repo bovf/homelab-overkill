@@ -1,6 +1,6 @@
 ---
 name: kb-journal
-description: Append a single timestamped bullet to today's $KB_ROOT/journals/YYYY_MM_DD.md describing what the agent just did. Logseq journal-compatible. Call this at the end of every meaningful action (page write, ingest, query answered).
+description: Append a single timestamped bullet to today's $KB_ROOT/journals/YYYY/MM/YYYY_MM_DD.md describing what the agent just did. Logseq-compatible and date-partitioned. Call this at the end of every meaningful action (page write, ingest, query answered).
 version: 0.1.0
 author: dobry-ops
 license: MIT
@@ -33,9 +33,10 @@ Do NOT call it for tiny mechanical actions like "user said hi."
 
 1. Compute today's date in `YYYY_MM_DD` format (Europe/Sofia timezone).
 2. Compute `HH:MM` (Europe/Sofia).
-3. File path: `$KB_ROOT/journals/<date>.md`. Create it if missing with a
-   first line `# <date>` heading (Logseq treats the filename as the date
-   already, but the H1 helps for git diffs).
+3. File path: `$KB_ROOT/journals/YYYY/MM/<date>.md`, for example
+   `$KB_ROOT/journals/2026/06/2026_06_08.md`. Create parent directories and
+   create the file if missing with a first line `# <date>` heading. This keeps
+   journal files readable while avoiding one huge flat directory.
 4. Append one bullet on a new line:
 
    ```markdown
@@ -58,7 +59,7 @@ Pick the closest match:
 
 ```markdown
 - **14:32** — page [[ocrelizumab]] (new, N=4). Refs: [[study_10_1056_nejmoa1601277]] [[anti_cd20_class]]
-- **15:01** — ingested raw/2026_06_03_nejm_btk_inhibitor.pdf. Refs: [[btk_inhibitors]]
+- **15:01** — ingested raw/manual/2026/06/03/2026_06_03_nejm_btk_inhibitor.pdf. Refs: [[btk_inhibitors]]
 - **15:18** — query [[2026_06_03_btk_vs_anti_cd20]]. Refs: [[ocrelizumab]] [[evobrutinib]]
 - **08:00** — digest written: [[2026_W22]].
 ```
@@ -80,3 +81,5 @@ Don't echo the full journal back. If the user wants to read it, they open Logseq
 - Reference `$KB_ROOT` by name; never paste the value into chat.
 - If the journal file doesn't exist yet today, create it with the H1
   heading first.
+- If the legacy flat file `$KB_ROOT/journals/<date>.md` exists, move or merge it
+  non-destructively into `$KB_ROOT/journals/YYYY/MM/<date>.md` before appending.

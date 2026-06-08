@@ -1,6 +1,6 @@
 ---
 name: kb-research
-description: Answer a research question by searching the kb first, then PubMed → CrossRef → SearXNG, writing a citation-grounded page to $KB_ROOT/pages/. Every claim cites a DOI/PMID/URL or is dropped. This is the heart of the agent.
+description: Answer a research question by searching the kb first, then PubMed → CrossRef → SearXNG, writing a citation-grounded content page under $KB_ROOT/content/<type>/YYYY/MM/. Every claim cites a DOI/PMID/URL or is dropped. This is the heart of the agent.
 version: 0.1.0
 author: dobry-ops
 license: MIT
@@ -33,10 +33,15 @@ clinical trials, drugs, mechanisms, etc. Examples:
 
 ### 1. Check the kb first
 
-`grep -ril "<key-terms>" $KB_ROOT/pages/` — if a fresh page exists
-(`last_reviewed` within the last 60 days), return it. Don't re-research
-what you already have. Tell the user "we already have a page on this from
-<date>; here it is."
+Search both canonical content and navigation pages:
+
+```bash
+grep -ril "<key-terms>" $KB_ROOT/content/ $KB_ROOT/pages/ 2>/dev/null
+```
+
+If a fresh content page exists (`last_reviewed` within the last 60 days), return
+it. Don't re-research what you already have. Tell the user "we already have a
+page on this from <date>; here it is."
 
 ### 2. PubMed first for medical claims
 
@@ -70,9 +75,17 @@ Triage SearXNG hits by domain:
 
 ### 5. Write the page
 
-Path: `$KB_ROOT/pages/<slug>.md`. Slug: lowercase ASCII, `_` separator,
-≤60 chars. For studies, use `study_<doi_slug>.md`
-(e.g. `study_10_1056_nejmoa1601277.md`).
+Path depends on type and date. Use Europe/Sofia current date unless the source
+publication/trial date clearly provides a better date:
+
+- study → `$KB_ROOT/content/studies/YYYY/MM/<slug>.md`
+- trial → `$KB_ROOT/content/trials/YYYY/MM/<slug>.md`
+- practical guidance → `$KB_ROOT/content/practical/YYYY/MM/<slug>.md`
+- concept/drug overview → `$KB_ROOT/content/studies/YYYY/MM/<slug>.md` unless it is primarily practical guidance
+
+Slug: lowercase ASCII, `_` separator, ≤60 chars. For studies, use
+`study_<doi_slug>.md` (e.g. `study_10_1056_nejmoa1601277.md`). For trials, use
+`trial_<nct>_<short_slug>.md`.
 
 Use this template:
 
@@ -90,6 +103,10 @@ sources:
     journal: "..."
     year: 2024
     accessed: YYYY-MM-DD
+topics:
+  - clinical-research
+created: YYYY-MM-DD
+canonical_path: content/<type>/YYYY/MM/<slug>.md
 ---
 
 # <Page title>
@@ -131,14 +148,14 @@ Call `kb-journal` with the event: `event: page <slug> (new|updated), n_sources=<
 ### 7. Reply to chat
 
 ```
-📚 Wrote kb/pages/<slug>.md (evidence_grade: <grade>, <N> sources).
+📚 Wrote kb/content/<type>/YYYY/MM/<slug>.md (evidence_grade: <grade>, <N> sources).
 
 <2–4 sentence plain-English summary>
 
 Sources cited: <DOI 1>, <DOI 2>, <DOI 3>.
 Caveats: <one line on the main caveat>.
 
-Open in Logseq: kb/pages/<slug>.md
+Open in KB: kb/content/<type>/YYYY/MM/<slug>.md
 ```
 
 ## What you must NOT do
@@ -170,5 +187,8 @@ it and I'll add it."
 2. PubMed > CrossRef-verified DOI > SearXNG.
 3. Every page has Caveats.
 4. Update `last_reviewed` if you touch a page.
-5. Journal every meaningful action.
-6. Reference `$KB_ROOT` by name; never paste the value into chat.
+5. Put new content in the V2 canonical `content/<type>/YYYY/MM/` layout, not
+   the legacy flat `pages/` directory. `pages/` is for Start Here, Index, and
+   sub-index navigation pages.
+6. Journal every meaningful action.
+7. Reference `$KB_ROOT` by name; never paste the value into chat.

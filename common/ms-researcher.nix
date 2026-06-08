@@ -221,7 +221,17 @@ in {
         "d ${cfg.agent.kb.path}            0750 ms-researcher ms-researcher -"
         "d ${cfg.agent.kb.path}/journals   0750 ms-researcher ms-researcher -"
         "d ${cfg.agent.kb.path}/pages      0750 ms-researcher ms-researcher -"
+        "d ${cfg.agent.kb.path}/pages/indexes 0750 ms-researcher ms-researcher -"
+        "d ${cfg.agent.kb.path}/content    0750 ms-researcher ms-researcher -"
+        "d ${cfg.agent.kb.path}/content/studies 0750 ms-researcher ms-researcher -"
+        "d ${cfg.agent.kb.path}/content/trials 0750 ms-researcher ms-researcher -"
+        "d ${cfg.agent.kb.path}/content/practical 0750 ms-researcher ms-researcher -"
+        "d ${cfg.agent.kb.path}/content/reports 0750 ms-researcher ms-researcher -"
+        "d ${cfg.agent.kb.path}/content/queries 0750 ms-researcher ms-researcher -"
         "d ${cfg.agent.kb.path}/raw        0750 ms-researcher ms-researcher -"
+        "d ${cfg.agent.kb.path}/raw/rss    0750 ms-researcher ms-researcher -"
+        "d ${cfg.agent.kb.path}/raw/manual 0750 ms-researcher ms-researcher -"
+        # Legacy flat dirs stay present during migration; kb-maintain moves content into V2.
         "d ${cfg.agent.kb.path}/queries    0750 ms-researcher ms-researcher -"
         "d ${cfg.agent.kb.path}/reports    0750 ms-researcher ms-researcher -"
         "d /home/ms-researcher/kb         0750 ms-researcher ms-researcher -"
@@ -296,7 +306,7 @@ in {
             exit 0
           fi
 
-          git add README.md journals pages raw queries reports 2>/dev/null || true
+          git add README.md journals pages content raw queries reports 2>/dev/null || true
           git diff --cached --quiet && exit 0
 
           git commit -m "kb: update research notes"

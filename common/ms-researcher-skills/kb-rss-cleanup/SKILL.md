@@ -23,7 +23,8 @@ conservative, and auditable.
 
 ## Retention policy
 
-- Scope: **only** `$KB_ROOT/raw/rss/YYYY_MM_DD/` directories.
+- Scope: **only** generated RSS cache directories under `$KB_ROOT/raw/rss/YYYY/MM/DD/`.
+- Legacy migration scope: `$KB_ROOT/raw/rss/YYYY_MM_DD/` may also be cleaned with the same date/retention safeguards until the KB is fully migrated.
 - Retention: delete date directories older than **14 days**.
 - Never touch:
   - `$KB_ROOT/raw/` outside `raw/rss/`
@@ -36,8 +37,10 @@ conservative, and auditable.
 
 ## Required safe implementation
 
-Use this exact Python-stdlib pattern or an equivalent with the same guards.
-Do **not** use broad `rm -rf` globs.
+Use Python stdlib with the same guards as this pattern. The implementation must
+handle both V2 `raw/rss/YYYY/MM/DD/` leaf directories and legacy
+`raw/rss/YYYY_MM_DD/` directories during migration. Do **not** use broad `rm -rf`
+globs.
 
 ```bash
 python3 - <<'PY'
@@ -87,7 +90,7 @@ for child in sorted(rss.iterdir()):
     deleted.append(child.name)
     bytes_deleted += size
 
-report_dir = kb / 'queries'
+report_dir = kb / 'content' / 'queries' / now.strftime('%Y') / now.strftime('%m')
 report_dir.mkdir(parents=True, exist_ok=True)
 stamp = now.strftime('%Y_%m_%d_%H%M')
 report = report_dir / f'rss_raw_cleanup_{stamp}.md'
@@ -101,7 +104,7 @@ report.write_text(
     f'bytes_deleted: {bytes_deleted}\n'
     '---\n\n'
     f'# RSS raw cleanup {now.strftime("%Y-%m-%d %H:%M")}\n\n'
-    f'Cutoff: delete `$KB_ROOT/raw/rss/YYYY_MM_DD/` directories older than {cutoff.isoformat()}.\n\n'
+    f'Cutoff: delete generated `$KB_ROOT/raw/rss/YYYY/MM/DD/` directories older than {cutoff.isoformat()}. Legacy `$KB_ROOT/raw/rss/YYYY_MM_DD/` directories may also be cleaned during migration.\n\n'
     '## Deleted\n'
     + ''.join(f'- `{name}`\n' for name in deleted) + ('' if deleted else '- none\n')
     + '\n## Kept within retention\n'
@@ -131,3 +134,4 @@ Reference the cleanup report in the journal when possible:
 - Never delete `seen_urls.txt`; it prevents duplicate feed processing.
 - Never delete `raw/` top-level files.
 - Never delete generated RSS raw data newer than 14 days.
+- Prefer the V2 raw layout `$KB_ROOT/raw/rss/YYYY/MM/DD/`; migrate legacy flat date directories with `kb-maintain` rather than creating new ones.

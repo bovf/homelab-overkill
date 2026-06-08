@@ -95,18 +95,21 @@ Clamp to 0–100.
 Create these if missing:
 
 ```bash
-$KB_ROOT/raw/rss/YYYY_MM_DD/
-$KB_ROOT/queries/
-$KB_ROOT/pages/
-$KB_ROOT/journals/
-$KB_ROOT/reports/
+$KB_ROOT/raw/rss/YYYY/MM/DD/
+$KB_ROOT/content/queries/YYYY/MM/
+$KB_ROOT/content/studies/YYYY/MM/
+$KB_ROOT/content/trials/YYYY/MM/
+$KB_ROOT/content/practical/YYYY/MM/
+$KB_ROOT/content/reports/YYYY/WNN/
+$KB_ROOT/pages/indexes/
+$KB_ROOT/journals/YYYY/MM/
 ```
 
 Use Europe/Sofia local date/time for filenames:
 
-- Raw items JSONL: `$KB_ROOT/raw/rss/YYYY_MM_DD/HHMM_items.jsonl`
-- Candidate report: `$KB_ROOT/raw/rss/YYYY_MM_DD/HHMM_candidates.md`
-- Query/run report: `$KB_ROOT/queries/rss_watch_YYYY_MM_DD_HHMM.md`
+- Raw items JSONL: `$KB_ROOT/raw/rss/YYYY/MM/DD/HHMM_items.jsonl`
+- Candidate report: `$KB_ROOT/raw/rss/YYYY/MM/DD/HHMM_candidates.md`
+- Query/run report: `$KB_ROOT/content/queries/YYYY/MM/rss_watch_YYYY_MM_DD_HHMM.md`
 - Seen ledger: `$KB_ROOT/raw/rss/seen_urls.txt`
 
 ### 2. Fetch and parse feeds
@@ -152,11 +155,14 @@ Build the enrichment candidate list from:
 - new `process_now` items from this run;
 - new `verify_then_process` items from this run;
 - still-unprocessed `process_now` / `verify_then_process` entries from the
-  last 7 days of `$KB_ROOT/raw/rss/*/*_candidates.md` and
-  `$KB_ROOT/queries/rss_watch_*.md`.
+  last 7 days of `$KB_ROOT/raw/rss/YYYY/MM/DD/*_candidates.md` and
+  `$KB_ROOT/content/queries/YYYY/MM/rss_watch_*.md`.
+- Legacy paths (`raw/rss/YYYY_MM_DD/`, `queries/rss_watch_*.md`) may be read
+  during migration but new writes must use the V2 layout.
 
 Deduplicate by normalized URL and title. Exclude any item that already has a
-matching page in `$KB_ROOT/pages/` by NCT number, DOI slug, PMID, or title slug.
+matching page in `$KB_ROOT/content/` or `$KB_ROOT/pages/` by NCT number, DOI
+slug, PMID, or title slug.
 
 ### 5. Processing budget
 
@@ -179,15 +185,16 @@ Avoid noisy or expensive scheduled runs, but ensure continuous enrichment:
 For each selected `process_now` / verified item:
 
 - **ClinicalTrials.gov item**: write or update a `type: trial` page under
-  `$KB_ROOT/pages/trial_<nct_or_slug>.md`. Cite the ClinicalTrials.gov URL.
-  State only registry facts: status, condition, intervention, phase, enrollment,
-  locations if visible. Do not infer efficacy.
+  `$KB_ROOT/content/trials/YYYY/MM/trial_<nct_or_slug>.md`. Cite the
+  ClinicalTrials.gov URL. State only registry facts: status, condition,
+  intervention, phase, enrollment, locations if visible. Do not infer efficacy.
 
 - **Peer-reviewed/publisher item**: search PubMed with the exact title first.
   If a PMID is found, fetch it via `pubmed.pubmed_fetch(pmid)`, verify DOI via
-  `crossref.crossref_lookup(doi)`, then create/update a page using the
-  `kb-research` standards. If PubMed cannot verify it, write only to candidate
-  report; do not create a claims page.
+  `crossref.crossref_lookup(doi)`, then create/update a page under
+  `$KB_ROOT/content/studies/YYYY/MM/` using the `kb-research` standards. If
+  PubMed cannot verify it, write only to the candidate report; do not create a
+  claims page.
 
 - **Science/news/community item**: treat as a lead. Search PubMed and/or
   SearXNG for an official primary source. Promote only if verified by PMID, DOI,
@@ -199,7 +206,8 @@ For each selected `process_now` / verified item:
   non-prescriptive and source-attributed. Include frontmatter
   `evidence_grade: low` or `medium`; include an explicit note:
   "Practical guidance source, not individualized medical advice. Discuss care
-  decisions with the MS clinician."
+  decisions with the MS clinician." Write practical pages under
+  `$KB_ROOT/content/practical/YYYY/MM/`.
 
 ### 7. Candidate report hygiene
 
@@ -218,7 +226,7 @@ internal backlog/triage counts.
 
 ### 8. Run report
 
-Always write `$KB_ROOT/queries/rss_watch_YYYY_MM_DD_HHMM.md` with:
+Always write `$KB_ROOT/content/queries/YYYY/MM/rss_watch_YYYY_MM_DD_HHMM.md` with:
 
 ```markdown
 ---
@@ -256,15 +264,16 @@ rejected: N
 
 ### 9. Start Here and Index pages
 
-Create or refresh `$KB_ROOT/pages/Start Here.md` and `$KB_ROOT/pages/Index.md`
-after every run. `Start Here.md` is the curated front door. `Index.md` is the
-human-browseable whole-KB index.
+Run the `kb-maintain` procedure after every run that writes content or reports.
+At minimum, create or refresh `$KB_ROOT/pages/Start Here.md` and
+`$KB_ROOT/pages/Index.md`. `Start Here.md` is the curated front door. `Index.md`
+is the human-browseable whole-KB index.
 
 Use normal markdown links, full web URLs, and KB paths rather than broken
 Logseq URL wikilinks. `Start Here.md` should include:
 
 - Short "where to begin" paragraph.
-- Latest weekly digest/report from `$KB_ROOT/reports/`, if present.
+- Latest weekly digest/report from `$KB_ROOT/content/reports/`, if present.
 - Recent meaningful pages/reports touched in the last 7 days.
 - Topic sections that link to current pages: clinical research, trials worth
   watching, practical living, biomarkers/monitoring, treatments/safety.
@@ -296,8 +305,9 @@ Do not journal enormous queue totals as the headline.
 
 - Never treat a news/community feed item as medical evidence by itself.
 - Never write treatment recommendations.
-- Never write miracle-cure/supplement/product-pitch claims into `pages/`
-  except as a flagged low-evidence warning page when a human explicitly asks.
+- Never write miracle-cure/supplement/product-pitch claims into `content/` or
+  `pages/` except as a flagged low-evidence warning page when a human explicitly
+  asks.
 - Every page written must cite DOI/PMID/NCT/URL in frontmatter and footnotes.
 - Keep raw records even when no page is written; the KB should be auditable.
 - Reference `$KB_ROOT` by name in chat/reports; do not paste the absolute value
