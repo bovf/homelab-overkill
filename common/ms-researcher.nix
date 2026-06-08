@@ -6,7 +6,6 @@
 }: let
   cfg = config.services.ms-researcher;
   kbRoot = "/var/lib/ms-researcher/kb";
-  kbReadmeSrc = ./ms-researcher-kb-readme.md;
 in {
   options.services.ms-researcher = {
     enable = lib.mkEnableOption "MS researcher — third hermes-agent host integration (citation-grounded knowledgebase)";
@@ -225,7 +224,6 @@ in {
         "d ${cfg.agent.kb.path}/raw        0750 ms-researcher ms-researcher -"
         "d ${cfg.agent.kb.path}/queries    0750 ms-researcher ms-researcher -"
         "d ${cfg.agent.kb.path}/reports    0750 ms-researcher ms-researcher -"
-        "C  ${cfg.agent.kb.path}/README.md 0640 ms-researcher ms-researcher - ${kbReadmeSrc}"
         "d /home/ms-researcher/kb         0750 ms-researcher ms-researcher -"
       ];
 
