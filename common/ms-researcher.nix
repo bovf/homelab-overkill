@@ -354,6 +354,64 @@ in {
           printf 'Y\n' | "$HERMES" mcp add crossref \
             --command ${crossrefMcp}/bin/ms-mcp-crossref
         '';
+        cronJobsPrune = pkgs.writeText "ms-researcher-cron-prune.py" ''
+          import json
+          from pathlib import Path
+
+          path = Path('/home/ms-researcher/.hermes/cron/jobs.json')
+          managed = {'rss-watch', 'weekly-digest', 'rss-raw-cleanup'}
+          if path.exists():
+              try:
+                  jobs = json.loads(path.read_text())
+                  if not isinstance(jobs, list):
+                      jobs = []
+              except Exception:
+                  jobs = []
+          else:
+              jobs = []
+          jobs = [job for job in jobs if job.get('name') not in managed]
+          path.parent.mkdir(parents=True, exist_ok=True)
+          path.write_text(json.dumps(jobs, indent=2) + '\n')
+        '';
+        cronSyncScript = pkgs.writeShellScript "ms-researcher-cron-sync" ''
+          set -euo pipefail
+          export HOME=/home/ms-researcher
+          export HERMES_HOME=/home/ms-researcher/.hermes
+          export TZ=Europe/Sofia
+          HERMES=${cfg.agent.package}/bin/hermes
+
+          mkdir -p "$HERMES_HOME/cron"
+
+          # Keep these jobs declarative. The bundled markdown files are the
+          # source of truth; on service restart/deploy, replace any old jobs
+          # with the same managed names so prompt/skill changes take effect.
+          ${pkgs.python3}/bin/python3 ${cronJobsPrune}
+
+          create_job() {
+            name="$1"; shift
+            schedule="$1"; shift
+            deliver="$1"; shift
+            prompt_file="$1"; shift
+            prompt="$(cat "$prompt_file")"
+            "$HERMES" cron create "$schedule" "$prompt" \
+              --name "$name" \
+              --deliver "$deliver" \
+              --workdir /home/ms-researcher \
+              "$@"
+          }
+
+          create_job rss-watch "0 */6 * * *" local \
+            "$HERMES_HOME/cron/rss-watch.md" \
+            --skill kb-rss-watch --skill kb-research --skill kb-ingest --skill kb-journal
+
+          create_job weekly-digest "0 8 * * MON" matrix \
+            "$HERMES_HOME/cron/weekly-digest.md" \
+            --skill kb-journal
+
+          create_job rss-raw-cleanup "0 10 * * MON" local \
+            "$HERMES_HOME/cron/rss-raw-cleanup.md" \
+            --skill kb-rss-cleanup --skill kb-journal
+        '';
       in {
         systemd.tmpfiles.rules =
           [
@@ -365,6 +423,8 @@ in {
           ++ lib.optionals (cfg.agent.soulFile != null) [
             "L+ /home/ms-researcher/.hermes/SOUL.md - - - - ${cfg.agent.soulFile}"
             "h /home/ms-researcher/.hermes/SOUL.md - ms-researcher ms-researcher - -"
+            "L+ /home/ms-researcher/SOUL.md - - - - ${cfg.agent.soulFile}"
+            "h /home/ms-researcher/SOUL.md - ms-researcher ms-researcher - -"
           ];
 
         systemd.services."hermes-agent.ms-researcher" = {
@@ -393,7 +453,8 @@ in {
             ExecStartPre =
               lib.optional cfg.agent.skills.dropBundled
               "${cfg.agent.package}/bin/hermes skills opt-out --remove --yes"
-              ++ lib.optional cfg.agent.mcps.enable "${mcpSyncScript}";
+              ++ lib.optional cfg.agent.mcps.enable "${mcpSyncScript}"
+              ++ lib.optional cfg.agent.cron.enable "${cronSyncScript}";
             ExecStart = "${cfg.agent.package}/bin/hermes gateway";
             Restart = "on-failure";
             RestartSec = 10;
