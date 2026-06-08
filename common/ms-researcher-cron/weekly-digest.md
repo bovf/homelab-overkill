@@ -1,6 +1,6 @@
 ---
 name: weekly-digest
-description: Every Monday 08:00 (Europe/Sofia) — publish a readable MS field update for Dobry and GF, based on citation-grounded KB activity from the last week.
+description: Every Monday 08:00 (Europe/Sofia) — publish a plain, reader-friendly MS weekly field update for Dobry and GF.
 schedule: "0 8 * * MON"
 timezone: "Europe/Sofia"
 delivery:
@@ -8,15 +8,29 @@ delivery:
   target: env:MATRIX_HOME_ROOM
 ---
 
-# Monday MS field digest
+# This week in MS
 
-It is Monday morning. Write a calm, useful, citation-grounded digest that
-Dobry and his girlfriend can read together as a weekly tradition.
+It is Monday morning. Write a plain, calm, easy-to-skim weekly update for two
+people who want to stay informed about MS clinical research and living better
+with MS.
 
-This is **not** an operations report. Do not lead with raw queue counts, feed
-item totals, or internal processing mechanics. The goal is: "What changed in
-the MS field this week, what is worth reading, and what should we treat with
-caution?"
+Think: a small personal newsletter, not a lab meeting and not an ops report.
+The reader should be able to scan it in 2 minutes over coffee.
+
+## Hard rendering rules for Matrix
+
+Matrix chat does not render Logseq wikilinks or markdown footnotes well.
+For the Matrix message:
+
+- Do **not** use `[[page_name]]`.
+- Do **not** use footnotes like `[^1]`.
+- Do **not** use emojis.
+- Do **not** lead with queue counts, feed counts, or internal job mechanics.
+- Use plain titles and short paragraphs/bullets.
+- When pointing to KB material, use a simple path in parentheses:
+  `(KB: kb/pages/<slug>.md)` or `(Full digest: kb/reports/<YYYY>_W<NN>.md)`.
+- If a future `LOGSEQ_BASE_URL` exists, prefer direct links:
+  `<LOGSEQ_BASE_URL>/...`; until then, use KB paths.
 
 ## Inputs you must read, in order
 
@@ -26,20 +40,21 @@ caution?"
 3. `$KB_ROOT/reports/` — last week's digest, if present, so you do not repeat
    unchanged items.
 4. `$KB_ROOT/queries/rss_watch_*.md` from the last 7 days — use only for
-   context on what was queued/rejected; do not present feed totals as news.
-5. `$KB_ROOT/raw/rss/YYYY_MM_DD/*_candidates.md` from the last 7 days only
-   for "watchlist / honourable mention" context. Do not cite raw RSS as
-   evidence unless it points to an official source/DOI/PMID/NCT.
+   context. Do not present feed/backlog totals as news.
+5. `$KB_ROOT/raw/rss/YYYY_MM_DD/*_candidates.md` from the last 7 days only for
+   watchlist context. Do not cite raw RSS as evidence unless it points to an
+   official source/DOI/PMID/NCT.
 
 If a week has zero meaningful activity, deliver exactly:
 
-> "📚 No new MS research highlights this week. The KB is quiet; we'll keep watching."
+> "No major MS research updates made it into the KB this week. The watcher is still running, and we will keep tracking new studies, trials, and practical guidance."
 
 Do not pad. Do not invent activity.
 
 ## Selection rules
 
-Pick items that are household-useful, field-relevant, or clinically meaningful.
+Pick items that are useful for humans, not merely new in a feed.
+
 Prefer:
 
 1. Peer-reviewed or DOI/PMID-backed pages.
@@ -61,7 +76,10 @@ Down-rank or omit:
 
 Path: `$KB_ROOT/reports/<YYYY>_W<NN>.md`, ISO week number two digits.
 
-Use this readable template:
+The report file may use markdown links/KB paths, but still keep it readable.
+Prefer paths over Logseq wikilinks until we have a hosted Logseq URL.
+
+Use this template:
 
 ```markdown
 ---
@@ -74,75 +92,104 @@ new_trials: <integer>
 watchlist_items: <integer>
 ---
 
-# MS field notes — Week <NN> of <YYYY>
+# This week in MS — Week <NN> of <YYYY>
 
-## At a glance
+## The short version
 
-A 3–5 bullet executive summary in plain language. Each bullet must point to a
-KB page/report with sources. No internal queue statistics here.
+3–5 plain bullets. No internal queue statistics. Example tone:
 
-## Top highlights
+- No breakthrough this week, but three new MS trial records were added to the KB.
+- The most practical item is a switch study about subcutaneous ocrelizumab.
+- Main caveat: these are registry records, not published outcomes.
 
-Pick 3–5. For each:
+## Clinical research
 
-### <Plain-language title>
+For each important research/trial item, use this shape:
 
-- **Why it matters:** 2–4 sentences for a human reader living with MS.
-- **What changed this week:** one concrete change from the KB/source.
-- **Evidence level:** high | medium | low | registry-only.
-- **Caveat:** the main limitation.
-- **Read in KB:** `kb/pages/<slug>.md`
+### <Plain title>
 
-## Clinical trial watch
+What it is: one sentence.
+Why it matters: 1–3 sentences.
+What we know so far: 1–3 bullets.
+What we do not know yet: 1–2 bullets.
+Evidence level: high | medium | low | registry-only.
+KB: `kb/pages/<slug>.md`
+Source: DOI/PMID/NCT/official URL in plain text.
 
-Short bullets for new/recruiting/changed trials that matter. Make clear when
-an item is registry-only and has no outcome data yet.
+## Better MS / practical living
 
-## Practical living / care navigation
+Only include practical guidance from recognized MS organizations or official
+sources. Keep it non-prescriptive. Use this shape:
 
-Only include practical tips from recognized MS organizations or official
-sources. Do not give individualized medical advice.
+### <Plain title>
 
-## Honourable mentions / watchlist
+Useful takeaway: 1–2 sentences.
+Care caveat: one sentence.
+KB/source: path or URL.
 
-2–6 short bullets for credible queued items, conference/news leads, or early
-signals that are worth watching but not yet strong enough for a top highlight.
-Say what verification is still needed.
+## Worth watching
 
-## Caveats this week
+2–6 short items that are credible but not ready for the main section. Say why:
+needs PubMed verification, early trial only, news report not yet peer-reviewed,
+conference item, etc.
 
-Plain-language uncertainty: small samples, registry-only, abstract-only,
-paywalled full text, preliminary signal, news not yet peer-reviewed, etc.
+## What to be careful about
 
-## KB changes
+A short caveat section in normal language: registry-only, small samples,
+abstract-only, paywalled full text, preliminary signal, no outcome data, etc.
 
-Small operational footer, not the headline:
+## KB footer
+
+Small operational footer:
 
 - Pages added/updated: <N>
 - Queries answered: <N>
-- RSS/watch reports reviewed: <N>
-- Cleanup/report paths if relevant
+- Watch reports reviewed: <N>
+- Full KB paths for relevant reports
 ```
 
 ## Output: Matrix message
 
-Send a warm compact version to `$MATRIX_HOME_ROOM`.
+Send a compact version to `$MATRIX_HOME_ROOM` that renders well in chat.
+No emojis, no `[[wikilinks]]`, no markdown footnotes.
 
-Start with:
+Use this exact style:
 
-> "📚 Monday MS field notes — Week <NN>: <one-sentence human headline>."
+```markdown
+This week in MS — Week <NN>
 
-Then include:
+Short version:
+- <one useful human-readable bullet>
+- <one useful human-readable bullet>
+- <one useful human-readable bullet>
 
-- `Top 3 this week` — three short bullets.
-- `Trial watch` — 0–3 bullets.
-- `Practical / living with MS` — 0–3 bullets.
-- `Honourable mentions` — 0–3 bullets.
-- `Main caveat` — one sentence.
-- `Full digest: kb/reports/<YYYY>_W<NN>.md`
+Clinical research:
+1. <Plain title>
+   What it is: <one sentence>
+   Why it matters: <one or two sentences>
+   Caveat: <one sentence>
+   KB: kb/pages/<slug>.md
 
-Keep the Matrix message readable on mobile. Do not paste a giant markdown file
-unless the week is genuinely dense. The report file can be longer.
+2. <Plain title>
+   What it is: ...
+   Why it matters: ...
+   Caveat: ...
+   KB: kb/pages/<slug>.md
+
+Better MS / practical living:
+- <0–3 useful practical bullets; omit section if none this week>
+
+Worth watching:
+- <0–3 credible-but-not-ready items; say what verification is needed>
+
+Bottom line:
+<one calm sentence. Example: "Useful tracking week, not a practice-changing week." >
+
+Full digest: kb/reports/<YYYY>_W<NN>.md
+```
+
+Keep the Matrix message short enough to read quickly. If there are many items,
+choose the best 3 and put the rest in the report file.
 
 ## After delivery
 
