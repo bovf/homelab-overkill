@@ -14,6 +14,7 @@
 # stalwart-bootstrap-creds Secret — not a secret value, just the name
 # of where the real DKIM private key lives.
 46f267c2372598113d6fcdc3d55121c1a5b0b7e9:workloads/namespace/mail/apps/stalwart/init-job.nix:generic-api-key:286
+157f088b4627d21085c48fd9fa3676899897de68:workloads/namespace/mail/apps/stalwart/init-job.nix:generic-api-key:286
 
 # Reason: Helm chart `existingSecret:` field naming a k8s Secret by
 # name — not a secret value, just a pointer to where the real secret
