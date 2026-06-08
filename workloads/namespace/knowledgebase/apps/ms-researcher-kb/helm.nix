@@ -188,7 +188,9 @@
                   publisher:
                     - path: /export
             repo:
-              type: emptyDir
+              accessMode: ReadWriteOnce
+              size: 2Gi
+              storageClass: local-path
               advancedMounts:
                 main:
                   main:
