@@ -1,0 +1,213 @@
+{ config, ... }:
+
+{
+  sops.templates."helm/ms-researcher-kb.yaml" = {
+    content = ''
+      apiVersion: helm.cattle.io/v1
+      kind: HelmChart
+      metadata:
+        name: ms-researcher-kb
+        namespace: kube-system
+      spec:
+        repo: https://bjw-s-labs.github.io/helm-charts
+        chart: app-template
+        version: "4.6.2"
+        targetNamespace: knowledgebase
+        createNamespace: false
+        valuesContent: |
+          defaultPodOptions:
+            annotations:
+              configmap.reloader.stakater.com/reload: "ms-researcher-kb-nginx"
+
+          controllers:
+            main:
+              containers:
+                main:
+                  image:
+                    repository: nginx
+                    tag: "1.27-alpine"
+                    pullPolicy: IfNotPresent
+                  probes:
+                    liveness:
+                      enabled: true
+                      custom: true
+                      spec:
+                        httpGet:
+                          path: /
+                          port: 80
+                        initialDelaySeconds: 30
+                        periodSeconds: 30
+                        timeoutSeconds: 5
+                        failureThreshold: 3
+                    readiness:
+                      enabled: true
+                      custom: true
+                      spec:
+                        httpGet:
+                          path: /
+                          port: 80
+                        initialDelaySeconds: 30
+                        periodSeconds: 10
+                        timeoutSeconds: 5
+                        failureThreshold: 6
+                  resources:
+                    requests:
+                      cpu: 20m
+                      memory: 64Mi
+                    limits:
+                      cpu: 250m
+                      memory: 256Mi
+                publisher:
+                  image:
+                    repository: ghcr.io/gissehel/logseq-publish-spa
+                    tag: "latest"
+                    pullPolicy: IfNotPresent
+                  env:
+                    TZ: "Europe/Sofia"
+                    REPO_URL: "https://gitlab.dobryops.com/knowledge-base/ms-researcher-kb.git"
+                    REPO_BRANCH: "main"
+                    POLL_SECONDS: "300"
+                    PUBLISH_UID_GID: "101:101"
+                  command:
+                    - /usr/bin/env
+                    - bash
+                    - -ceu
+                    - |
+                      shopt -s dotglob nullglob
+                      mkdir -p /repo /export
+                      write_placeholder() {
+                        cat > /export/index.html <<'HTML'
+                      <!doctype html>
+                      <html><head><meta charset="utf-8"><title>MS Researcher KB</title></head>
+                      <body><h1>MS Researcher KB</h1><p>The knowledgebase is publishing. Refresh in a minute.</p></body></html>
+                      HTML
+                      }
+                      [ -f /export/index.html ] || write_placeholder
+                      while true; do
+                        changed=0
+                        if [ ! -d /repo/.git ]; then
+                          rm -rf /repo/*
+                          git clone --depth=1 --branch "''${REPO_BRANCH}" "''${REPO_URL}" /repo
+                          changed=1
+                        else
+                          cd /repo
+                          git remote set-url origin "''${REPO_URL}"
+                          git fetch --depth=1 origin "''${REPO_BRANCH}"
+                          old="$(git rev-parse HEAD)"
+                          new="$(git rev-parse "origin/''${REPO_BRANCH}")"
+                          if [ "''${old}" != "''${new}" ]; then
+                            git reset --hard "origin/''${REPO_BRANCH}"
+                            changed=1
+                          fi
+                        fi
+
+                        if [ "''${changed}" = "1" ] || [ ! -f /export/.published-head ]; then
+                          cd /repo
+                          mkdir -p assets journals logseq pages
+                          # The viewer is read-only and should expose the full KB.
+                          # This edits only the disposable clone, never the GitLab repo.
+                          printf '{:publishing/all-pages-public? true}\n' > logseq/config.edn
+
+                          rm -rf /tmp/logseq-export
+                          mkdir -p /tmp/logseq-export
+                          logseq-publish-spa /tmp/logseq-export
+                          test -f /tmp/logseq-export/index.html
+                          rm -rf /export/*
+                          cp -a /tmp/logseq-export/. /export/
+                          git rev-parse HEAD > /export/.published-head
+                          date -Is > /export/.published-at
+                          chown -R "''${PUBLISH_UID_GID}" /export || true
+                          echo "Published MS Researcher KB at $(cat /export/.published-head)"
+                        else
+                          echo "MS Researcher KB unchanged at $(cat /export/.published-head)"
+                        fi
+                        sleep "''${POLL_SECONDS}"
+                      done
+                  resources:
+                    requests:
+                      cpu: 100m
+                      memory: 512Mi
+                    limits:
+                      cpu: 2000m
+                      memory: 2Gi
+
+          service:
+            main:
+              controller: main
+              type: ClusterIP
+              externalIPs:
+                - "100.89.128.16"
+              ports:
+                http:
+                  # 8101 = MS Researcher KB. 8097/8098/8099/8100 are taken.
+                  port: 8101
+                  targetPort: 80
+                  protocol: TCP
+
+          ingress:
+            main:
+              className: traefik
+              annotations:
+                traefik.ingress.kubernetes.io/router.entrypoints: web,websecure
+                traefik.ingress.kubernetes.io/router.middlewares: knowledgebase-ms-researcher-kb-headers@kubernetescrd
+              hosts:
+                - host: ${config.sops.placeholder."pangolin/resources/ms_kb/domain"}
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      service:
+                        identifier: main
+                        port: http
+
+          persistence:
+            export:
+              type: emptyDir
+              advancedMounts:
+                main:
+                  main:
+                    - path: /usr/share/nginx/html
+                  publisher:
+                    - path: /export
+            repo:
+              type: emptyDir
+              advancedMounts:
+                main:
+                  publisher:
+                    - path: /repo
+            nginx-conf:
+              type: configMap
+              name: ms-researcher-kb-nginx
+              advancedMounts:
+                main:
+                  main:
+                    - path: /etc/nginx/conf.d/default.conf
+                      subPath: default.conf
+                      readOnly: true
+    '';
+    path  = "/var/lib/rancher/k3s/server/manifests/ms-researcher-kb.yaml";
+    owner = "root";
+    group = "root";
+    mode  = "0644";
+  };
+
+  services.k3s.manifests.ms-researcher-kb-nginx.content = {
+    apiVersion = "v1";
+    kind = "ConfigMap";
+    metadata = {
+      name = "ms-researcher-kb-nginx";
+      namespace = "knowledgebase";
+    };
+    data."default.conf" = ''
+      server {
+        listen 80;
+        server_name _;
+        root /usr/share/nginx/html;
+        index index.html;
+
+        location / {
+          try_files $uri $uri/ /index.html;
+        }
+      }
+    '';
+  };
+}

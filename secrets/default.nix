@@ -32,6 +32,7 @@
     secrets."uptime-kuma/admin_password" = {};
     secrets."pangolin/resources/search/domain"           = {};
     secrets."pangolin/resources/speedtest/domain"        = {};
+    secrets."pangolin/resources/ms_kb/domain"            = {};
 
     # SearXNG session/image-proxy signing key — `openssl rand -hex 32`.
     secrets."searxng/secret" = {};

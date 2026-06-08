@@ -92,6 +92,7 @@ What it does:
 - Verifies research through PubMed, CrossRef, ClinicalTrials.gov, SearXNG, and official/recognized MS sources before writing KB pages.
 - Writes citation-grounded pages, run reports, journals, and weekly reports under the KB tree.
 - Publishes a reader-friendly Monday morning "This week in MS" digest at 08:00 Europe/Sofia.
+- Exposes the KB as a read-only Logseq-style web view at `ms-kb.dobryops.com` via the `knowledgebase` namespace.
 - Cleans generated RSS raw cache weekly after the digest while preserving manual raw ingests and the RSS seen ledger.
 - Syncs the KB to GitLab every 10 minutes when `/var/lib/ms-researcher/kb` has been initialized as a git repo.
 
@@ -99,6 +100,8 @@ Operational notes:
 - Codex subscription auth is mutable user state. Authenticate with:
   `sudo -u ms-researcher -H /run/current-system/sw/bin/hermes auth add openai-codex --type oauth --no-browser`
 - The KB git repo is initialized manually as `ms-researcher`; Nix wires git/ssh/sops credentials but does not clone over mutable state.
+- The web viewer pulls `https://gitlab.dobryops.com/knowledge-base/ms-researcher-kb.git` every few minutes and republishes the static Logseq view when the repo changes.
+- The viewer is read-only; editing remains through the agent, GitLab, or local Logseq.
 - `koth-dm` is disabled on `engineer`; `hale` is unchanged.
 
 ---
@@ -285,6 +288,7 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   └── namespace/
 │       ├── kube-system/       # traefik, node-feature-discovery
 │       ├── intel-device-plugins/  # Intel GPU device plugin + operator
+│       ├── knowledgebase/     # MS Researcher KB read-only Logseq published web UI
 │       ├── database/          # postgresql, minio (+ loki bucket init), pgadmin
 │       ├── cicd/              # gitlab, argocd, reloader, keel, newt
 │       ├── media/             # jellyfin, sonarr, radarr, prowlarr, bazarr,
