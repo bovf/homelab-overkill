@@ -36,7 +36,7 @@ update changes what a human should read first, refresh this page.
 - Open with a short "where to begin" paragraph for Dobry and his partner.
 - Link to the latest weekly digest in `$KB_ROOT/reports/`.
 - Link to the most important current topic pages by category.
-- Include a "Browse the whole KB" section pointing to `/kb/` in the web UI.
+- Include a "Browse the whole KB" section using a real markdown link: `[Browse the whole KB](/kb/)`. Never write `[[/kb/]]`; that is a broken Logseq wikilink, not a URL.
 - Include "Recent updates" from the last few meaningful pages/reports.
 - Include an evidence legend: peer-reviewed, trial registry, official MS org,
   news lead/watchlist.

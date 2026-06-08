@@ -63,10 +63,12 @@ Keep it human-facing, not operational. It should include:
 - A small "Recent updates" list from meaningful pages/reports touched recently.
 - Topic sections for clinical research, trials worth watching, practical living,
   biomarkers/monitoring, and treatments/safety when pages exist.
-- A "Browse the whole KB" link to `/kb/`, noting that it opens the raw file tree
-  (`pages/`, `journals/`, `reports/`, `queries/`, `raw/`).
+- A "Browse the whole KB" link written exactly as `[Browse the whole KB](/kb/)`,
+  noting that it opens the raw file tree (`pages/`, `journals/`, `reports/`,
+  `queries/`, `raw/`).
 - An evidence legend explaining peer-reviewed, registry-only, official MS org,
   and news lead/watchlist.
 
 Do not use Logseq wikilinks on this page; prefer normal markdown links and KB
 paths so the published web view and raw file-tree view both stay readable.
+Specifically, never write `[[/kb/]]`; use `[Browse the whole KB](/kb/)`.

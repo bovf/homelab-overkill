@@ -267,13 +267,14 @@ Use normal markdown links and paths rather than Logseq wikilinks. Include:
 - Recent meaningful pages/reports touched in the last 7 days.
 - Topic sections that link to current pages: clinical research, trials worth
   watching, practical living, biomarkers/monitoring, treatments/safety.
-- `Browse the whole KB: /kb/` with a note that this opens the raw file tree for
-  `pages/`, `journals/`, `reports/`, `queries/`, and `raw/`.
+- `[Browse the whole KB](/kb/)` with a note that this opens the raw file tree
+  for `pages/`, `journals/`, `reports/`, `queries/`, and `raw/`.
 - Evidence legend for peer-reviewed, registry-only, official MS org, and news
   lead/watchlist.
 
 Do not make `Start Here.md` an ops log. Do not lead with item counts, queue
 sizes, or rejected totals. Medical claims on this page still require citations.
+Never write `[[/kb/]]`; it is a broken Logseq wikilink, not a URL.
 
 ### 10. Journal
 
