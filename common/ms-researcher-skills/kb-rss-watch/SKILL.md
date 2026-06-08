@@ -99,6 +99,7 @@ $KB_ROOT/raw/rss/YYYY_MM_DD/
 $KB_ROOT/queries/
 $KB_ROOT/pages/
 $KB_ROOT/journals/
+$KB_ROOT/reports/
 ```
 
 Use Europe/Sofia local date/time for filenames:
@@ -253,7 +254,28 @@ rejected: N
 - title — source, score, red flags
 ```
 
-### 9. Journal
+### 9. Start Here page
+
+Create or refresh `$KB_ROOT/pages/Start Here.md` after every run. This is the
+published KB entry point, so it should be useful even when a human lands on the
+site without context.
+
+Use normal markdown links and paths rather than Logseq wikilinks. Include:
+
+- Short "where to begin" paragraph.
+- Latest weekly digest/report from `$KB_ROOT/reports/`, if present.
+- Recent meaningful pages/reports touched in the last 7 days.
+- Topic sections that link to current pages: clinical research, trials worth
+  watching, practical living, biomarkers/monitoring, treatments/safety.
+- `Browse the whole KB: /kb/` with a note that this opens the raw file tree for
+  `pages/`, `journals/`, `reports/`, `queries/`, and `raw/`.
+- Evidence legend for peer-reviewed, registry-only, official MS org, and news
+  lead/watchlist.
+
+Do not make `Start Here.md` an ops log. Do not lead with item counts, queue
+sizes, or rejected totals. Medical claims on this page still require citations.
+
+### 10. Journal
 
 Call `kb-journal` with:
 

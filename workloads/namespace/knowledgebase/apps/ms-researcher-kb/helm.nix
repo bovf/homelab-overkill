@@ -118,6 +118,21 @@
                           test -f /tmp/logseq-export/index.html
                           rm -rf /export/*
                           cp -a /tmp/logseq-export/. /export/
+                          python3 - <<'PY'
+                          from pathlib import Path
+                          p = Path('/export/index.html')
+                          html = p.read_text()
+                          script = """<script>
+                          (function () {
+                            if (window.location.hash === "" || window.location.hash === "#" || window.location.hash === "#/") {
+                              window.location.replace(window.location.pathname + window.location.search + "#/page/Start%20Here");
+                            }
+                          }());
+                          </script>"""
+                          if '#/page/Start%20Here' not in html:
+                              html = html.replace('</head>', script + '\n</head>', 1)
+                              p.write_text(html)
+                          PY
                           git rev-parse HEAD > /export/.published-head
                           date -Is > /export/.published-at
                           chown -R "''${PUBLISH_UID_GID}" /export || true
@@ -176,6 +191,9 @@
               type: emptyDir
               advancedMounts:
                 main:
+                  main:
+                    - path: /repo
+                      readOnly: true
                   publisher:
                     - path: /repo
             git-ssh-key:
@@ -216,6 +234,17 @@
         server_name _;
         root /usr/share/nginx/html;
         index index.html;
+
+        location ~ (^|/)\.git(/|$) {
+          return 404;
+        }
+
+        location /kb/ {
+          alias /repo/;
+          autoindex on;
+          autoindex_exact_size off;
+          autoindex_localtime on;
+        }
 
         location / {
           try_files $uri $uri/ /index.html;

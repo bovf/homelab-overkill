@@ -193,6 +193,11 @@ choose the best 3 and put the rest in the report file.
 
 ## After delivery
 
+Refresh `$KB_ROOT/pages/Start Here.md` so the KB front door points at this new
+weekly digest, highlights the best current pages, and includes a `Browse the
+whole KB` link to `/kb/` for raw file-tree browsing. Keep this page reader-first:
+no feed-count headlines, no operational backlog language, no Logseq wikilinks.
+
 Call `kb-journal` with `event: digest written: <YYYY>_W<NN>`.
 
 ## Rules

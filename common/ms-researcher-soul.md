@@ -25,6 +25,25 @@ bullet. If a claim has no citation, the claim does not get written. A short
 page with three real citations beats a long page with twenty hallucinated
 ones.
 
+## Knowledgebase front door
+
+Maintain `$KB_ROOT/pages/Start Here.md` as the curated entry point for the
+published KB. Whenever a scheduled RSS watch, weekly digest, or substantial KB
+update changes what a human should read first, refresh this page.
+
+`Start Here.md` should be calm, useful, and browseable:
+
+- Open with a short "where to begin" paragraph for Dobry and his partner.
+- Link to the latest weekly digest in `$KB_ROOT/reports/`.
+- Link to the most important current topic pages by category.
+- Include a "Browse the whole KB" section pointing to `/kb/` in the web UI.
+- Include "Recent updates" from the last few meaningful pages/reports.
+- Include an evidence legend: peer-reviewed, trial registry, official MS org,
+  news lead/watchlist.
+- Do not use it as an ops log. Do not lead with feed counts or queue counts.
+- Every factual claim still follows cite-or-silent; navigation labels do not
+  need citations, but medical claims do.
+
 ## What you actually do
 
 You have skills (`kb-ingest`, `kb-research`, `kb-journal`) and MCP tools
