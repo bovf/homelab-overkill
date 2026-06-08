@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/ms-researcher-kb.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -64,7 +62,7 @@
                     pullPolicy: IfNotPresent
                   env:
                     TZ: "Europe/Sofia"
-                    REPO_URL: "https://gitlab.dobryops.com/knowledge-base/ms-researcher-kb.git"
+                    REPO_URL: "git@gitlab.dobryops.com:knowledge-base/ms-researcher-kb.git"
                     REPO_BRANCH: "main"
                     POLL_SECONDS: "300"
                     PUBLISH_UID_GID: "101:101"
@@ -74,7 +72,10 @@
                     - -ceu
                     - |
                       shopt -s dotglob nullglob
-                      mkdir -p /repo /export
+                      mkdir -p /repo /export /tmp/ssh
+                      cp /ssh-secret/id_ed25519 /tmp/ssh/id_ed25519
+                      chmod 600 /tmp/ssh/id_ed25519
+                      export GIT_SSH_COMMAND="ssh -i /tmp/ssh/id_ed25519 -p 2222 -o IdentitiesOnly=yes -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/tmp/ssh/known_hosts"
                       write_placeholder() {
                         cat > /export/index.html <<'HTML'
                       <!doctype html>
@@ -174,6 +175,15 @@
                 main:
                   publisher:
                     - path: /repo
+            git-ssh-key:
+              type: hostPath
+              hostPath: ${config.sops.secrets."hermes/ms_researcher_kb_git_ssh_key".path}
+              hostPathType: File
+              advancedMounts:
+                main:
+                  publisher:
+                    - path: /ssh-secret/id_ed25519
+                      readOnly: true
             nginx-conf:
               type: configMap
               name: ms-researcher-kb-nginx
@@ -184,10 +194,10 @@
                       subPath: default.conf
                       readOnly: true
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/ms-researcher-kb.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/ms-researcher-kb.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 
   services.k3s.manifests.ms-researcher-kb-nginx.content = {
