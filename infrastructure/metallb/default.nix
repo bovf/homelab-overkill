@@ -1,7 +1,6 @@
 # MetalLB L2-mode LoadBalancer. Replaces k3s's built-in klipper-lb.
-{ lib, ... }:
-with lib;
-{
+{lib, ...}:
+with lib; {
   imports = [
     ./helm.nix
     ./pools.nix
@@ -12,14 +11,14 @@ with lib;
     enable = mkEnableOption "MetalLB L2-mode LoadBalancer";
 
     namespace = mkOption {
-      type        = types.str;
-      default     = "metallb-system";
+      type = types.str;
+      default = "metallb-system";
       description = "Namespace MetalLB runs in.";
     };
 
     chartVersion = mkOption {
-      type        = types.str;
-      default     = "0.14.9";
+      type = types.str;
+      default = "0.16.1";
       description = "MetalLB helm chart version.";
     };
 
@@ -28,13 +27,13 @@ with lib;
       type = types.submodule {
         options = {
           name = mkOption {
-            type    = types.str;
+            type = types.str;
             default = "lan-pool";
           };
           addresses = mkOption {
-            type        = types.listOf types.str;
+            type = types.listOf types.str;
             description = "CIDR ranges or IP-IP ranges MetalLB allocates from.";
-            example     = [ "192.0.2.10/32" "192.168.2.0/24" ];
+            example = ["192.0.2.10/32" "192.168.2.0/24"];
           };
         };
       };

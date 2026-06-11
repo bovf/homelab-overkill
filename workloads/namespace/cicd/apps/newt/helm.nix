@@ -1,22 +1,20 @@
 # Dedicated newt instance for CI-managed services. Blueprint is in a
 # ConfigMap aggregated from labelled resource CMs (not via sops).
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.newt-cicd.content = {
     apiVersion = "helm.cattle.io/v1";
-    kind       = "HelmChart";
-    metadata   = {
-      name      = "newt-cicd";
+    kind = "HelmChart";
+    metadata = {
+      name = "newt-cicd";
       namespace = "kube-system";
     };
     spec = {
-      repo            = "https://charts.fossorial.io";
-      chart           = "newt";
-      version         = "1.4.0";
+      repo = "https://charts.fossorial.io";
+      chart = "newt";
+      version = "1.5.0";
       targetNamespace = "cicd";
       createNamespace = false;
-      valuesContent   = ''
+      valuesContent = ''
         global:
           podAnnotations:
             configmap.reloader.stakater.com/reload: "pangolin-blueprint-cicd-gitops"

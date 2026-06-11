@@ -1,10 +1,7 @@
-{ config, ... }:
-
-let
-  matrixDomain  = config.sops.placeholder."pangolin/resources/matrix/domain";
-  lkJwtDomain   = config.sops.placeholder."pangolin/resources/livekit_jwt/domain";
-in
-{
+{config, ...}: let
+  matrixDomain = config.sops.placeholder."pangolin/resources/matrix/domain";
+  lkJwtDomain = config.sops.placeholder."pangolin/resources/livekit_jwt/domain";
+in {
   # Full Synapse config + server signing key, rendered on the node so no
   # secret ever lands in git. The initContainer in helm.nix copies these
   # into the /data PVC on every pod start.
@@ -70,9 +67,14 @@ in
           macaroon_secret_key: "${config.sops.placeholder."matrix/synapse/macaroon_secret_key"}"
           form_secret: "${config.sops.placeholder."matrix/synapse/form_secret"}"
 
-          # Element Call / MatrixRTC — advertised in /.well-known/matrix/client
-          # so Element X and Element Web discover the LiveKit SFU. The
-          # lk-jwt-service runs on the Pangolin VPS (pangolin-vps repo).
+          # Element Call / MatrixRTC. Synapse 1.153+ has a first-class
+          # matrix_rtc section; it advertises the configured LiveKit auth
+          # service to compatible clients via /.well-known/matrix/client.
+          # Keep the explicit well-known key too for older clients.
+          matrix_rtc:
+            transports:
+              - type: livekit
+                livekit_service_url: "https://${lkJwtDomain}"
           extra_well_known_client_content:
             "org.matrix.msc4143.rtc_foci":
               - type: "livekit"
@@ -96,9 +98,9 @@ in
         signing.key: |
           ${config.sops.placeholder."matrix/synapse/signing_key"}
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/synapse-config.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/synapse-config.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

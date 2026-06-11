@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/pgadmin.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -11,7 +9,7 @@
       spec:
         repo: https://helm.runix.net
         chart: pgadmin4
-        version: "1.50.0"
+        version: "1.64.0"
         targetNamespace: database
         createNamespace: false
         valuesContent: |
@@ -64,9 +62,9 @@
                   - path: /
                     pathType: Prefix
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/pgadmin.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/pgadmin.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

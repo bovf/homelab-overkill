@@ -8,9 +8,7 @@
 # Stalwart binary lives at /usr/local/bin/stalwart and looks for
 # /opt/stalwart/etc/config.toml by default. The initContainer copies the
 # sops-rendered config + DKIM key into that path on every pod start.
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/stalwart.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -41,7 +39,7 @@
                 copy-config:
                   image:
                     repository: busybox
-                    tag: "1.36"
+                    tag: "1.38.0"
                   securityContext:
                     runAsUser: 0
                     runAsGroup: 0
@@ -52,13 +50,17 @@
                       mkdir -p /opt/stalwart/etc
                       cp /secret/config.toml /opt/stalwart/etc/config.toml
                       cp /secret/dkim.key    /opt/stalwart/etc/dkim.key
-                      chmod 600 /opt/stalwart/etc/config.toml /opt/stalwart/etc/dkim.key
+                      chmod 640 /opt/stalwart/etc/config.toml /opt/stalwart/etc/dkim.key
                       echo "stalwart config staged"
               containers:
                 main:
                   image:
                     repository: stalwartlabs/stalwart
                     tag: "v0.13.0"
+                  command:
+                    - "/usr/local/bin/stalwart"
+                    - "--config"
+                    - "/opt/stalwart/etc/config.toml"
                   env:
                     TZ: "Europe/Helsinki"
                   securityContext:
@@ -155,9 +157,9 @@
                     - path: /etc/stalwart/certs
                       readOnly: true
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/stalwart.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/stalwart.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

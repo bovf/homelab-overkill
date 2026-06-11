@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/qbittorrent.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -25,7 +23,7 @@
                 copy-config:
                   image:
                     repository: busybox
-                    tag: "1.36"
+                    tag: "1.38.0"
                   securityContext:
                     runAsUser: 0
                     runAsGroup: 0
@@ -66,7 +64,7 @@
                 qbittorrent:
                   image:
                     repository: ghcr.io/linuxserver/qbittorrent
-                    tag: "5.1.4"
+                    tag: "5.2.1"
                   env:
                     TZ: "Europe/Helsinki"
                     PUID: "1000"
@@ -157,9 +155,9 @@
                   gluetun:
                     - path: /dev/net/tun
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/qbittorrent.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/qbittorrent.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

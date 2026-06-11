@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/uptime-kuma.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -21,7 +19,7 @@
                 main:
                   image:
                     repository: louislam/uptime-kuma
-                    tag: "1.23.16"
+                    tag: "2.4.0"
                     pullPolicy: IfNotPresent
                   env:
                     TZ: "Europe/Sofia"
@@ -94,9 +92,9 @@
               globalMounts:
                 - path: /app/data
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/uptime-kuma.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/uptime-kuma.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

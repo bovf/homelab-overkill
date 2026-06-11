@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/jellyfin.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -17,7 +15,7 @@
         valuesContent: |
           image:
             repository: docker.io/jellyfin/jellyfin
-            tag: '10.11.8'
+            tag: '10.11.11'
           jellyfin:
             env:
               - name: LIBVA_DRIVERS_PATH
@@ -82,9 +80,9 @@
               - 44
               - 1
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/jellyfin.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/jellyfin.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.traefik-config.content = {
     apiVersion = "helm.cattle.io/v1";
     kind = "HelmChartConfig";
@@ -10,6 +8,11 @@
     };
     spec = {
       valuesContent = ''
+        image:
+          registry: docker.io
+          repository: rancher/mirrored-library-traefik
+          tag: "3.7.4"
+
         ports:
           web:
             port: 8000

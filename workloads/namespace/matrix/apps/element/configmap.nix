@@ -1,9 +1,6 @@
-{ config, ... }:
-
-let
+{config, ...}: let
   matrixDomain = config.sops.placeholder."pangolin/resources/matrix/domain";
-in
-{
+in {
   # Element's config.json. No credentials, but rendered via sops.templates
   # so the homeserver domain never lands in git. `disable_custom_urls` locks
   # the client to our homeserver — a private, friends-only server.
@@ -28,6 +25,11 @@ in
             "disable_guests": true,
             "disable_3pid_login": true,
             "show_labs_settings": false,
+            "features": {
+              "feature_group_calls": true,
+              "feature_video_rooms": true,
+              "feature_element_call_video_rooms": true
+            },
             "room_directory": {
               "servers": ["${matrixDomain}"]
             },
@@ -36,9 +38,9 @@ in
             }
           }
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/element-config.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/element-config.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

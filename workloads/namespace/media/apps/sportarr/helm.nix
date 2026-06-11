@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/sportarr.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -21,10 +19,10 @@
                 main:
                   image:
                     repository: sportarr/sportarr
-                    # Pinned to digest (upstream only ships `latest` + `-dev` tags,
-                    # so this is the only way to make deploys reproducible).
-                    # Bump by re-resolving with: docker buildx imagetools inspect sportarr/sportarr:latest
-                    tag: "latest@sha256:7d3247c5c928f7c688bf90e8db2b42109d6a2e83b00483c42c67faa17b558964"
+                    # Pinned to digest (upstream publishes mutable stable/dev tags,
+                    # so this keeps deploys reproducible).
+                    # Bump by re-resolving with: docker buildx imagetools inspect sportarr/sportarr:4
+                    tag: "4@sha256:1b2b00ee5d263e9bfa18a60bc50d03952dcbcad5a4191bd38c73ea775bb82c80"
                   env:
                     TZ: "Europe/Helsinki"
                     PUID: "1000"
@@ -64,9 +62,9 @@
               globalMounts:
                 - path: /config
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/sportarr.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/sportarr.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

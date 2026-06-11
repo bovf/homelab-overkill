@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/ezbookkeeping.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -26,7 +24,7 @@
                 main:
                   image:
                     repository: docker.io/mayswind/ezbookkeeping
-                    tag: "1.5.0"
+                    tag: "1.5.1"
                   # EBK_DATABASE_PASSWD and EBK_SECURITY_SECRET_KEY come from
                   # the ezbookkeeping-credentials secret (keys named to match).
                   envFrom:
@@ -122,9 +120,9 @@
               globalMounts:
                 - path: /ezbookkeeping/storage
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/ezbookkeeping.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/ezbookkeeping.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }
