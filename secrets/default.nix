@@ -37,9 +37,8 @@
     # Laravel APP_KEY for speedtest-tracker — must be `base64:<32 random
     # bytes base64'd>`. Generate: echo "base64:$(openssl rand -base64 32)"
     secrets."speedtest/app_key" = {};
-    # GitLab project-access token with read_repository scope on both
-    # bovf/homelab-overkill and bovf/pl-badwater. Consumed by the Glance
-    # dashboard (next commit) to render the nixpkgs-unstable drift widget.
+    # GitLab project/group access token with read_repository scope for the
+    # dashboard flake-lock drift widgets, including nix/pl-badwater.
     secrets."gitlab/glance_read_token" = {};
 
     # Pangolin TCP tunnel ports. The matching domain keys are consumed

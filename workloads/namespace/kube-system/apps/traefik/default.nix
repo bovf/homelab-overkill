@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./helm.nix
     ./ingress.nix
@@ -9,5 +7,6 @@
     ./pangolin-blueprint.nix
     ./local-dns.nix
     ./certificate.nix
+    ./uptime.nix
   ];
 }
