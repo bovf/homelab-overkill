@@ -11,5 +11,6 @@
     ./prime-runner-tools.nix
     ./secret.nix
     ./service.nix
+    ./uptime.nix
   ];
 }

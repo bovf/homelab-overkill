@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   services.k3s.manifests.glance-icons.content = {
     apiVersion = "v1";
     kind = "ConfigMap";
@@ -9,10 +7,10 @@
       namespace = "dashboard";
     };
     data = {
-      "stalwart.svg"      = builtins.readFile ./icons/stalwart.svg;
+      "stalwart.svg" = builtins.readFile ./icons/stalwart.svg;
       "ezbookkeeping.svg" = builtins.readFile ./icons/ezbookkeeping.svg;
-      "blog.svg"          = builtins.readFile ./icons/blog.svg;
-      "pangolin.svg"      = builtins.readFile ./icons/pangolin.svg;
+      "blog.svg" = builtins.readFile ./icons/blog.svg;
+      "pangolin.svg" = builtins.readFile ./icons/pangolin.svg;
     };
   };
 
@@ -124,10 +122,10 @@
                 - path: /app/custom-assets/icons
                   readOnly: true
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/glance.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/glance.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 
   # Env-injected secrets for the dashboard's API integrations. Kept out
@@ -149,15 +147,14 @@
         BAZARR_KEY:      "${config.sops.placeholder."media/bazarr/api_key"}"
         JELLYSEERR_KEY:  "${config.sops.placeholder."media/jellyseerr/api_key"}"
         JELLYFIN_KEY:    "${config.sops.placeholder."homarr/integrations/jellyfin_key"}"
-        # NOTE: This is the Laravel APP_KEY (encryption key), not a
-        # Sanctum bearer token. /api/v1/* will 302 to login. Generate a
-        # real token in speedtest-tracker UI → Settings → API Tokens →
-        # add as `speedtest/api_token` in sops and swap this reference.
-        SPEEDTEST_TOKEN: "${config.sops.placeholder."speedtest/app_key"}"
+        # Seeded by speedtest-tracker-api-token-job.nix. Laravel Sanctum
+        # bearer tokens are `<token-id>|<plain token>`; the job stores the
+        # SHA-256 of APP_KEY as token id 9002 with results:read scope.
+        SPEEDTEST_TOKEN: "9002|${config.sops.placeholder."speedtest/app_key"}"
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/glance-env.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/glance-env.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

@@ -20,12 +20,10 @@
 # In-cluster Service URLs use the *Service* port (the tunnel-IP-side
 # port), NOT the pod-side targetPort. uptime-kuma exposes :8097
 # (pod listens on 3001), speedtest-tracker :8099 (pod on 80), etc.
-{ config, ... }:
-
-let
-  prom    = "http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090";
-  amgr    = "http://kube-prometheus-stack-alertmanager.monitoring.svc.cluster.local:9093";
-  kuma    = "http://uptime-kuma.monitoring.svc.cluster.local:8097";
+{config, ...}: let
+  prom = "http://kube-prometheus-stack-prometheus.monitoring.svc.cluster.local:9090";
+  amgr = "http://kube-prometheus-stack-alertmanager.monitoring.svc.cluster.local:9093";
+  kuma = "http://uptime-kuma.monitoring.svc.cluster.local:8097";
   spdtest = "http://speedtest-tracker.monitoring.svc.cluster.local:8099";
 
   promQuery = q: "${prom}/api/v1/query?query=${q}";
@@ -33,10 +31,8 @@ let
   # Wide hardcoded date range for *arr calendars - Sonarr/Radarr
   # require start+end. Refresh every couple years or so.
   arrStart = "2026-01-01T00:00:00Z";
-  arrEnd   = "2027-06-01T00:00:00Z";
-
-in
-{
+  arrEnd = "2027-06-01T00:00:00Z";
+in {
   sops.templates."glance/config.yaml" = {
     content = ''
       apiVersion: v1
@@ -380,7 +376,10 @@ in
                     - type: custom-api
                       title: nixpkgs - pl-badwater
                       cache: 30m
-                      url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}/api/v4/projects/bovf%2Fpl-badwater/repository/files/flake.lock/raw?ref=main
+                      # Project id 21 = nix/pl-badwater. Use the numeric id
+                      # to avoid path-encoding ambiguity after the repo moved
+                      # from bovf/pl-badwater to the nix group.
+                      url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}/api/v4/projects/21/repository/files/flake.lock/raw?ref=main
                       headers:
                         PRIVATE-TOKEN: ''${GITLAB_TOKEN}
                       subrequests:
@@ -404,21 +403,18 @@ in
                           </div>
                         {{ end }}
 
-                    # SPEEDTEST - latest result from speedtest-tracker v1.14+
-                    # Requires a Sanctum bearer token. Generate one in the
-                    # UI: Settings → API Tokens → Create, then set
-                    # speedtest/api_token in sops.
+                    # SPEEDTEST - public latest result endpoint. Values are
+                    # already returned in Mbps by speedtest-tracker.
                     - type: custom-api
                       title: Speedtest
                       cache: 5m
-                      url: ${spdtest}/api/v1/results/latest
+                      url: ${spdtest}/api/speedtest/latest
                       headers:
-                        Authorization: Bearer ''${SPEEDTEST_TOKEN}
                         Accept: application/json
                       template: |
                         <div class="flex flex-column gap-5">
-                          <div class="flex justify-between"><span>↓ download</span><span class="size-h4">{{ printf "%.0f Mbps" (div (.JSON.Float "data.download") 1000000.0) }}</span></div>
-                          <div class="flex justify-between"><span>↑ upload</span><span class="size-h4">{{ printf "%.0f Mbps" (div (.JSON.Float "data.upload") 1000000.0) }}</span></div>
+                          <div class="flex justify-between"><span>↓ download</span><span class="size-h4">{{ printf "%.0f Mbps" (.JSON.Float "data.download") }}</span></div>
+                          <div class="flex justify-between"><span>↑ upload</span><span class="size-h4">{{ printf "%.0f Mbps" (.JSON.Float "data.upload") }}</span></div>
                           <div class="flex justify-between"><span>· ping</span><span class="size-h4">{{ printf "%.0f ms" (.JSON.Float "data.ping") }}</span></div>
                         </div>
 
@@ -722,9 +718,9 @@ in
                         - url: https://media.rss.com/linkarzu/feed.xml
                           title: Linkarzu
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/glance-config.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/glance-config.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }
