@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/argocd.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -11,7 +9,7 @@
       spec:
         repo: https://argoproj.github.io/argo-helm
         chart: argo-cd
-        version: "7.7.17"
+        version: "9.5.20"
         targetNamespace: cicd
         createNamespace: false
         valuesContent: |
@@ -57,6 +55,12 @@
                 memory: 2Gi
 
           dex:
+            enabled: false
+
+          redisSecretInit:
+            # The existing argocd-redis secret is already present. On upgrades
+            # the 9.x chart's pre-upgrade secret-init hook can time out under
+            # k3s HelmChart and block the whole Argo CD image upgrade.
             enabled: false
 
           redis:
@@ -125,9 +129,9 @@
             extraArgs:
               - --repo-server-timeout-seconds=180
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/argocd.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/argocd.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

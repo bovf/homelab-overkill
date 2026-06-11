@@ -1,5 +1,4 @@
-{ ... }:
-{
+{...}: {
   services.k3s.manifests.minio-apply-public-policy-job.content = {
     apiVersion = "batch/v1";
     kind = "Job";
@@ -15,7 +14,7 @@
           containers = [
             {
               name = "mc";
-              image = "minio/mc:latest";
+              image = "minio/mc:RELEASE.2025-08-13T08-35-41Z-cpuv1";
               imagePullPolicy = "IfNotPresent";
               env = [
                 {
@@ -38,9 +37,13 @@
                 }
               ];
               volumeMounts = [
-                { name = "policy"; mountPath = "/policy"; readOnly = true; }
+                {
+                  name = "policy";
+                  mountPath = "/policy";
+                  readOnly = true;
+                }
               ];
-              command = [ "bash" ];
+              command = ["bash"];
               args = [
                 "-ec"
                 ''
@@ -67,13 +70,22 @@
                 ''
               ];
               resources = {
-                requests = { cpu = "50m"; memory = "64Mi"; };
-                limits   = { cpu = "200m"; memory = "128Mi"; };
+                requests = {
+                  cpu = "50m";
+                  memory = "64Mi";
+                };
+                limits = {
+                  cpu = "200m";
+                  memory = "128Mi";
+                };
               };
             }
           ];
           volumes = [
-            { name = "policy"; configMap = { name = "minio-default-public-policy"; }; }
+            {
+              name = "policy";
+              configMap = {name = "minio-default-public-policy";};
+            }
           ];
         };
       };

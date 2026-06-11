@@ -9,7 +9,7 @@
       spec:
         repo: https://prometheus-community.github.io/helm-charts
         chart: kube-prometheus-stack
-        version: "84.5.0"
+        version: "86.2.2"
         targetNamespace: monitoring
         createNamespace: true
         valuesContent: |
@@ -27,6 +27,14 @@
             disabled:
               Watchdog: true
               InfoInhibitor: true
+
+          prometheusOperator:
+            admissionWebhooks:
+              # Avoid k3s HelmChart pre/post-upgrade hook timeouts. The
+              # validating webhook is useful guardrail, but not required for
+              # this single-node homelab and currently blocks chart/image
+              # upgrades from rolling out.
+              enabled: false
 
           alertmanager:
             service:

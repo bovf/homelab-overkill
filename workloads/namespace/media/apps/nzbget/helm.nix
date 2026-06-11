@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/nzbget.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -28,7 +26,7 @@
                 copy-config:
                   image:
                     repository: busybox
-                    tag: "1.36"
+                    tag: "1.38.0"
                   securityContext:
                     runAsUser: 0
                     runAsGroup: 0
@@ -128,9 +126,9 @@
                     - path: /secret
                       readOnly: true
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/nzbget.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/nzbget.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

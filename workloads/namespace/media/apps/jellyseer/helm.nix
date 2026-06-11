@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/jellyseerr.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -27,7 +25,7 @@
                 main:
                   image:
                     repository: seerr/seerr
-                    tag: v3.2.0
+                    tag: v3.3
                   env:
                     TZ: "Europe/Helsinki"
                     LOG_LEVEL: "info"
@@ -62,9 +60,9 @@
               globalMounts:
                 - path: /app/config
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/jellyseerr.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/jellyseerr.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

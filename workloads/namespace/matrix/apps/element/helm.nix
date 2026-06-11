@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/element.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -25,7 +23,7 @@
                 main:
                   image:
                     repository: ghcr.io/element-hq/element-web
-                    tag: "v1.12.18"
+                    tag: "v1.12.21"
                   probes:
                     liveness:
                       enabled: true
@@ -91,9 +89,9 @@
                   subPath: config.json
                   readOnly: true
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/element.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/element.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

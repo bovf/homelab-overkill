@@ -4,27 +4,24 @@
 #
 # Schema targets Stalwart 0.13.x. Verify against
 # https://stalw.art/docs/install/configure on upgrade.
-{ config, ... }:
-
-let
+{config, ...}: let
   mailHostname = config.sops.placeholder."mail/server_hostname";
 
-  brevoUser  = config.sops.placeholder."mail/brevo/smtp_user";
-  brevoKey   = config.sops.placeholder."mail/brevo/smtp_key";
+  brevoUser = config.sops.placeholder."mail/brevo/smtp_user";
+  brevoKey = config.sops.placeholder."mail/brevo/smtp_key";
 
   # Fallback admin — Stalwart 0.13 doesn't authenticate against
   # `[[principal]]` blocks in local config (those only seed "local
   # config" overrides, not the auth DB). Real principals are created
   # via the admin UI on first login. The fallback-admin bypasses the
   # DB so we always have a way in.
-  adminPwd   = config.sops.placeholder."mail/stalwart/admin_password";
+  adminPwd = config.sops.placeholder."mail/stalwart/admin_password";
 
   # Single-line base64 of the PEM. Stored that way in sops because YAML
   # block-scalar substitution doesn't re-indent multi-line placeholders,
   # and breaking the | block kills the whole Secret manifest.
   dkimKeyB64 = config.sops.placeholder."mail/stalwart/dkim_private_key_b64";
-in
-{
+in {
   sops.templates."mail/stalwart-config.yaml" = {
     content = ''
       apiVersion: v1
@@ -35,6 +32,24 @@ in
       type: Opaque
       stringData:
         config.toml: |
+          # These settings are intentionally Nix/SOPS-owned. Stalwart 0.13
+          # warns when DB-managed keys are present in the local config unless
+          # they are listed here. Keep operationally-sensitive outbound relay,
+          # auth policy, DKIM signature, and MTA-STS policy declarative.
+          config.local-keys.0 = "remote.*"
+          config.local-keys.1 = "remote.*.*"
+          config.local-keys.2 = "remote.*.*.*"
+          config.local-keys.3 = "queue.outbound.*"
+          config.local-keys.4 = "queue.outbound.*.*"
+          config.local-keys.5 = "queue.outbound.*.*.*"
+          config.local-keys.6 = "signature.*"
+          config.local-keys.7 = "signature.*.*"
+          config.local-keys.8 = "signature.*.*.*"
+          config.local-keys.9 = "auth.*"
+          config.local-keys.10 = "auth.*.*"
+          config.local-keys.11 = "auth.*.*.*"
+          config.local-keys.12 = "session.mta-sts.*"
+
           [server]
           hostname = "${mailHostname}"
 
@@ -154,9 +169,9 @@ in
       data:
         dkim.key: ${dkimKeyB64}
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/stalwart-config.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/stalwart-config.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

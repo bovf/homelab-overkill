@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/loki.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -18,6 +16,8 @@
           deploymentMode: SingleBinary
 
           loki:
+            image:
+              tag: 3.7.2
             auth_enabled: false
             commonConfig:
               replication_factor: 1
@@ -105,9 +105,9 @@
             rules:
               enabled: false
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/loki.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/loki.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   sops.templates."helm/alloy.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -11,7 +9,7 @@
       spec:
         repo: https://grafana.github.io/helm-charts
         chart: alloy
-        version: "1.8.1"
+        version: "1.9.0"
         targetNamespace: monitoring
         createNamespace: false
         valuesContent: |
@@ -153,9 +151,9 @@
           serviceMonitor:
             enabled: true
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/alloy.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/alloy.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

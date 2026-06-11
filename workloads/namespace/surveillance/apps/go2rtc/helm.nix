@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/go2rtc.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -38,7 +36,7 @@
                 main:
                   image:
                     repository: alexxit/go2rtc
-                    tag: "1.9.10"
+                    tag: "1.9.14"
                     pullPolicy: IfNotPresent
                   env:
                     TZ: "Europe/Sofia"
@@ -135,9 +133,9 @@
               globalMounts:
                 - path: /dev/snd
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/go2rtc.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/go2rtc.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

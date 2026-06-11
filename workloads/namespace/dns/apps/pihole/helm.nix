@@ -1,14 +1,16 @@
-{ config, lib, ... }:
-
-let
+{
+  config,
+  lib,
+  ...
+}: let
   inherit (lib) mapAttrsToList concatStringsSep;
 
-  hostEntries = mapAttrsToList
+  hostEntries =
+    mapAttrsToList
     (_: r: "${r.ip} ${r.host}")
     config.workloads.localDnsRecords;
   dnsHosts = concatStringsSep ";" hostEntries;
-in
-{
+in {
   sops.templates."helm/pihole.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -19,7 +21,7 @@ in
       spec:
         repo: https://mojo2600.github.io/pihole-kubernetes/
         chart: pihole
-        version: "2.31.0"
+        version: "2.35.0"
         targetNamespace: dns
         createNamespace: false
         valuesContent: |
@@ -27,7 +29,7 @@ in
 
           image:
             repository: pihole/pihole
-            tag: "2025.02.2"
+            tag: "2026.05.0"
             pullPolicy: IfNotPresent
 
           strategy:
@@ -135,9 +137,9 @@ in
           tolerations: []
           affinity: {}
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/pihole.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/pihole.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

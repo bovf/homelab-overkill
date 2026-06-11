@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/minio.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -11,13 +9,13 @@
       spec:
         repo: https://charts.min.io/
         chart: minio
-        version: "5.3.0"
+        version: "5.4.0"
         targetNamespace: database
         createNamespace: false
         valuesContent: |
           image:
             repository: quay.io/minio/minio
-            tag: latest
+            tag: RELEASE.2025-09-07T16-13-09Z.hotfix.7aa24e772
             pullPolicy: IfNotPresent
 
           mode: standalone
@@ -74,9 +72,9 @@
             path: /
             pathType: Prefix
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/minio.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/minio.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

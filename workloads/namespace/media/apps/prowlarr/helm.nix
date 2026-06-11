@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/prowlarr.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -21,7 +19,7 @@
                 main:
                   image:
                     repository: ghcr.io/linuxserver/prowlarr
-                    tag: 2.3.5
+                    tag: 2.4.0
                   env:
                     TZ: "Europe/Helsinki"
                     PUID: "1000"
@@ -57,9 +55,9 @@
               globalMounts:
                 - path: /config
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/prowlarr.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/prowlarr.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }
