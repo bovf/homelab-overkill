@@ -55,6 +55,10 @@
               chunk_target_size: 1572864
               chunk_retain_period: 30s
 
+          sidecar:
+            image:
+              tag: 2.7.3
+
           singleBinary:
             replicas: 1
             persistence:

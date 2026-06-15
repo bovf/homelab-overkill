@@ -9,7 +9,7 @@
       spec:
         repo: https://prometheus-community.github.io/helm-charts
         chart: kube-prometheus-stack
-        version: "86.2.2"
+        version: "86.2.3"
         targetNamespace: monitoring
         createNamespace: true
         valuesContent: |
@@ -53,6 +53,8 @@
               hosts:
                 - ${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
             alertmanagerSpec:
+              image:
+                tag: v0.33.0
               # Makes the "View in Alertmanager" link in emails public.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}"
             config:
@@ -93,6 +95,8 @@
               hosts:
                 - ${config.sops.placeholder."pangolin/resources/prometheus/domain"}
             prometheusSpec:
+              image:
+                tag: v3.12.0
               # Makes Prometheus generate public absolute links behind Traefik/Pangolin.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/prometheus/domain"}"
               enableFeatures:
@@ -104,6 +108,14 @@
               ruleSelectorNilUsesHelmValues: false
               probeSelectorNilUsesHelmValues: false
               scrapeConfigSelectorNilUsesHelmValues: false
+          kube-state-metrics:
+            image:
+              tag: v2.19.1
+
+          prometheus-node-exporter:
+            image:
+              distroless: false
+
           grafana:
             service:
               type: ClusterIP

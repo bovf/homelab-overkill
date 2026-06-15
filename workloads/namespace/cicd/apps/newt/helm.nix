@@ -16,6 +16,8 @@
       createNamespace = false;
       valuesContent = ''
         global:
+          image:
+            tag: "1.13"
           podAnnotations:
             configmap.reloader.stakater.com/reload: "pangolin-blueprint-cicd-gitops"
 

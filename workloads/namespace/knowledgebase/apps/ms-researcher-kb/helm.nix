@@ -23,7 +23,7 @@
                 main:
                   image:
                     repository: nginx
-                    tag: "1.31.1-alpine"
+                    tag: "1.31.1"
                     pullPolicy: IfNotPresent
                   probes:
                     liveness:

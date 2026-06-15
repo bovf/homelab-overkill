@@ -1,20 +1,23 @@
-{ config, lib, ... }:
-with lib;
-let
+{
+  config,
+  lib,
+  ...
+}:
+with lib; let
   cfg = config.services.metallb;
 in {
   config = mkIf cfg.enable {
     services.k3s.manifests.metallb.content = {
       apiVersion = "helm.cattle.io/v1";
-      kind       = "HelmChart";
+      kind = "HelmChart";
       metadata = {
-        name      = "metallb";
+        name = "metallb";
         namespace = "kube-system";
       };
       spec = {
-        repo            = "https://metallb.github.io/metallb";
-        chart           = "metallb";
-        version         = cfg.chartVersion;
+        repo = "https://metallb.github.io/metallb";
+        chart = "metallb";
+        version = cfg.chartVersion;
         targetNamespace = cfg.namespace;
         createNamespace = true;
         valuesContent = ''
@@ -24,6 +27,11 @@ in {
           speaker:
             tolerations:
               - operator: Exists
+          frr-k8s:
+            frrk8s:
+              frr:
+                image:
+                  tag: 10.6.1
         '';
       };
     };
