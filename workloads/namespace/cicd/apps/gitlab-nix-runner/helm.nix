@@ -68,7 +68,7 @@
               cpu: 50m
               memory: 128Mi
             limits:
-              cpu: 250m
+              cpu: "1"
               memory: 256Mi
     '';
     path = "/var/lib/rancher/k3s/server/manifests/gitlab-nix-cache-runner.yaml";
