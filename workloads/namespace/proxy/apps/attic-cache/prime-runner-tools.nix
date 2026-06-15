@@ -31,7 +31,7 @@
 
   container = {
     name = "prime";
-    image = "nixos/nix:2.28.3";
+    image = "nixos/nix:2.34.7";
     imagePullPolicy = "IfNotPresent";
     command = ["/bin/sh" "-ec"];
     args = [primeScript];

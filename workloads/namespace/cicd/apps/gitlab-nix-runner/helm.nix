@@ -49,7 +49,7 @@
                 """
                 [runners.kubernetes]
                   namespace = "cicd"
-                  image = "nixos/nix:2.28.3"
+                  image = "nixos/nix:2.34.7"
                   pull_policy = "if-not-present"
                   cpu_request = "2"
                   memory_request = "4Gi"
