@@ -82,6 +82,8 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 
 > \* Pi-hole serves DNS for the cluster's domains via per-workload `local-dns.nix` declarations aggregated into `FTLCONF_dns_hosts`. Setting it as the LAN's upstream DNS is a router-side change.
 
+Mail hosting for `dobryops.com` is intentionally external via Proton Mail; this cluster does not run an SMTP/IMAP mail server.
+
 ### MS Researcher Agent
 
 `services.ms-researcher` runs a dedicated Hermes Matrix bot on `engineer` for Multiple Sclerosis research tracking. It maintains a mutable Logseq-style KB at `/var/lib/ms-researcher/kb` and exposes it under `/home/ms-researcher/kb` for the agent.

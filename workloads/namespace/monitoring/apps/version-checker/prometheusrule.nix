@@ -19,7 +19,6 @@
             expr = ''
               version_checker_is_latest_version{
                 image!="rancher/klipper-helm",
-                image!="stalwartlabs/stalwart",
                 image!="postgres",
                 image!="docker.io/bitnamilegacy/redis",
                 image!="docker.io/bitnamilegacy/redis-exporter",

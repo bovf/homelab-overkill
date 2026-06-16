@@ -7,7 +7,6 @@
       namespace = "dashboard";
     };
     data = {
-      "stalwart.svg" = builtins.readFile ./icons/stalwart.svg;
       "ezbookkeeping.svg" = builtins.readFile ./icons/ezbookkeeping.svg;
       "blog.svg" = builtins.readFile ./icons/blog.svg;
       "pangolin.svg" = builtins.readFile ./icons/pangolin.svg;

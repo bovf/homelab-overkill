@@ -150,17 +150,6 @@
     secrets."homarr/integrations/pihole_app_password" = {};
     secrets."monitoring/grafana/embed_api_token" = {};
 
-    # Mail (Stalwart in-cluster, Brevo as outbound relay). DKIM private
-    # key is generated once locally (`openssl genrsa -out dkim.key 2048`),
-    # base64-DER public published as TXT at default._domainkey.dobryops.com.
-    secrets."mail/server_hostname" = {}; # e.g. mail.dobryops.com (Stalwart server.hostname + MX target)
-    secrets."pangolin/resources/mailadmin/domain" = {};
-    secrets."mail/brevo/smtp_user" = {};
-    secrets."mail/brevo/smtp_key" = {};
-    secrets."mail/stalwart/admin_password" = {};
-    secrets."mail/stalwart/dkim_private_key_b64" = {}; # single-line base64 of the PEM
-    secrets."mail/stalwart/users/dobry/password" = {};
-
     secrets."ssh_keys/dobrynikolov" = {};
     secrets."ssh_keys/dobrynikolov.pub" = {};
     secrets."ssh_keys/engineer" = {};
