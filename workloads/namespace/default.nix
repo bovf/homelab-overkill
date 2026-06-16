@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./blog
     ./cert-manager
@@ -13,7 +11,6 @@
     ./intel-device-plugins
     ./kube-system
     ./knowledgebase
-    ./mail
     ./matrix
     ./media
     ./monitoring

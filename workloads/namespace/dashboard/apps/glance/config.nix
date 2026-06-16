@@ -289,9 +289,9 @@ in {
                             - title: Synapse Admin
                               url: https://${config.sops.placeholder."pangolin/resources/synapse_admin/domain"}
                               icon: si:matrix
-                            - title: Mail
-                              url: https://${config.sops.placeholder."pangolin/resources/mailadmin/domain"}
-                              icon: auto-invert /assets/icons/stalwart.svg
+                            - title: Proton Mail
+                              url: https://mail.proton.me
+                              icon: si:protonmail
                         - title: Personal
                           links:
                             - title: ezBookkeeping
