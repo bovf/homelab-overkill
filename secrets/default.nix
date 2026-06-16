@@ -1,6 +1,11 @@
 {...}: {
   sops = {
     defaultSopsFile = ./secrets.yaml;
+    # Raw SSH public-key SOPS recipients, including RSA workstation keys,
+    # require SOPS_AGE_SSH_PRIVATE_KEY_FILE. Existing engineer installs use
+    # /root/.ssh/id_ed25519; bootstrap also stages /root/.ssh/engineer for
+    # future standardization once that named key exists on the host.
+    environment.SOPS_AGE_SSH_PRIVATE_KEY_FILE = "/root/.ssh/id_ed25519";
     age.sshKeyPaths = ["/root/.ssh/id_ed25519"];
     age.generateKey = false;
 
@@ -121,6 +126,10 @@
     secrets."database/postgres/ezbookkeeping/password" = {};
     secrets."finance/ezbookkeeping/secret_key" = {};
 
+    # Pangolin VPS native service environment. This currently includes
+    # SERVER_SECRET for services.pangolin.
+    secrets."pangolin/env" = {};
+
     # Matrix (Synapse homeserver + Element Web). VoIP (Element Call / LiveKit)
     # runs on the Pangolin VPS; livekit_jwt/domain points clients at it.
     secrets."pangolin/resources/matrix/domain" = {};
@@ -132,6 +141,8 @@
     secrets."matrix/synapse/form_secret" = {};
     secrets."pangolin/resources/synapse_admin/domain" = {};
     secrets."pangolin/resources/livekit_jwt/domain" = {};
+    secrets."matrix/livekit-api-key" = {};
+    secrets."matrix/livekit-api-secret" = {};
 
     # Homarr — homepage / launcher. Integration API keys are entered via
     # the Homarr web UI on first boot (stored in SQLite on the appdata PVC);

@@ -118,7 +118,7 @@ Operational notes:
 
 - NixOS (or Linux with Nix)
 - Basic familiarity with Nix and Kubernetes
-- A VPS running Pangolin (this flake's `pangolin-kwg` site connects via kernel WireGuard)
+- A managed Pangolin VPS (`pangolin`) and the home server (`engineer`) declared in this flake
 
 ### Setup
 
@@ -135,15 +135,45 @@ nix run .#secrets -- init
 nix run .#secrets -- bootstrap <node>
 ```
 
+Secrets live in one encrypted file, `secrets/secrets.yaml`, including the
+Pangolin VPS service environment and LiveKit credentials. SOPS recipients are
+managed in `.sops.yaml`; raw SSH public keys are supported via
+`SOPS_AGE_SSH_PRIVATE_KEY_FILE`, while existing converted age recipients remain
+for compatibility during migration.
+
 **3. Install on your node**
 ```bash
 nix run .#deploy -- install engineer-local
+nix run .#deploy -- install pangolin-remote
 ```
 
-**4. Update an existing cluster**
+`nixos-anywhere` remains the one-shot installer for SSH-reachable machines.
+`pangolin` is remote-only, so it has no `pangolin-local` deploy target. For
+rescue/offline workflows, build per-node ISOs with:
+
+```bash
+nix build .#engineer-install-iso
+nix build .#pangolin-install-iso
+```
+
+**4. Update an existing node**
 ```bash
 nix run .#deploy -- update engineer-local
+nix run .#deploy -- update pangolin-remote
 ```
+
+`pangolin` is remote-only. Its generated SSH target matches:
+
+```sshconfig
+Host pangolin pangolin-remote
+  HostName 203.0.113.10
+  User root
+  IdentityFile ~/.ssh/id_homelab
+```
+
+`engineer-remote` is resolved from targeted SOPS scalar lookups for the Pangolin
+SSH resource host/port. The dev shell never decrypts the full secrets file for
+SSH config generation.
 
 **5. Format/check Nix changes**
 ```bash
@@ -176,12 +206,12 @@ k9s
                   │                                             │
                   v                                             v
        ┌────────────────────────────┐         ┌─────────────────────────┐
-       │ Pangolin (off-LAN access)  │         │ MetalLB (LAN-direct)    │
-       │ • pangolin-kwg site        │         │ • Per-service LAN IPs   │
-       │   (kernel WG, host-side)   │         │ • Pi-hole local DNS     │
-       │ • olm clients              │         └─────────────────────────┘
-       │   (WG VPN for Mac/iOS)     │
-       │ • newt-cicd (CI gitops)    │
+       │ Pangolin VPS              │         │ MetalLB (LAN-direct)    │
+       │ • managed as node         │         │ • Per-service LAN IPs   │
+       │   `pangolin`              │         │ • Pi-hole local DNS     │
+       │ • pangolin/gerbil/traefik │         └─────────────────────────┘
+       │ • LiveKit + lk-jwt        │
+       │ • kernel-WG/newt ingress  │
        └────────────────────────────┘
 ```
 
@@ -191,7 +221,8 @@ k9s
 | 2    | SOPS          | Encrypt secrets before version control                       |
 | 3    | k3s           | Lightweight Kubernetes runtime                               |
 | 4    | Helm          | Application packaging + deploy                               |
-| 5    | pangolin-kwg  | Host-side kernel-WireGuard tunnel to the pangolin VPS        |
+| 5    | Pangolin VPS  | Public edge: Pangolin, gerbil, Traefik, LiveKit, lk-jwt      |
+| 5a   | pangolin-kwg  | Host-side kernel-WireGuard tunnel from engineer to the VPS   |
 | 6    | Olm clients   | WG VPN replacing Tailscale; direct access to tunnel IPs      |
 | 7    | MetalLB       | L2 LoadBalancer for per-service LAN IPs                      |
 | 8    | Pi-hole       | Cluster DNS upstream; LAN A records + DoH adlist             |
@@ -215,15 +246,12 @@ Nix-declarative, see `notes/not-declerative-functionality.md`.
 ```
 secrets/secrets.yaml  (SOPS encrypted)
          |
-         v  sops-nix decrypts on nixos-rebuild switch
+         +--> engineer: sops-nix renders k3s manifests/templates
+         |              into /var/lib/rancher/k3s/server/manifests/
+         |              -> k3s auto-applies K8s Secrets/ConfigMaps/HelmCharts
          |
-/var/lib/rancher/k3s/server/manifests/   (rendered YAML with substituted values)
-         |
-         v  k3s auto-applies manifests
-         |
-  K8s Secrets / ConfigMaps / HelmCharts
-         |
-         v  Pods mount as volumes or env vars
+         +--> pangolin: sops-nix renders native service secret files
+                        for services.pangolin, LiveKit, and lk-jwt-service
 ```
 
 ### Pangolin Blueprint System
@@ -239,6 +267,24 @@ Supports:
 ### sops-nix Symlink Patch
 
 k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `mtime` never changes when target content changes. A patch to `sops-install-secrets` forces symlinks to be **recreated on every activation**, giving them a fresh `mtime` so k3s re-applies updated manifests within **~15 seconds**.
+
+### SOPS SSH Recipient Model
+
+The repo uses SOPS age recipients from two sources:
+
+- existing native/converted `age1...` recipients kept for compatibility
+- raw SSH public-key recipients for trusted machines, including the MacBook Air
+  RSA key
+
+Raw SSH recipients are decrypted by setting `SOPS_AGE_SSH_PRIVATE_KEY_FILE` on
+managed hosts:
+
+- `engineer` currently uses `/root/.ssh/id_ed25519`
+- `pangolin` uses `/root/.ssh/theadministrator`
+
+Bootstrap stages host-specific key names for future installs, while runtime
+configuration only lists keys known to exist on the current hosts to avoid noisy
+`sops-install-secrets` missing-key warnings.
 
 ### Git Hooks and Formatting
 
@@ -292,6 +338,7 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   │   ├── fmt.nix            # `nix run .#fmt` — Alejandra formatter/check app
 │   │   ├── scan.nix           # `nix run .#scan` — gitleaks + trufflehog wrapper
 │   │   └── utilities.nix      # Node status checks
+│   ├── images/                # nixos-generators rescue/install ISO outputs
 │   ├── patches/
 │   │   └── sops-always-recreate-symlink.patch
 │   └── shells/                # devShell + auto-installs fmt pre-commit and gitleaks pre-push hooks
@@ -305,6 +352,14 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   │   ├── pangolin-kwg.nix         # kwg client + blueprint-sync wiring
 │   │   ├── pangolin-resources.nix   # Host-level TCP resources (ssh, k8s API)
 │   │   └── metallb.nix              # MetalLB pool config
+│   ├── pangolin/              # VPS edge node: Pangolin, Traefik, LiveKit
+│   │   ├── configuration.nix
+│   │   ├── disk-config.nix
+│   │   ├── services.nix
+│   │   ├── firewall.nix
+│   │   ├── element-call.nix
+│   │   ├── guards.nix
+│   │   └── virtualization.nix
 │   └── sentry-level-01/       # Future worker node (scaffolded, disabled)
 │
 ├── infrastructure/            # Host-level cluster + tunnel modules
@@ -359,7 +414,7 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   └── ms-researcher-cron/    # 6-hour RSS enrichment, Monday digest, RSS raw cleanup
 │
 ├── secrets/                   # SOPS-encrypted secrets
-│   ├── secrets.yaml           # Encrypted values (age)
+│   ├── secrets.yaml           # Encrypted engineer/workload/Pangolin values (age)
 │   └── default.nix            # sops.secrets declarations
 │
 └── scripts/                   # One-shot ops helpers

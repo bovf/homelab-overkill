@@ -3,6 +3,13 @@
   enabledNodes,
   ...
 }: let
+  # nixpkgs currently has a kubernetes-helm 4.2.0 checkPhase regression on
+  # Darwin where a substituted test file no longer exists. The shell only needs
+  # the helm CLI, so keep the package usable while upstream catches up.
+  kubernetesHelm = pkgs.kubernetes-helm.overrideAttrs (_: {
+    doCheck = false;
+  });
+
   sshWrapper = pkgs.writeShellScriptBin "ssh" ''
     set -euo pipefail
     if [ -n "''${SSH_CONFIG_FILE:-}" ]; then
@@ -34,7 +41,7 @@ in {
       ++ (with pkgs;
         [
           kubectl
-          kubernetes-helm
+          kubernetesHelm
           k9s
           sops
           age
@@ -91,33 +98,79 @@ in {
         echo
       } >"$SSH_CONFIG_FILE"
 
-      SSH_SECRETS_FILE=""
-      if [ -f "secrets/secrets.yaml" ] && command -v sops >/dev/null 2>&1; then
-        tmpdir="$TMPDIR"
-        if [ -z "$tmpdir" ]; then
-          tmpdir="/tmp"
-        fi
-        SSH_SECRETS_FILE="$(mktemp "$tmpdir/dobryops-ssh-secrets.XXXXXX")"
-        if sops --decrypt secrets/secrets.yaml >"$SSH_SECRETS_FILE" 2>/dev/null; then
-          echo "Decrypted SSH secrets from sops" >&2
-        else
-          echo "Failed to decrypt secrets/secrets.yaml (using defaults)" >&2
-          rm -f "$SSH_SECRETS_FILE"
-          SSH_SECRETS_FILE=""
-        fi
-      fi
+      # SECURITY: resolve only specific scalar SSH fields from SOPS. Never
+      # decrypt the full file to a temp path during shell startup, never look up
+      # an empty key, and never write unvalidated extracted values into the SSH
+      # config. This keeps engineer-remote dynamic without risking whole-file
+      # plaintext output in the prompt.
+      secret_extract_path() {
+        local key="$1"
+        local old_ifs part path
 
-      # Helper: fetch secret or return default
-      get_secret() {
+        if [ -z "$key" ]; then
+          return 1
+        fi
+
+        old_ifs="$IFS"
+        IFS='.'
+        path=""
+        for part in $key; do
+          case "$part" in
+            ""|*[!A-Za-z0-9_-]*)
+              IFS="$old_ifs"
+              return 1
+              ;;
+          esac
+          path="$path[\"$part\"]"
+        done
+        IFS="$old_ifs"
+
+        if [ -z "$path" ]; then
+          return 1
+        fi
+
+        printf "%s" "$path"
+      }
+
+      get_secret_scalar() {
         local key="$1"
         local default="$2"
-        if [ -z "$SSH_SECRETS_FILE" ] || ! command -v yq >/dev/null 2>&1; then
+        local path value
+
+        if [ -z "$key" ] || [ ! -f "secrets/secrets.yaml" ] || ! command -v sops >/dev/null 2>&1; then
           printf "%s" "$default"
           return
         fi
-        local value
-        value="$(yq -r ".$key // \"\"" "$SSH_SECRETS_FILE" 2>/dev/null || true)"
-        if [ -n "$value" ] && [ "$value" != "null" ]; then
+
+        if ! path="$(secret_extract_path "$key")"; then
+          printf "%s" "$default"
+          return
+        fi
+
+        value="$(sops --decrypt --extract "$path" secrets/secrets.yaml 2>/dev/null || true)"
+        if [ -z "$value" ] || [ "$value" = "null" ]; then
+          printf "%s" "$default"
+        else
+          printf "%s" "$value"
+        fi
+      }
+
+      sanitize_ssh_host() {
+        local value="$1"
+        local default="$2"
+
+        if printf "%s" "$value" | ${pkgs.gnugrep}/bin/grep -Eq '^[A-Za-z0-9_.:-]+$'; then
+          printf "%s" "$value"
+        else
+          printf "%s" "$default"
+        fi
+      }
+
+      sanitize_ssh_port() {
+        local value="$1"
+        local default="$2"
+
+        if printf "%s" "$value" | ${pkgs.gnugrep}/bin/grep -Eq '^[0-9]+$'; then
           printf "%s" "$value"
         else
           printf "%s" "$default"
@@ -127,29 +180,35 @@ in {
       # Build node summary lines in a bash variable
       NODE_SUMMARIES=""
 
-      # Generate per-node SSH config from decrypted secrets
+      # Generate per-node SSH config from metadata plus safe scalar secret lookups.
       ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (
           name: node: let
+            localEnabled = node.localTarget or true;
+            remoteEnabled = node.remoteTarget or true;
+            localHost = node.ip or "";
             localPort = toString (node.localPort or 22);
+            remoteHostDefault = node.remoteHost or localHost;
+            remotePortDefault = toString (node.remotePort or (node.localPort or 22));
             remoteHostKey = node.remoteHostSecretKey or "";
             remotePortKey = node.remotePortSecretKey or "";
             sshUser = node.sshUser or "root";
-            # Candidate identity files baked in at Nix eval time; resolved at runtime
+            sshAliases = node.sshAliases or [];
+            remoteHostAliases = pkgs.lib.concatStringsSep " " (["${name}-remote"] ++ sshAliases);
             configuredIdentity = node.identityFile or "";
           in ''
             # ${name}
             {
-              local local_ip="${node.ip}"
+              local local_ip="${localHost}"
               local local_port="${localPort}"
 
               local remote_host default_remote_host
               local remote_port default_remote_port
 
-              default_remote_host="$local_ip"
-              default_remote_port="$local_port"
+              default_remote_host="${remoteHostDefault}"
+              default_remote_port="${remotePortDefault}"
 
-              remote_host="$(get_secret "${remoteHostKey}" "$default_remote_host")"
-              remote_port="$(get_secret "${remotePortKey}" "$default_remote_port")"
+              remote_host="$(sanitize_ssh_host "$(get_secret_scalar "${remoteHostKey}" "$default_remote_host")" "$default_remote_host")"
+              remote_port="$(sanitize_ssh_port "$(get_secret_scalar "${remotePortKey}" "$default_remote_port")" "$default_remote_port")"
 
               # Resolve SSH identity file at runtime
               local identity_line=""
@@ -172,39 +231,42 @@ in {
 
               # Append actual values to summary
               NODE_SUMMARIES="$NODE_SUMMARIES"'  '"${name} - ${node.role}/${node.nodeType}"$'\n'
+              ${pkgs.lib.optionalString localEnabled ''
               NODE_SUMMARIES="$NODE_SUMMARIES"'    local:  '"$local_ip:$local_port  (ssh ${name}-local)"$'\n'
+            ''}
+              ${pkgs.lib.optionalString remoteEnabled ''
               NODE_SUMMARIES="$NODE_SUMMARIES"'    remote: '"$remote_host:$remote_port  (ssh ${name}-remote)"$'\n'
+            ''}
 
               # Write SSH config
               {
                 echo "# === ${name} ==="
-                echo "Host ${name}-local"
-                echo "  HostName $local_ip"
-                echo "  Port $local_port"
-                echo "  User ${sshUser}"
-                [ -n "$identity_line" ] && echo "$identity_line"
-                echo "  StrictHostKeyChecking accept-new"
-                echo "  ConnectTimeout 10"
-                echo ""
-                echo "Host ${name}-remote"
-                echo "  HostName $remote_host"
-                echo "  Port $remote_port"
-                echo "  User ${sshUser}"
-                [ -n "$identity_line" ] && echo "$identity_line"
-                echo "  StrictHostKeyChecking accept-new"
-                echo "  ConnectTimeout 10"
-                echo "  ServerAliveInterval 60"
-                echo ""
+                ${pkgs.lib.optionalString localEnabled ''
+              echo "Host ${name}-local"
+              echo "  HostName $local_ip"
+              echo "  Port $local_port"
+              echo "  User ${sshUser}"
+              [ -n "$identity_line" ] && echo "$identity_line"
+              echo "  StrictHostKeyChecking accept-new"
+              echo "  ConnectTimeout 10"
+              echo ""
+            ''}
+                ${pkgs.lib.optionalString remoteEnabled ''
+              echo "Host ${remoteHostAliases}"
+              echo "  HostName $remote_host"
+              echo "  Port $remote_port"
+              echo "  User ${sshUser}"
+              [ -n "$identity_line" ] && echo "$identity_line"
+              echo "  StrictHostKeyChecking accept-new"
+              echo "  ConnectTimeout 10"
+              echo "  ServerAliveInterval 60"
+              echo ""
+            ''}
               } >>"$SSH_CONFIG_FILE"
             }
           ''
         )
         enabledNodes)}
-
-      # Clean up decrypted secrets
-      if [ -n "$SSH_SECRETS_FILE" ] && [ -f "$SSH_SECRETS_FILE" ]; then
-        rm -f "$SSH_SECRETS_FILE"
-      fi
 
       # --- SSH Keys Status Report ---
       KEYS_MISSING=""
@@ -280,12 +342,6 @@ in {
       echo "  nix run .#update                                 - update flake, fmt, scan; builds cache targets on Linux"
       echo "  HOMELAB_UPDATE_PUSH_CACHE=1 nix run .#update     - also push built outputs to Attic badwater"
       echo ""
-      echo "ci/cache automation:"
-      echo "  GitLab schedule/web/RUN_FLAKE_UPDATE=1 runs flake:update-cache on the protected nix-cache runner."
-      echo "  It updates flake.lock, formats/scans, builds Linux cache targets with .#update, pushes to Attic,"
-      echo "  and opens a merge request when there is a diff. Schedule weekly in the evening, offset from pl-badwater."
-      echo "  Pushes to main run mirror:main; configure GITHUB_MIRROR_URL and CODEBERG_MIRROR_URL CI variables."
-      echo
       echo
     '';
   };
