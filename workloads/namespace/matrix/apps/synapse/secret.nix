@@ -61,6 +61,7 @@ in {
           report_stats: false
           federation_domain_whitelist:
             - matrix.kedarlab.com
+            - matrix.org
           trusted_key_servers: []
           suppress_key_server_warning: true
 
