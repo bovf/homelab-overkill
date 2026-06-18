@@ -29,7 +29,7 @@ in {
 
           image:
             repository: pihole/pihole
-            tag: "2026.05.0"
+            tag: "2026.06.0"
             pullPolicy: IfNotPresent
 
           strategy:

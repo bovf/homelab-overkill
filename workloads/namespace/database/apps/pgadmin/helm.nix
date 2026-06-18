@@ -16,7 +16,7 @@
           image:
             registry: docker.io
             repository: dpage/pgadmin4
-            tag: latest
+            tag: "2026-06-16-1"
             pullPolicy: IfNotPresent
 
           env:
