@@ -17,15 +17,20 @@
             # Fires only after 24h of continuous drift to debounce transient
             # registry hiccups during the rolling window.
             expr = ''
-              version_checker_is_latest_version{
-                image!="rancher/klipper-helm",
-                image!="postgres",
-                image!="docker.io/bitnamilegacy/redis",
-                image!="docker.io/bitnamilegacy/redis-exporter",
-                latest_version!~"^(sha-|snapshot|unstable|nightly|develop|dev|master|pr|latest-snapshot).*$",
-                latest_version!~".*(-dev|-pr|_beta).*$",
-                latest_version!~"^[0-9]{8,}$"
-              } == 0
+              (
+                version_checker_is_latest_version{
+                  image!="rancher/klipper-helm",
+                  image!="rancher/mirrored-coredns-coredns",
+                  image!="postgres",
+                  image!="docker.io/bitnamilegacy/redis",
+                  image!="docker.io/bitnamilegacy/redis-exporter",
+                  latest_version!~"^(sha-|snapshot|unstable|nightly|develop|dev|master|pr|latest-snapshot).*$",
+                  latest_version!~".*(-dev|-pr|_beta).*$",
+                  latest_version!~"^[0-9]{8,}$"
+                } == 0
+              )
+              and on(namespace, pod)
+              (kube_pod_status_phase{phase="Running"} == 1)
             '';
             "for" = "24h";
             labels = {
