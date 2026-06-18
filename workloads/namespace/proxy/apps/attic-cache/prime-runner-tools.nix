@@ -87,8 +87,8 @@ in {
     spec = {
       schedule = "43 2 * * 0";
       concurrencyPolicy = "Forbid";
-      successfulJobsHistoryLimit = 2;
-      failedJobsHistoryLimit = 3;
+      successfulJobsHistoryLimit = 0;
+      failedJobsHistoryLimit = 0;
       jobTemplate.spec = {
         backoffLimit = 3;
         template = {
