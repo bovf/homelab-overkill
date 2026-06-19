@@ -9,7 +9,7 @@
       spec:
         repo: https://argoproj.github.io/argo-helm
         chart: argo-cd
-        version: "9.5.20"
+        version: "9.5.22"
         targetNamespace: cicd
         createNamespace: false
         valuesContent: |
