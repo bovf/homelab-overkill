@@ -23,7 +23,7 @@
                 main:
                   image:
                     repository: nginx
-                    tag: "1.31.1"
+                    tag: "1.31.2"
                     pullPolicy: IfNotPresent
                   probes:
                     liveness:
