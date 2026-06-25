@@ -1,5 +1,6 @@
 {config, ...}: let
   matrixDomain = config.sops.placeholder."pangolin/resources/matrix/domain";
+  lkJwtDomain = config.sops.placeholder."pangolin/resources/livekit_jwt/domain";
 in {
   # Element's config.json. No credentials, but rendered via sops.templates
   # so the homeserver domain never lands in git. `disable_custom_urls` locks
@@ -18,7 +19,13 @@ in {
               "m.homeserver": {
                 "base_url": "https://${matrixDomain}",
                 "server_name": "${matrixDomain}"
-              }
+              },
+              "org.matrix.msc4143.rtc_foci": [
+                {
+                  "type": "livekit",
+                  "livekit_service_url": "https://${lkJwtDomain}"
+                }
+              ]
             },
             "brand": "Matrix",
             "disable_custom_urls": true,
