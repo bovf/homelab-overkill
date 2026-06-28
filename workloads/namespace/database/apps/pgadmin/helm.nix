@@ -16,7 +16,7 @@
           image:
             registry: docker.io
             repository: dpage/pgadmin4
-            tag: "9.15.0"
+            tag: "9.16"
             pullPolicy: IfNotPresent
 
           env:

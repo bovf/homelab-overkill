@@ -76,8 +76,8 @@
   };
 
   networking = {
-    hostName = "pangolin";
-    useDHCP = true;
+    hostName = lib.mkDefault "pangolin";
+    useDHCP = lib.mkDefault true;
   };
 
   services.chrony.enable = true;

@@ -2,7 +2,7 @@
   description = "DobryOps Homelab - Clean and Simple";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     nixos-anywhere.url = "github:numtide/nixos-anywhere";
     nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
@@ -234,7 +234,7 @@
         ({pkgs, ...}: {
           sops.package =
             (pkgs.callPackage (sops-nix + "/pkgs/sops-install-secrets") {
-              vendorHash = "sha256-PAq52bWVHqjBsPuWB86L+N0EYSUwmTUef8IFJTtRUVo=";
+              vendorHash = "sha256-3Ii7cWVfUvs+qjl497NxpedIDDRKnbD+jGuOG40iHmE=";
             }).overrideAttrs (old: {
               patches = (old.patches or []) ++ [./nix/patches/sops-always-recreate-symlink.patch];
             });
@@ -254,6 +254,7 @@
         pkgs = import nixpkgs {
           inherit system;
           overlays = [hermesAgentOverlay];
+          config.permittedInsecurePackages = ["olm-3.2.16"];
         };
       in {
         devShells = shellsLib {inherit pkgs enabledNodes;};

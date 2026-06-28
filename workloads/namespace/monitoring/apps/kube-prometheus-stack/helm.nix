@@ -117,6 +117,9 @@
               distroless: false
 
           grafana:
+            sidecar:
+              image:
+                tag: 2.8.0
             service:
               type: ClusterIP
               port: 32000
