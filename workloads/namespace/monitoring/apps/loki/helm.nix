@@ -17,7 +17,7 @@
 
           loki:
             image:
-              tag: 3.7.2
+              tag: 3.7.3
             auth_enabled: false
             commonConfig:
               replication_factor: 1
@@ -57,7 +57,7 @@
 
           sidecar:
             image:
-              tag: 2.7.3
+              tag: 2.8.0
 
           singleBinary:
             replicas: 1

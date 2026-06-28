@@ -15,6 +15,8 @@
         valuesContent: |
           global:
             domain: ${config.sops.placeholder."pangolin/resources/argocd/domain"}
+            image:
+              tag: v3.4.4
 
           configs:
             params:
@@ -46,6 +48,10 @@
 
           controller:
             replicas: 1
+            image:
+              tag: v3.4.4
+            extraArgs:
+              - --repo-server-timeout-seconds=180
             resources:
               requests:
                 cpu: 250m
@@ -125,9 +131,6 @@
           notifications:
             enabled: false
 
-          applicationController:
-            extraArgs:
-              - --repo-server-timeout-seconds=180
     '';
     path = "/var/lib/rancher/k3s/server/manifests/argocd.yaml";
     owner = "root";

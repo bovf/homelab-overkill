@@ -355,9 +355,10 @@ in {
                         head:
                           url: https://api.github.com/repos/NixOS/nixpkgs/commits/nixos-unstable
                       template: |
-                        {{ $head    := .Subrequest "head" }}
-                        {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
-                        {{ $headSha := $head.JSON.String "sha" }}
+                        {{ $head      := .Subrequest "head" }}
+                        {{ $inputNode := .JSON.String "nodes.root.inputs.nixpkgs" }}
+                        {{ $pinSha    := .JSON.String (printf "nodes.%s.locked.rev" $inputNode) }}
+                        {{ $headSha   := $head.JSON.String "sha" }}
                         {{ if eq (len $pinSha) 0 }}
                           <p class="color-negative">flake.lock unreadable</p>
                         {{ else }}
@@ -373,6 +374,9 @@ in {
                         {{ end }}
 
                     # NIXPKGS DRIFT - pl-badwater (from in-cluster GitLab).
+                    # Uses root.inputs.nixpkgs, not nodes.nixpkgs: Snowfall
+                    # adds other nixpkgs inputs and nodes.nixpkgs is not the
+                    # system pin.
                     - type: custom-api
                       title: nixpkgs - pl-badwater
                       cache: 30m
@@ -384,11 +388,12 @@ in {
                         PRIVATE-TOKEN: ''${GITLAB_TOKEN}
                       subrequests:
                         head:
-                          url: https://api.github.com/repos/NixOS/nixpkgs/commits/nixos-unstable
+                          url: https://api.github.com/repos/NixOS/nixpkgs/commits/nixpkgs-unstable
                       template: |
-                        {{ $head    := .Subrequest "head" }}
-                        {{ $pinSha  := .JSON.String "nodes.nixpkgs.locked.rev" }}
-                        {{ $headSha := $head.JSON.String "sha" }}
+                        {{ $head      := .Subrequest "head" }}
+                        {{ $inputNode := .JSON.String "nodes.root.inputs.nixpkgs" }}
+                        {{ $pinSha    := .JSON.String (printf "nodes.%s.locked.rev" $inputNode) }}
+                        {{ $headSha   := $head.JSON.String "sha" }}
                         {{ if eq (len $pinSha) 0 }}
                           <p class="color-negative">flake.lock unreadable</p>
                         {{ else }}
@@ -485,7 +490,7 @@ in {
                               icon: si:jellyfin
                             - title: Jellyseerr
                               url: https://${config.sops.placeholder."pangolin/resources/jellyseerr/domain"}
-                              icon: di:jellyseerr
+                              icon: si:jellyseerr
                         - title: Stack
                           links:
                             - title: Sonarr
@@ -496,10 +501,10 @@ in {
                               icon: si:radarr
                             - title: Sportarr
                               url: https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
-                              icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/sportarr-dark.svg
+                              icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/sportarr.svg
                             - title: Prowlarr
                               url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}
-                              icon: di:prowlarr
+                              icon: si:prowlarr
                             - title: Bazarr
                               url: https://${config.sops.placeholder."pangolin/resources/bazarr/domain"}
                               icon: di:bazarr
@@ -510,7 +515,7 @@ in {
                               icon: si:qbittorrent
                             - title: NZBGet
                               url: https://${config.sops.placeholder."pangolin/resources/nzbget/domain"}
-                              icon: di:nzbget
+                              icon: si:nzbget
 
                     # Sonarr upcoming episodes
                     - type: custom-api
