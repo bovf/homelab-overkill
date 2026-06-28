@@ -2,7 +2,7 @@
   description = "DobryOps Homelab - Clean and Simple";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     nixos-anywhere.url = "github:numtide/nixos-anywhere";
     nixos-anywhere.inputs.nixpkgs.follows = "nixpkgs";
@@ -254,6 +254,7 @@
         pkgs = import nixpkgs {
           inherit system;
           overlays = [hermesAgentOverlay];
+          config.permittedInsecurePackages = ["olm-3.2.16"];
         };
       in {
         devShells = shellsLib {inherit pkgs enabledNodes;};

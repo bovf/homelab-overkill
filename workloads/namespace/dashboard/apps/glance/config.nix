@@ -353,7 +353,7 @@ in {
                       url: https://raw.githubusercontent.com/bovf/homelab-overkill/main/flake.lock
                       subrequests:
                         head:
-                          url: https://api.github.com/repos/NixOS/nixpkgs/commits/nixos-unstable
+                          url: https://api.github.com/repos/NixOS/nixpkgs/commits/nixpkgs-unstable
                       template: |
                         {{ $head      := .Subrequest "head" }}
                         {{ $inputNode := .JSON.String "nodes.root.inputs.nixpkgs" }}
