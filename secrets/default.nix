@@ -36,6 +36,7 @@
     secrets."pangolin/resources/search/domain" = {};
     secrets."pangolin/resources/speedtest/domain" = {};
     secrets."pangolin/resources/ms_kb/domain" = {};
+    secrets."pangolin/resources/sparkyfitness/domain" = {};
 
     # SearXNG session/image-proxy signing key — `openssl rand -hex 32`.
     secrets."searxng/secret" = {};
@@ -70,7 +71,7 @@
     secrets."qbittorrent/password_hash" = {};
     secrets."qbittorrent/password" = {};
 
-    secrets."nordvpn/wireguard_private_key" = {};
+    secrets."protonvpn/wireguard_private_key" = {};
 
     secrets."monitoring/grafana-admin-password" = {};
     secrets."monitoring/grafana/renderer_token" = {};
@@ -125,6 +126,11 @@
     secrets."pangolin/resources/ezbookkeeping/domain" = {};
     secrets."database/postgres/ezbookkeeping/password" = {};
     secrets."finance/ezbookkeeping/secret_key" = {};
+
+    secrets."database/postgres/sparkyfitness/password" = {};
+    secrets."database/postgres/sparkyfitness/app_password" = {};
+    secrets."sparkyfitness/api_encryption_key" = {};
+    secrets."sparkyfitness/better_auth_secret" = {};
 
     # Pangolin VPS native service environment. This currently includes
     # SERVER_SECRET for services.pangolin.

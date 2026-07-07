@@ -57,7 +57,7 @@
 
           sidecar:
             image:
-              tag: 2.8.0
+              tag: 2.8.1
 
           singleBinary:
             replicas: 1

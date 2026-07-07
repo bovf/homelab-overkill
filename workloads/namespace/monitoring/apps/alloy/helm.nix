@@ -19,6 +19,9 @@
           controller:
             type: daemonset
 
+          image:
+            tag: v1.17.1
+
           alloy:
             stabilityLevel: generally-available
 
