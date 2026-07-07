@@ -7,6 +7,7 @@
     ./database
     ./dns
     ./finance
+    ./health
     ./homarr
     ./intel-device-plugins
     ./kube-system

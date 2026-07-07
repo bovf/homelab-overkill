@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   sops.templates."helm/version-checker.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -11,7 +9,7 @@
       spec:
         repo: https://charts.jetstack.io
         chart: version-checker
-        version: "v0.10.0"
+        version: "v0.11.0"
         targetNamespace: monitoring
         createNamespace: false
         valuesContent: |
@@ -38,9 +36,9 @@
               cpu: 500m
               memory: 256Mi
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/version-checker.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/version-checker.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

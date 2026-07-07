@@ -61,6 +61,43 @@
                     - secretRef:
                         name: qbittorrent-vpn-creds
 
+                # ProtonVPN assigns an ephemeral forwarded port. Gluetun writes
+                # it to /gluetun/forwarded_port; this sidecar pushes it into
+                # qBittorrent's Web API so inbound peers use the current port.
+                port-sync:
+                  image:
+                    repository: curlimages/curl
+                    tag: "8.16.0"
+                  envFrom:
+                    - secretRef:
+                        name: qbittorrent-conf
+                  command:
+                    - sh
+                    - -ceu
+                    - |
+                      last=""
+                      while true; do
+                        if [ -s /gluetun/forwarded_port ]; then
+                          port="$(tr -dc '0-9' < /gluetun/forwarded_port)"
+                          if [ -n "$port" ] && [ "$port" != "$last" ]; then
+                            echo "Updating qBittorrent listen port to $port"
+                            until curl -fsS -c /tmp/qbit.cookie \
+                              -H "Referer: http://127.0.0.1:8080" \
+                              --data-urlencode "username=$QBIT_USERNAME" \
+                              --data-urlencode "password=$QBIT_PASSWORD" \
+                              http://127.0.0.1:8080/api/v2/auth/login >/dev/null; do
+                              sleep 5
+                            done
+                            curl -fsS -b /tmp/qbit.cookie \
+                              -H "Referer: http://127.0.0.1:8080" \
+                              --data-urlencode "json={\"listen_port\":$port,\"upnp\":false}" \
+                              http://127.0.0.1:8080/api/v2/app/setPreferences
+                            last="$port"
+                          fi
+                        fi
+                        sleep 60
+                      done
+
                 qbittorrent:
                   image:
                     repository: ghcr.io/linuxserver/qbittorrent
@@ -146,6 +183,14 @@
                   copy-config:
                     - path: /secret
                       readOnly: true
+            gluetun-data:
+              type: emptyDir
+              advancedMounts:
+                main:
+                  gluetun:
+                    - path: /gluetun
+                  port-sync:
+                    - path: /gluetun
             tun:
               type: hostPath
               hostPath: /dev/net/tun
