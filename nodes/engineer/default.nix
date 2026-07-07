@@ -49,19 +49,21 @@ with lib; {
   workloads.enable = true;
   infrastructure.enable = true;
 
+  # Disabled after the Codex subscription was cancelled; keep the module and
+  # config so the agent can be re-enabled later with a different provider.
   services.hale = {
-    enable = true;
-    kubeAccess.enable = true;
+    enable = false;
+    kubeAccess.enable = false;
     agent = {
-      enable = true;
+      enable = false;
       matrix = {
-        enable = true;
+        enable = false;
         authorizedUsersSopsKey = "hermes/matrix_allowed_users";
         allowedRoomsSopsKey = "hermes/matrix_allowed_rooms";
         homeChannelChatIdSopsKey = "hermes/matrix_home_channel";
       };
-      media.enable = true;
-      skills.enable = true;
+      media.enable = false;
+      skills.enable = false;
     };
   };
 
@@ -84,21 +86,23 @@ with lib; {
   #   hermes/ms_researcher_matrix_allowed_users
   #   hermes/ms_researcher_matrix_allowed_rooms
   #   hermes/ms_researcher_matrix_home_channel
+  # Disabled after the Codex subscription was cancelled; keep the module and
+  # config so the agent can be re-enabled later with a different provider.
   services.ms-researcher = {
-    enable = true;
+    enable = false;
     agent = {
-      enable = true;
-      matrix.enable = true;
-      skills.enable = true;
-      cron.enable = true;
+      enable = false;
+      matrix.enable = false;
+      skills.enable = false;
+      cron.enable = false;
       kb = {
-        enable = true;
+        enable = false;
         git = {
-          enable = true;
-          sync.enable = true;
+          enable = false;
+          sync.enable = false;
         };
       };
-      mcps.enable = true;
+      mcps.enable = false;
     };
   };
 }

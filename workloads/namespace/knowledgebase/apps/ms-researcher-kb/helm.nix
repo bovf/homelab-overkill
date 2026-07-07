@@ -1,4 +1,6 @@
 {config, ...}: {
+  sops.secrets."hermes/ms_researcher_kb_git_ssh_key" = {};
+
   sops.templates."helm/ms-researcher-kb.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
