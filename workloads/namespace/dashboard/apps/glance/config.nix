@@ -14,8 +14,10 @@
 #   toFloat(int)→float, toInt(float)→int
 #   No sprig - toJson / parseJSON / humanizeBytes etc. don't exist.
 #
-# Prometheus queries hardcode instance="192.0.2.10:9100"; WG metrics
-# carry instance="engineer" from monitoring/.../wireguard-scrape.nix.
+# Prometheus queries target engineer's node-exporter via the LAN IP,
+# resolved from SOPS (nodes/engineer/ip) — the repo is public, so no
+# addresses appear here. WG metrics carry instance="engineer" from
+# monitoring/.../wireguard-scrape.nix.
 #
 # In-cluster Service URLs use the *Service* port (the tunnel-IP-side
 # port), NOT the pod-side targetPort. uptime-kuma exposes :8097
@@ -26,6 +28,9 @@
   kuma = "http://uptime-kuma.monitoring.svc.cluster.local:8097";
   spdtest = "http://speedtest-tracker.monitoring.svc.cluster.local:8099";
 
+  engineerMetrics = "${config.sops.placeholder."nodes/engineer/ip"}:9100";
+  pangolinIp = config.sops.placeholder."nodes/pangolin/ip";
+
   promQuery = q: "${prom}/api/v1/query?query=${q}";
 
   # Wide hardcoded date range for *arr calendars - Sonarr/Radarr
@@ -33,6 +38,9 @@
   arrStart = "2026-01-01T00:00:00Z";
   arrEnd = "2027-06-01T00:00:00Z";
 in {
+  sops.secrets."nodes/engineer/ip" = {};
+  sops.secrets."nodes/pangolin/ip" = {};
+
   sops.templates."glance/config.yaml" = {
     content = ''
       apiVersion: v1
@@ -67,14 +75,14 @@ in {
                     - type: custom-api
                       title: Engineer
                       cache: 30s
-                      url: ${promQuery "(1-avg(rate(node_cpu_seconds_total%7Binstance=%22192.0.2.10:9100%22,mode=%22idle%22%7D%5B5m%5D)))*100"}
+                      url: ${promQuery "(1-avg(rate(node_cpu_seconds_total%7Binstance=%22${engineerMetrics}%22,mode=%22idle%22%7D%5B5m%5D)))*100"}
                       subrequests:
                         ram:
-                          url: ${promQuery "(1-node_memory_MemAvailable_bytes%7Binstance=%22192.0.2.10:9100%22%7D/node_memory_MemTotal_bytes%7Binstance=%22192.0.2.10:9100%22%7D)*100"}
+                          url: ${promQuery "(1-node_memory_MemAvailable_bytes%7Binstance=%22${engineerMetrics}%22%7D/node_memory_MemTotal_bytes%7Binstance=%22${engineerMetrics}%22%7D)*100"}
                         disk:
-                          url: ${promQuery "(1-node_filesystem_avail_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D/node_filesystem_size_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D)*100"}
+                          url: ${promQuery "(1-node_filesystem_avail_bytes%7Binstance=%22${engineerMetrics}%22,mountpoint=%22/%22%7D/node_filesystem_size_bytes%7Binstance=%22${engineerMetrics}%22,mountpoint=%22/%22%7D)*100"}
                         uptime:
-                          url: ${promQuery "node_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D-node_boot_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D"}
+                          url: ${promQuery "node_time_seconds%7Binstance=%22${engineerMetrics}%22%7D-node_boot_time_seconds%7Binstance=%22${engineerMetrics}%22%7D"}
                       template: |
                         {{ $ram     := .Subrequest "ram" }}
                         {{ $disk    := .Subrequest "disk" }}
@@ -146,7 +154,7 @@ in {
                           </div>
                           <div class="flex justify-between">
                             <span class="size-h6 color-paragraph">remote</span>
-                            <span class="size-base">203.0.113.10</span>
+                            <span class="size-base">${pangolinIp}</span>
                           </div>
                         </div>
 
@@ -655,14 +663,14 @@ in {
                     - type: custom-api
                       title: Engineer
                       cache: 30s
-                      url: ${promQuery "(1-avg(rate(node_cpu_seconds_total%7Binstance=%22192.0.2.10:9100%22,mode=%22idle%22%7D%5B5m%5D)))*100"}
+                      url: ${promQuery "(1-avg(rate(node_cpu_seconds_total%7Binstance=%22${engineerMetrics}%22,mode=%22idle%22%7D%5B5m%5D)))*100"}
                       subrequests:
                         ram:
-                          url: ${promQuery "(1-node_memory_MemAvailable_bytes%7Binstance=%22192.0.2.10:9100%22%7D/node_memory_MemTotal_bytes%7Binstance=%22192.0.2.10:9100%22%7D)*100"}
+                          url: ${promQuery "(1-node_memory_MemAvailable_bytes%7Binstance=%22${engineerMetrics}%22%7D/node_memory_MemTotal_bytes%7Binstance=%22${engineerMetrics}%22%7D)*100"}
                         disk:
-                          url: ${promQuery "(1-node_filesystem_avail_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D/node_filesystem_size_bytes%7Binstance=%22192.0.2.10:9100%22,mountpoint=%22/%22%7D)*100"}
+                          url: ${promQuery "(1-node_filesystem_avail_bytes%7Binstance=%22${engineerMetrics}%22,mountpoint=%22/%22%7D/node_filesystem_size_bytes%7Binstance=%22${engineerMetrics}%22,mountpoint=%22/%22%7D)*100"}
                         uptime:
-                          url: ${promQuery "node_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D-node_boot_time_seconds%7Binstance=%22192.0.2.10:9100%22%7D"}
+                          url: ${promQuery "node_time_seconds%7Binstance=%22${engineerMetrics}%22%7D-node_boot_time_seconds%7Binstance=%22${engineerMetrics}%22%7D"}
                       template: |
                         {{ $ram     := .Subrequest "ram" }}
                         {{ $disk    := .Subrequest "disk" }}

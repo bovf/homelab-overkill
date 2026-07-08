@@ -1,21 +1,25 @@
-{ lib, pkgs, nodeConfig, ... }:
-with lib;
-let
+{
+  lib,
+  pkgs,
+  nodeConfig,
+  ...
+}:
+with lib; let
   isController = nodeConfig.nodeType == "controller";
   isServer = nodeConfig.role == "server";
 in {
   config = mkIf isServer {
-    
     services.k3s = {
       enable = true;
       role = "server";
       clusterInit = isController;
       manifestCleanup.enable = true;
-      
+
       extraFlags = [
         "--write-kubeconfig-mode=0600"
+        # k3s always adds the node's own IPs to the serving cert SANs, so the
+        # LAN IP needs no --tls-san entry (and stays out of the public repo).
         "--tls-san=${nodeConfig.hostname}"
-        "--tls-san=${nodeConfig.ip}"
         "--tls-san=${nodeConfig.domain}"
         "--tls-san=*.${nodeConfig.domain}"
         "--flannel-backend=vxlan"
@@ -35,25 +39,25 @@ in {
       10.43.137.138 minio.database.svc.cluster.local
     '';
 
-    networking.firewall.allowedTCPPorts = [ 
-      6443  # K3s API server
-      80    # HTTP
-      443   # HTTPS
-      6881  # qBittorrent
+    networking.firewall.allowedTCPPorts = [
+      6443 # K3s API server
+      80 # HTTP
+      443 # HTTPS
+      6881 # qBittorrent
     ];
-    networking.firewall.allowedUDPPorts = [ 
-      8472  # Flannel
-      6881  # qBittorrent DHT
+    networking.firewall.allowedUDPPorts = [
+      8472 # Flannel
+      6881 # qBittorrent DHT
     ];
-    
+
     environment.systemPackages = with pkgs; [
       kubectl
       kubernetes-helm
       k9s
     ];
-    
+
     environment.sessionVariables.KUBECONFIG = "/etc/rancher/k3s/k3s.yaml";
-    
+
     environment.etc."profile.d/k3s-kubeconfig.sh".text = ''
       if [ "$(id -u)" -eq 0 ]; then
         export KUBECONFIG=/etc/rancher/k3s/k3s.yaml

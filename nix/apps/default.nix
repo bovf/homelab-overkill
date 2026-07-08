@@ -11,6 +11,7 @@
     scanModule = import ./scan.nix {inherit nixpkgs;};
     fmtModule = import ./fmt.nix {inherit nixpkgs;};
     updateModule = import ./update.nix {inherit nixpkgs;};
+    bootstrapModule = import ./bootstrap.nix {inherit nixpkgs;};
   in {
     secrets = secretsModule.mkSecretsApp system;
     deploy = deployModule.mkDeployApp system enabledNodes;
@@ -19,5 +20,6 @@
     scan = scanModule.mkScanApp system;
     fmt = fmtModule.mkFmtApp system;
     update = updateModule.mkUpdateApp system enabledNodes;
+    bootstrap = bootstrapModule.mkBootstrapApp system;
   };
 }

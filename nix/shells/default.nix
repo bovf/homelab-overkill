@@ -98,6 +98,46 @@ in {
         echo
       } >"$SSH_CONFIG_FILE"
 
+      # Node addresses / ssh identity live encrypted in SOPS (nodes: block)
+      # and are cached locally in .cache/nodes.json — the repo is public, so
+      # none of them appear in the flake. Bootstrap the cache on first shell
+      # entry when the age key is available.
+      NODES_JSON=".cache/nodes.json"
+      ensure_nodes_cache() {
+        if [ -f "$NODES_JSON" ]; then
+          return 0
+        fi
+        if [ -f "secrets/secrets.yaml" ] && command -v sops >/dev/null 2>&1; then
+          local nodes_yaml
+          if nodes_yaml="$(sops --decrypt --extract '["nodes"]' secrets/secrets.yaml 2>/dev/null)"; then
+            mkdir -p .cache
+            (umask 077 && printf "%s\n" "$nodes_yaml" | ${pkgs.yq-go}/bin/yq -o=json '.' >"$NODES_JSON")
+            echo "Bootstrapped $NODES_JSON from SOPS"
+            return 0
+          fi
+        fi
+        echo "Warning: $NODES_JSON missing and SOPS bootstrap failed." >&2
+        echo "  Node IPs/identity are unavailable — run: nix run .#bootstrap" >&2
+        return 1
+      }
+      ensure_nodes_cache || true
+
+      node_meta() {
+        local filter="$1"
+        local default="$2"
+        local value
+        if [ ! -f "$NODES_JSON" ]; then
+          printf "%s" "$default"
+          return
+        fi
+        value="$(${pkgs.jq}/bin/jq -r "$filter // empty" "$NODES_JSON" 2>/dev/null || true)"
+        if [ -n "$value" ]; then
+          printf "%s" "$value"
+        else
+          printf "%s" "$default"
+        fi
+      }
+
       # SECURITY: resolve only specific scalar SSH fields from SOPS. Never
       # decrypt the full file to a temp path during shell startup, never look up
       # an empty key, and never write unvalidated extracted values into the SSH
@@ -180,40 +220,38 @@ in {
       # Build node summary lines in a bash variable
       NODE_SUMMARIES=""
 
-      # Generate per-node SSH config from metadata plus safe scalar secret lookups.
+      # Generate per-node SSH config. Addresses and identity come from
+      # .cache/nodes.json (bootstrapped from SOPS) plus safe scalar secret
+      # lookups — never from the public flake metadata.
       ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (
           name: node: let
             localEnabled = node.localTarget or true;
             remoteEnabled = node.remoteTarget or true;
-            localHost = node.ip or "";
             localPort = toString (node.localPort or 22);
-            remoteHostDefault = node.remoteHost or localHost;
             remotePortDefault = toString (node.remotePort or (node.localPort or 22));
             remoteHostKey = node.remoteHostSecretKey or "";
             remotePortKey = node.remotePortSecretKey or "";
-            sshUser = node.sshUser or "root";
             sshAliases = node.sshAliases or [];
             remoteHostAliases = pkgs.lib.concatStringsSep " " (["${name}-remote"] ++ sshAliases);
-            configuredIdentity = node.identityFile or "";
           in ''
             # ${name}
+            # NOTE: plain assignments on purpose — this block is eval'd at the
+            # shell top level, where `local` is a hard error under `set -e`.
             {
-              local local_ip="${localHost}"
-              local local_port="${localPort}"
+              local_ip="$(node_meta '.["${name}"].ip' "")"
+              local_port="${localPort}"
+              ssh_user="$(node_meta '.ssh_user' "root")"
 
-              local remote_host default_remote_host
-              local remote_port default_remote_port
-
-              default_remote_host="${remoteHostDefault}"
+              default_remote_host="$local_ip"
               default_remote_port="${remotePortDefault}"
 
               remote_host="$(sanitize_ssh_host "$(get_secret_scalar "${remoteHostKey}" "$default_remote_host")" "$default_remote_host")"
               remote_port="$(sanitize_ssh_port "$(get_secret_scalar "${remotePortKey}" "$default_remote_port")" "$default_remote_port")"
 
               # Resolve SSH identity file at runtime
-              local identity_line=""
-              local configured_id="${configuredIdentity}"
-              local user_id="$HOME/.ssh/$USER"
+              identity_line=""
+              configured_id="$(node_meta '.ssh_identity_file' "")"
+              user_id="$HOME/.ssh/$USER"
 
               if [ -n "$configured_id" ]; then
                 eval configured_id="$configured_id"  # expand ~ and vars
@@ -225,42 +263,46 @@ in {
                 identity_line="  IdentityFile $user_id"
               else
                 echo "Warning: No SSH identity file found for ${name}" >&2
-                echo "  tried: ${configuredIdentity} and ~/.ssh/$USER" >&2
+                echo "  tried: nodes.json ssh_identity_file and ~/.ssh/$USER" >&2
                 echo "  SSH connections to ${name} may require a password" >&2
               fi
 
               # Append actual values to summary
               NODE_SUMMARIES="$NODE_SUMMARIES"'  '"${name} - ${node.role}/${node.nodeType}"$'\n'
               ${pkgs.lib.optionalString localEnabled ''
-              NODE_SUMMARIES="$NODE_SUMMARIES"'    local:  '"$local_ip:$local_port  (ssh ${name}-local)"$'\n'
+              [ -n "$local_ip" ] && NODE_SUMMARIES="$NODE_SUMMARIES"'    local:  '"$local_ip:$local_port  (ssh ${name}-local)"$'\n'
             ''}
               ${pkgs.lib.optionalString remoteEnabled ''
-              NODE_SUMMARIES="$NODE_SUMMARIES"'    remote: '"$remote_host:$remote_port  (ssh ${name}-remote)"$'\n'
+              [ -n "$remote_host" ] && NODE_SUMMARIES="$NODE_SUMMARIES"'    remote: '"$remote_host:$remote_port  (ssh ${name}-remote)"$'\n'
             ''}
 
               # Write SSH config
               {
                 echo "# === ${name} ==="
                 ${pkgs.lib.optionalString localEnabled ''
-              echo "Host ${name}-local"
-              echo "  HostName $local_ip"
-              echo "  Port $local_port"
-              echo "  User ${sshUser}"
-              [ -n "$identity_line" ] && echo "$identity_line"
-              echo "  StrictHostKeyChecking accept-new"
-              echo "  ConnectTimeout 10"
-              echo ""
+              if [ -n "$local_ip" ]; then
+                echo "Host ${name}-local"
+                echo "  HostName $local_ip"
+                echo "  Port $local_port"
+                echo "  User $ssh_user"
+                [ -n "$identity_line" ] && echo "$identity_line"
+                echo "  StrictHostKeyChecking accept-new"
+                echo "  ConnectTimeout 10"
+                echo ""
+              fi
             ''}
                 ${pkgs.lib.optionalString remoteEnabled ''
-              echo "Host ${remoteHostAliases}"
-              echo "  HostName $remote_host"
-              echo "  Port $remote_port"
-              echo "  User ${sshUser}"
-              [ -n "$identity_line" ] && echo "$identity_line"
-              echo "  StrictHostKeyChecking accept-new"
-              echo "  ConnectTimeout 10"
-              echo "  ServerAliveInterval 60"
-              echo ""
+              if [ -n "$remote_host" ]; then
+                echo "Host ${remoteHostAliases}"
+                echo "  HostName $remote_host"
+                echo "  Port $remote_port"
+                echo "  User $ssh_user"
+                [ -n "$identity_line" ] && echo "$identity_line"
+                echo "  StrictHostKeyChecking accept-new"
+                echo "  ConnectTimeout 10"
+                echo "  ServerAliveInterval 60"
+                echo ""
+              fi
             ''}
               } >>"$SSH_CONFIG_FILE"
             }
@@ -273,12 +315,10 @@ in {
       KEYS_LOADED=""
 
       ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (
-          name: node: let
-            configuredIdentity = node.identityFile or "";
-          in ''
+          name: node: ''
             # Resolve actual identity for ${name} (same logic as SSH config above)
             key_path=""
-            configured_id="${configuredIdentity}"
+            configured_id="$(node_meta '.ssh_identity_file' "")"
             user_id="$HOME/.ssh/$USER"
 
             if [ -n "$configured_id" ]; then
@@ -329,6 +369,7 @@ in {
       echo "  pre-push                                        - gitleaks secret scan"
       echo ""
       echo "commands:"
+      echo "  nix run .#bootstrap                              - decrypt node metadata into .cache/nodes.json"
       echo "  deploy <install/update/test> <node>-local        - deploy via local connection"
       echo "  deploy <install/update/test> <node>-remote       - deploy via remote connection"
       echo "  secrets <cmd>                                    - manage secrets"

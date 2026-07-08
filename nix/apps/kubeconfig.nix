@@ -114,7 +114,14 @@
           in ''
             if [ "$node" = "${name}" ]; then
               if [ "$mode" = "local" ]; then
-                kube_host="${node.ip}"
+                if [ -f ".cache/nodes.json" ]; then
+                  kube_host="$(${pkgs.jq}/bin/jq -r '.["${name}"].ip // ""' .cache/nodes.json 2>/dev/null || true)"
+                fi
+                if [ -z "''${kube_host:-}" ]; then
+                  echo "Error: no LAN IP for ${name} — run: nix run .#bootstrap" >&2
+                  [ -n "$SECRETS_FILE" ] && rm -f "$SECRETS_FILE"
+                  exit 1
+                fi
                 kube_port="6443"
               else
                 kube_host="$(get_secret "${k8sApiDomainKey}" "${node.domain}")"

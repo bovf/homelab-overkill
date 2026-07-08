@@ -14,7 +14,6 @@ let
   livekitDomain = "livekit.dobryops.com";
   lkJwtDomain = "lk-jwt.dobryops.com";
   homeserverName = "matrix.dobryops.com";
-  publicIPv4 = "203.0.113.10";
 in {
   # LiveKit API key/secret as a `<keyname>: <secret>` keyfile — consumed (via
   # systemd LoadCredential) by BOTH livekit and lk-jwt-service. Rendered from
@@ -45,8 +44,10 @@ in {
         port_range_start = 50000;
         port_range_end = 50000;
         use_external_ip = false;
-        # Advertise only the public IP — no docker0 / WireGuard / link-local.
-        node_ip = publicIPv4;
+        # Advertise only the uplink's address — no docker0 / WireGuard /
+        # link-local. Pinning the interface (rather than node_ip) keeps the
+        # public IP out of the repo; enp1s0 carries the VPS's public IPv4.
+        interfaces.includes = ["enp1s0"];
       };
     };
   };

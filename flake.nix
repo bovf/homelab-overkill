@@ -51,12 +51,15 @@
     hermes-agent-src,
     ...
   }: let
+    # Node addresses, ssh user, and identity file are NOT stored here — the
+    # repo is public. They live encrypted in secrets/secrets.yaml under
+    # `nodes:` and are materialized locally into .cache/nodes.json by
+    # `nix run .#bootstrap`. Dev shells and apps resolve them at runtime.
     nodes = {
       engineer = {
         hostname = "engineer";
         role = "server";
         nodeType = "controller";
-        ip = "192.0.2.10";
         localPort = 22;
 
         remoteHostSecretKey = "pangolin.resources.engineer_ssh.domain";
@@ -64,9 +67,6 @@
 
         k8sApiDomainSecretKey = "pangolin.resources.engineer_k8s_api.domain";
         k8sApiPortSecretKey = "pangolin.resources.engineer_k8s_api.port";
-
-        identityFile = "~/.ssh/id_homelab";
-        sshUser = "root";
 
         domain = "pangolin.dobryops.com";
         arch = "x86_64-linux";
@@ -93,14 +93,10 @@
         hostname = "pangolin";
         role = "edge";
         nodeType = "vps";
-        ip = "203.0.113.10";
         localTarget = false;
         remoteTarget = true;
-        remoteHost = "203.0.113.10";
         remotePort = 22;
 
-        identityFile = "~/.ssh/id_homelab";
-        sshUser = "root";
         sshAliases = ["pangolin"];
 
         domain = "pangolin.dobryops.com";
@@ -126,14 +122,10 @@
       #   hostname = "sentry-level-01";
       #   role = "agent";
       #   nodeType = "worker";
-      #   ip = "192.168.1.10";
       #   localPort = 22;
       #
       #   remoteHostSecretKey = "sentry-level-01.remoteHost";
       #   remotePortSecretKey = "sentry-level-01.remotePort";
-      #
-      #   identityFile = "~/.ssh/id_ed25519_sentry";
-      #   sshUser = "root";
       #
       #   domain = "pangolin.dobryops.com";
       #   arch = "x86_64-linux";

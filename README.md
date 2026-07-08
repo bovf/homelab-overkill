@@ -166,10 +166,16 @@ nix run .#deploy -- update pangolin-remote
 
 ```sshconfig
 Host pangolin pangolin-remote
-  HostName 203.0.113.10
-  User root
-  IdentityFile ~/.ssh/id_homelab
+  HostName <vps-public-ip>       # from .cache/nodes.json
+  User <ssh-user>                # from .cache/nodes.json
+  IdentityFile <identity-file>   # from .cache/nodes.json
 ```
+
+Node addresses, the SSH user, and the identity file are never stored in the
+repo — they live encrypted in `secrets/secrets.yaml` under `nodes:`. Run
+`nix run .#bootstrap` once (or just enter the dev shell with your age key
+present) to materialize them into the gitignored `.cache/nodes.json`;
+dev shells and nix apps resolve them from there at runtime.
 
 `engineer-remote` is resolved from targeted SOPS scalar lookups for the Pangolin
 SSH resource host/port. The dev shell never decrypts the full secrets file for

@@ -33,7 +33,7 @@ with lib; {
           addresses = mkOption {
             type = types.listOf types.str;
             description = "CIDR ranges or IP-IP ranges MetalLB allocates from.";
-            example = ["192.0.2.10/32" "192.168.2.0/24"];
+            example = ["192.0.2.10/32" "192.0.2.0/24"];
           };
         };
       };
