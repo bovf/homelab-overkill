@@ -248,22 +248,16 @@ in {
               remote_host="$(sanitize_ssh_host "$(get_secret_scalar "${remoteHostKey}" "$default_remote_host")" "$default_remote_host")"
               remote_port="$(sanitize_ssh_port "$(get_secret_scalar "${remotePortKey}" "$default_remote_port")" "$default_remote_port")"
 
-              # Resolve SSH identity file at runtime
+              # Identity is per-machine by convention: ~/.ssh/$USER (heavy on
+              # heavy, spy on spy, ...) — never configured, never stored.
               identity_line=""
-              configured_id="$(node_meta '.ssh_identity_file' "")"
               user_id="$HOME/.ssh/$USER"
 
-              if [ -n "$configured_id" ]; then
-                eval configured_id="$configured_id"  # expand ~ and vars
-              fi
-
-              if [ -n "$configured_id" ] && [ -f "$configured_id" ]; then
-                identity_line="  IdentityFile $configured_id"
-              elif [ -f "$user_id" ]; then
+              if [ -f "$user_id" ]; then
                 identity_line="  IdentityFile $user_id"
               else
                 echo "Warning: No SSH identity file found for ${name}" >&2
-                echo "  tried: nodes.json ssh_identity_file and ~/.ssh/$USER" >&2
+                echo "  expected: ~/.ssh/$USER" >&2
                 echo "  SSH connections to ${name} may require a password" >&2
               fi
 
@@ -311,39 +305,22 @@ in {
         enabledNodes)}
 
       # --- SSH Keys Status Report ---
+      # One machine-wide identity by convention (~/.ssh/$USER), so a single
+      # check covers every node.
       KEYS_MISSING=""
       KEYS_LOADED=""
 
-      ${pkgs.lib.concatStringsSep "\n" (pkgs.lib.mapAttrsToList (
-          name: node: ''
-            # Resolve actual identity for ${name} (same logic as SSH config above)
-            key_path=""
-            configured_id="$(node_meta '.ssh_identity_file' "")"
-            user_id="$HOME/.ssh/$USER"
-
-            if [ -n "$configured_id" ]; then
-              eval configured_id="$configured_id"
-            fi
-
-            if [ -n "$configured_id" ] && [ -f "$configured_id" ]; then
-              key_path="$configured_id"
-            elif [ -f "$user_id" ]; then
-              key_path="$user_id"
-            fi
-
-            if [ -n "$key_path" ]; then
-              fp="$(${pkgs.openssh}/bin/ssh-keygen -lf "$key_path" 2>/dev/null | awk '{print $2}')"
-              if [ -n "$fp" ]; then
-                if ${pkgs.openssh}/bin/ssh-add -l 2>/dev/null | awk '{print $2}' | grep -q "^$fp$"; then
-                  KEYS_LOADED="$KEYS_LOADED"'  '"$key_path  ($fp)"$'\n'
-                else
-                  KEYS_MISSING="$KEYS_MISSING"'  ssh-add "'"$key_path"'"  # '"${name}"$'\n'
-                fi
-              fi
-            fi
-          ''
-        )
-        enabledNodes)}
+      key_path="$HOME/.ssh/$USER"
+      if [ -f "$key_path" ]; then
+        fp="$(${pkgs.openssh}/bin/ssh-keygen -lf "$key_path" 2>/dev/null | awk '{print $2}')"
+        if [ -n "$fp" ]; then
+          if ${pkgs.openssh}/bin/ssh-add -l 2>/dev/null | awk '{print $2}' | grep -q "^$fp$"; then
+            KEYS_LOADED="$KEYS_LOADED"'  '"$key_path  ($fp)"$'\n'
+          else
+            KEYS_MISSING="$KEYS_MISSING"'  ssh-add "'"$key_path"'"'$'\n'
+          fi
+        fi
+      fi
 
       if [ -n "$KEYS_MISSING" ] || [ -n "$KEYS_LOADED" ]; then
         echo ""
