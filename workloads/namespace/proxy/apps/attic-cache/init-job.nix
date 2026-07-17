@@ -5,7 +5,7 @@ in {
     apiVersion = "batch/v1";
     kind = "Job";
     metadata = {
-      name = "attic-cache-bootstrap-v4";
+      name = "attic-cache-bootstrap-v5";
       namespace = "proxy";
       labels.app = "attic-cache";
     };
@@ -47,6 +47,12 @@ in {
                   ${atticClient}/bin/attic cache configure --public --retention-period "90 days" badwater
                   ${atticClient}/bin/attic cache info badwater
                 ''
+              ];
+              env = [
+                {
+                  name = "SSL_CERT_FILE";
+                  value = "${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt";
+                }
               ];
               envFrom = [{secretRef.name = "attic-cache-secret";}];
               volumeMounts = [
