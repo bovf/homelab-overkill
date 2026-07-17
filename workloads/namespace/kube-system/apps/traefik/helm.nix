@@ -11,7 +11,7 @@
         image:
           registry: docker.io
           repository: rancher/mirrored-library-traefik
-          tag: "3.7.4"
+          tag: "3.7.7"
 
         ports:
           web:

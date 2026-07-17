@@ -66,10 +66,9 @@
                   cpu = "50m";
                   memory = "64Mi";
                 };
-                limits = {
-                  cpu = "500m";
-                  memory = "256Mi";
-                };
+                # `du` bursts for a few seconds every five minutes; a CPU
+                # quota only throttles that scan and trips CPUThrottlingHigh.
+                limits.memory = "256Mi";
               };
               readinessProbe = {
                 httpGet = {

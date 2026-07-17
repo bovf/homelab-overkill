@@ -16,7 +16,7 @@
           global:
             domain: ${config.sops.placeholder."pangolin/resources/argocd/domain"}
             image:
-              tag: v3.4.4
+              tag: v3.4.5
 
           configs:
             params:
@@ -49,7 +49,7 @@
           controller:
             replicas: 1
             image:
-              tag: v3.4.4
+              tag: v3.4.5
             extraArgs:
               - --repo-server-timeout-seconds=180
             resources:

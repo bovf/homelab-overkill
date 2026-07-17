@@ -5,7 +5,7 @@ in {
     apiVersion = "batch/v1";
     kind = "Job";
     metadata = {
-      name = "attic-cache-bootstrap-v3";
+      name = "attic-cache-bootstrap-v4";
       namespace = "proxy";
       labels.app = "attic-cache";
     };
@@ -24,29 +24,27 @@ in {
               args = [
                 ''
                   export HOME=/tmp/attic-home
+                  endpoint=http://attic-cache.proxy.svc.cluster.local:8102
                   mkdir -p "$HOME"
 
+                  # `attic login` only writes local credentials; it does not
+                  # prove the server is ready. Probe the service first.
                   for i in $(seq 1 60); do
-                    if ${atticClient}/bin/attic login --set-default local http://attic-cache.proxy.svc.cluster.local:8102 "$ATTIC_ADMIN_TOKEN" >/tmp/attic-login.log 2>&1; then
-                      break
-                    fi
-                    cat /tmp/attic-login.log || true
+                    wget -qO /dev/null "$endpoint/" && break
                     echo "waiting for attic-cache Service ($i/60)"
                     sleep 5
                   done
+                  wget -qO /dev/null "$endpoint/"
 
-                  ${atticClient}/bin/attic login --set-default local http://attic-cache.proxy.svc.cluster.local:8102 "$ATTIC_ADMIN_TOKEN"
+                  ${atticClient}/bin/attic login --set-default local "$endpoint" "$ATTIC_ADMIN_TOKEN"
 
-                  if ${atticClient}/bin/attic cache info badwater >/tmp/attic-cache-info.log 2>&1; then
+                  if wget -qO /dev/null "$endpoint/_api/v1/cache-config/badwater"; then
                     echo "badwater cache already exists"
-                    cat /tmp/attic-cache-info.log
-                    ${atticClient}/bin/attic cache configure --public --retention-period "90 days" badwater
                   else
-                    cat /tmp/attic-cache-info.log || true
                     ${atticClient}/bin/attic cache create --public badwater
-                    ${atticClient}/bin/attic cache configure --public --retention-period "90 days" badwater
                   fi
 
+                  ${atticClient}/bin/attic cache configure --public --retention-period "90 days" badwater
                   ${atticClient}/bin/attic cache info badwater
                 ''
               ];
