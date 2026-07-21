@@ -84,6 +84,9 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 
 Mail hosting for `dobryops.com` is intentionally external via Proton Mail; this cluster does not run an SMTP/IMAP mail server.
 
+Hale uses the `openai-codex` provider with `gpt-5.6-luna`. OAuth state remains mutable user data; authenticate or refresh it on `engineer` with:
+`sudo -u hale -H /run/current-system/sw/bin/hermes auth add openai-codex --type oauth --no-browser`.
+
 ### MS Researcher Agent
 
 `services.ms-researcher` runs a dedicated Hermes Matrix bot on `engineer` for Multiple Sclerosis research tracking. It maintains a mutable Logseq-style KB at `/var/lib/ms-researcher/kb` and exposes it under `/home/ms-researcher/kb` for the agent.

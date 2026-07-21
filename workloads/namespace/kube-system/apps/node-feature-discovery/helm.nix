@@ -10,7 +10,7 @@
     spec = {
       repo = "https://kubernetes-sigs.github.io/node-feature-discovery/charts";
       chart = "node-feature-discovery";
-      version = "0.18.3";
+      version = "0.19.0";
       targetNamespace = "kube-system";
       createNamespace = false;
       valuesContent = ''
@@ -18,7 +18,7 @@
           - operator: Exists
         nodeSelector: {}
         image:
-          tag: "v0.18.3"
+          tag: "v0.19.0"
         # Additional NFD-specific config can go here
       '';
     };

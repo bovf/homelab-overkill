@@ -11,6 +11,7 @@
         image:
           registry: docker.io
           repository: rancher/mirrored-library-traefik
+          # K3s' bundled Traefik chart 40.1.0 rejects versions above 3.7.4.
           tag: "3.7.4"
 
         ports:

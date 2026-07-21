@@ -67,7 +67,7 @@
                 port-sync:
                   image:
                     repository: curlimages/curl
-                    tag: "8.16.0"
+                    tag: "8.21.0"
                   envFrom:
                     - secretRef:
                         name: qbittorrent-conf

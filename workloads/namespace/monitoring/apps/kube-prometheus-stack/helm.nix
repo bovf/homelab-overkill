@@ -54,7 +54,7 @@
                 - ${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
             alertmanagerSpec:
               image:
-                tag: v0.33.0
+                tag: v0.33.1
               # Makes the "View in Alertmanager" link in emails public.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}"
             config:
@@ -96,7 +96,7 @@
                 - ${config.sops.placeholder."pangolin/resources/prometheus/domain"}
             prometheusSpec:
               image:
-                tag: v3.13.0
+                tag: v3.13.1
               # Makes Prometheus generate public absolute links behind Traefik/Pangolin.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/prometheus/domain"}"
               enableFeatures:
