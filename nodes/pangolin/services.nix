@@ -6,6 +6,12 @@
 }: let
   baseDomain = "dobryops.com";
   letsEncryptEmail = "dobry@dobryops.com";
+  badger = pkgs.fetchFromGitHub {
+    owner = "fosrl";
+    repo = "badger";
+    rev = "v1.2.0";
+    hash = "sha256-iHL2amAuiiufb9hlokRP14wHq2Ei2eQdUlYP4FmpS9o=";
+  };
 in {
   # ─── sops-nix ─────────────────────────────────────────────────────────
   # Decrypts ../../secrets/secrets.yaml using the VPS SSH identity.
@@ -102,6 +108,18 @@ in {
   # returns 500 with "cannot validate certificate ... doesn't contain any
   # IP SANs". The docker-compose traefik_config.yml had the equivalent.
   services.traefik.staticConfigOptions.serversTransport.insecureSkipVerify = true;
+
+  # Traefik 3.5.3+ disables every plugin-backed router when its registry is
+  # briefly unreachable at startup (traefik/traefik#13005). Load Pangolin's
+  # pinned Badger source locally instead, so a rebuild cannot turn every
+  # external resource into Traefik's default 404.
+  services.traefik.staticConfigOptions.experimental = lib.mkForce {
+    localPlugins.badger.moduleName = "github.com/fosrl/badger";
+  };
+  systemd.services.traefik.preStart = ''
+    install -d plugins-local/src/github.com/fosrl
+    ln -sfn ${badger} plugins-local/src/github.com/fosrl/badger
+  '';
 
   # The pangolin module declares Traefik as PartOf=gerbil.service, which
   # races with `switch-to-configuration`'s stop→activate→start dance on
