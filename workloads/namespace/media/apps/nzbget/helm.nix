@@ -35,7 +35,7 @@
                     - -ceu
                     - |
                       mkdir -p /config
-                      mkdir -p /downloads/complete /downloads/intermediate /downloads/tmp /downloads/nzb /downloads/queue /downloads/scripts /downloads/tv /downloads/movies
+                      mkdir -p /downloads/complete /downloads/intermediate /downloads/tmp /downloads/nzb /downloads/queue /downloads/scripts /downloads/tv /downloads/movies /downloads/roms
                       cp /secret/nzbget.conf /config/nzbget.conf
                       chown -R 1000:1000 /config /downloads
                       chmod -R 755 /config /downloads

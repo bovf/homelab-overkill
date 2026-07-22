@@ -68,7 +68,10 @@ with lib; {
 
   # Keep the mutable Hermes config intact while enforcing Hale's provider/model.
   systemd.services.hermes-agent = {
-    environment.HERMES_HOME = "/home/hale/.hermes";
+    environment = {
+      HERMES_HOME = "/home/hale/.hermes";
+      MATRIX_DEVICE_ID = "default";
+    };
     serviceConfig = {
       EnvironmentFile = "/home/hale/.hermes/.env";
       ExecStartPre = pkgs.writeShellScript "hale-model-config" ''

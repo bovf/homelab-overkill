@@ -12,5 +12,7 @@
     ./synapse-init-job.nix
     ./sparkyfitness-secret.nix
     ./sparkyfitness-init-job.nix
+    ./romm-secret.nix
+    ./romm-init-job.nix
   ];
 }
