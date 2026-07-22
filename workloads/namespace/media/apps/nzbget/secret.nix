@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   # The initContainer in helm.nix copies this into the /config PVC on
   # every pod start so the in-container config stays declarative.
   sops.templates."nzbget/nzbget-conf.yaml" = {
@@ -37,6 +35,10 @@
           Category2.Name=radarr
           Category2.DestDir=/downloads/movies
           Category2.Unpack=yes
+
+          Category3.Name=roms
+          Category3.DestDir=/downloads/roms
+          Category3.Unpack=yes
 
           Unpack=yes
           UnpackCleanupDisk=yes
@@ -81,17 +83,17 @@
           Server1.IpVersion=auto
           Server1.Notes=
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/nzbget-conf.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/nzbget-conf.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 
   services.k3s.manifests.nzbget-serviceaccount.content = {
     apiVersion = "v1";
-    kind       = "ServiceAccount";
+    kind = "ServiceAccount";
     metadata = {
-      name      = "nzbget";
+      name = "nzbget";
       namespace = "media";
     };
   };

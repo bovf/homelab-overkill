@@ -18,6 +18,8 @@
     secrets."pangolin/resources/jellyseerr/domain" = {};
     secrets."pangolin/resources/qbittorrent/domain" = {};
     secrets."pangolin/resources/nzbget/domain" = {};
+    secrets."pangolin/resources/gamarr/domain" = {};
+    secrets."pangolin/resources/romm/domain" = {};
     secrets."pangolin/resources/grafana/domain" = {};
     secrets."pangolin/resources/prometheus/domain" = {};
     secrets."pangolin/resources/alertmanager/domain" = {};
@@ -90,6 +92,11 @@
     secrets."media/bazarr/opensubtitles_password" = {};
     secrets."media/jellyseerr/api_key" = {};
     secrets."media/jellyfin/admin_password" = {};
+    secrets."media/romm/auth_secret" = {};
+    secrets."media/romm/metadata/screenscraper/username" = {};
+    secrets."media/romm/metadata/screenscraper/password" = {};
+    secrets."media/romm/metadata/retroachievements/api_key" = {};
+    secrets."media/romm/metadata/steamgriddb/api_key" = {};
 
     secrets."media/indexers/mma_torrents/username" = {};
     secrets."media/indexers/mma_torrents/password" = {};
@@ -100,6 +107,7 @@
 
     secrets."database/postgres/password" = {};
     secrets."database/postgres/gitlab/password" = {};
+    secrets."database/postgres/romm/password" = {};
     secrets."database/pgadmin/email" = {};
     secrets."database/pgadmin/password" = {};
     secrets."database/minio/root_user" = {};
