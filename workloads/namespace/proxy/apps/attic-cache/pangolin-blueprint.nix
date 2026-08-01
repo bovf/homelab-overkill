@@ -12,7 +12,6 @@
     viaKernelWg = true;
     lanIP = "192.168.2.23";
     healthcheck = {
-      hostname = "attic-cache.proxy.svc.cluster.local";
       port = 8102;
       path = "/";
     };
