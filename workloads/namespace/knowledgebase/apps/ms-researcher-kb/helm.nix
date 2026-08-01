@@ -25,7 +25,7 @@
                 main:
                   image:
                     repository: nginx
-                    tag: "1.31.2@sha256:424939d458e28153a78d9a4a8d60e8fae5eae35e84a2d92a43d153d1f92c171c"
+                    tag: "1.31.3@sha256:5a88c9c45479443d7be2eadc894b4ed0a9801bae03d97a5760ae13b5c2005942"
                     pullPolicy: IfNotPresent
                   probes:
                     liveness:

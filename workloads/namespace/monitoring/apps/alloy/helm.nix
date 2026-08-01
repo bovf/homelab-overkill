@@ -9,7 +9,7 @@
       spec:
         repo: https://grafana.github.io/helm-charts
         chart: alloy
-        version: "1.10.0"
+        version: "1.11.0"
         targetNamespace: monitoring
         createNamespace: false
         valuesContent: |
@@ -20,7 +20,8 @@
             type: daemonset
 
           image:
-            tag: v1.17.1
+            tag: v1.18.0
+            digest: sha256:491b0578c04983fd54fe99b587b6fab4404dc46d0dc16677bd6b00cc1140b308
 
           alloy:
             stabilityLevel: generally-available

@@ -17,7 +17,7 @@
       valuesContent = ''
         global:
           image:
-            tag: "1.14"
+            tag: "1.15.0@sha256:d69d047c816ca7721eae90d5f3cd3be53b615b3d498678be21488d666538ee5c"
           podAnnotations:
             configmap.reloader.stakater.com/reload: "pangolin-blueprint-cicd-gitops"
 

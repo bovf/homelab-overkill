@@ -22,6 +22,12 @@
                 version_checker_is_latest_version{
                   image!="rancher/klipper-helm",
                   image!="rancher/mirrored-coredns-coredns",
+                  # Owned by K3s's bundled manifests/chart. Traefik >3.7.4
+                  # currently fails the bundled chart's schema validation.
+                  image!="rancher/mirrored-metrics-server",
+                  image!="rancher/mirrored-library-traefik",
+                  # MetalLB 0.16.1 (current chart) pins FRR 10.6.1.
+                  image!="quay.io/frrouting/frr",
                   image!="quay.io/prometheus-operator/prometheus-config-reloader",
                   image!="quay.io/prometheus-operator/prometheus-operator",
                   image!="postgres",

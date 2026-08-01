@@ -24,7 +24,7 @@
                 main:
                   image:
                     repository: docker.io/mayswind/ezbookkeeping
-                    tag: "1.5.1"
+                    tag: "1.6.1@sha256:6d71a0d0f62806f609634886d0cbe9133e8177e1cb76b569d8dcc0587f734f0a"
                   # EBK_DATABASE_PASSWD and EBK_SECURITY_SECRET_KEY come from
                   # the ezbookkeeping-credentials secret (keys named to match).
                   envFrom:

@@ -114,12 +114,14 @@
 
           prometheus-node-exporter:
             image:
+              tag: v1.12.1
+              digest: sha256:1b4e4438faca4dd7e001dd445d161a4a2091b0fededa84093b3a8dfeae1f1be0
               distroless: false
 
           grafana:
             sidecar:
               image:
-                tag: 2.8.1
+                tag: 2.10.0@sha256:21b9fe7bb29d65caf2445ccbf96ff6eda5e589a92bd8f5188f957fe75b551d72
             service:
               type: ClusterIP
               port: 32000
