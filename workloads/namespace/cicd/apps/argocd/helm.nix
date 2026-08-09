@@ -9,14 +9,18 @@
       spec:
         repo: https://argoproj.github.io/argo-helm
         chart: argo-cd
-        version: "9.5.22"
+        version: "10.3.0"
         targetNamespace: cicd
         createNamespace: false
         valuesContent: |
           global:
             domain: ${config.sops.placeholder."pangolin/resources/argocd/domain"}
+            networkPolicy:
+              # Chart 10 enables these by default; preserve the existing
+              # single-node networking behavior during the upgrade.
+              create: false
             image:
-              tag: v3.4.5
+              tag: v3.5.0
 
           configs:
             params:
@@ -49,7 +53,7 @@
           controller:
             replicas: 1
             image:
-              tag: v3.4.5
+              tag: v3.5.0
             extraArgs:
               - --repo-server-timeout-seconds=180
             resources:

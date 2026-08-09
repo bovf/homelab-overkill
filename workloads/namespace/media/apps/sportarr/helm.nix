@@ -21,8 +21,8 @@
                     repository: sportarr/sportarr
                     # Pinned to digest (upstream publishes mutable stable/dev tags,
                     # so this keeps deploys reproducible).
-                    # Bump by re-resolving with: docker buildx imagetools inspect sportarr/sportarr:4
-                    tag: "4@sha256:469fa7d28d25a2b6818d88bc728e0e79876cdc911fd17da24bdeddba558ffd97"
+                    # Bump by re-resolving with: docker buildx imagetools inspect sportarr/sportarr:4.1
+                    tag: "4.1@sha256:5ab15cfdbac71aad8e5a4a6a97e0513f21e4e8315f247fcdff34d85654d3f6ef"
                   env:
                     TZ: "Europe/Helsinki"
                     PUID: "1000"

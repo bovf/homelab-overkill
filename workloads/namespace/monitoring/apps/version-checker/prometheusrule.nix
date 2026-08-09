@@ -26,6 +26,8 @@
                   # currently fails the bundled chart's schema validation.
                   image!="rancher/mirrored-metrics-server",
                   image!="rancher/mirrored-library-traefik",
+                  # K3s owns the local-path provisioner image too.
+                  image!="rancher/local-path-provisioner",
                   # MetalLB 0.16.1 (current chart) pins FRR 10.6.1.
                   image!="quay.io/frrouting/frr",
                   image!="quay.io/prometheus-operator/prometheus-config-reloader",
@@ -33,6 +35,9 @@
                   image!="postgres",
                   image!="docker.io/bitnamilegacy/redis",
                   image!="docker.io/bitnamilegacy/redis-exporter",
+                  # Alloy renders digest-only with chart-native digest pinning,
+                  # causing version-checker to select a Windows tag.
+                  image!="docker.io/grafana/alloy",
                   container_type!="init",
                   latest_version!~"^(sha-|snapshot|unstable|nightly|develop|dev|master|pr|latest-snapshot).*$",
                   latest_version!~".*(-dev|-pr|_beta).*$",

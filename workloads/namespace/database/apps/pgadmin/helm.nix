@@ -9,14 +9,14 @@
       spec:
         repo: https://helm.runix.net
         chart: pgadmin4
-        version: "1.64.0"
+        version: "1.66.0"
         targetNamespace: database
         createNamespace: false
         valuesContent: |
           image:
             registry: docker.io
             repository: dpage/pgadmin4
-            tag: "9.16"
+            tag: "9.17@sha256:2f4ce946ddf8360680d7eff4eaba1d91859eb6b4003e6623bad5c63a322c2f4d"
             pullPolicy: IfNotPresent
 
           env:

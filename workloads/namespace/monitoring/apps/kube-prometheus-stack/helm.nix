@@ -96,7 +96,8 @@
                 - ${config.sops.placeholder."pangolin/resources/prometheus/domain"}
             prometheusSpec:
               image:
-                tag: v3.13.1
+                tag: v3.13.2
+                sha: 508729e0e2d18e11fd742a5a5ca70e557b940a93948c3c95fd0123a6fd538b69
               # Makes Prometheus generate public absolute links behind Traefik/Pangolin.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/prometheus/domain"}"
               enableFeatures:
@@ -121,7 +122,8 @@
           grafana:
             sidecar:
               image:
-                tag: 2.10.0@sha256:21b9fe7bb29d65caf2445ccbf96ff6eda5e589a92bd8f5188f957fe75b551d72
+                tag: 2.10.1
+                sha: 7eac5c4fed714a18d038fc9fea57d8744d113367935dac0ea4eb6a87cef704a3
             service:
               type: ClusterIP
               port: 32000

@@ -25,7 +25,7 @@
                 main:
                   image:
                     repository: seerr/seerr
-                    tag: v3.3
+                    tag: "v3.4.1@sha256:f4768de5f616248d723e05891f3345a1402123775d03bf0890dbfedc0831bda1"
                   env:
                     TZ: "Europe/Helsinki"
                     LOG_LEVEL: "info"
