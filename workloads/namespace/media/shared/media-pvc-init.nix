@@ -4,7 +4,7 @@
     apiVersion = "batch/v1";
     kind = "Job";
     metadata = {
-      name = "media-directory-init";
+      name = "media-directory-init-v2";
       namespace = "media";
     };
     spec = {
@@ -17,20 +17,12 @@
               image = "busybox:1.38.0";
               command = [
                 "sh"
-                "-c"
+                "-ceu"
                 ''
-                  echo "Creating media directory structure..."
-                  mkdir -p /media/movies
-                  mkdir -p /media/shows
-                  mkdir -p /media/music
-                  mkdir -p /media/downloads
-
-                  echo "Setting permissions..."
-                  chown -R 1000:1000 /media
-                  chmod -R 755 /media
-
-                  echo "Directory structure created successfully!"
-                  ls -la /media
+                  dirs="/media /media/complete /media/downloads /media/intermediate /media/movies /media/music /media/nzb /media/queue /media/roms /media/scripts /media/shows /media/sports /media/tmp /media/tv"
+                  mkdir -p $dirs
+                  chown 1000:1000 $dirs
+                  chmod 2775 $dirs
                 ''
               ];
               volumeMounts = [

@@ -15,7 +15,7 @@
         valuesContent: |
           defaultPodOptions:
             annotations:
-              k3s.cattle.io/config-version: "2"
+              k3s.cattle.io/config-version: "3"
               secret.reloader.stakater.com/reload: "nzbget-conf"
             securityContext:
               fsGroup: 1000
@@ -37,8 +37,10 @@
                       mkdir -p /config
                       mkdir -p /downloads/complete /downloads/intermediate /downloads/tmp /downloads/nzb /downloads/queue /downloads/scripts /downloads/tv /downloads/movies /downloads/roms
                       cp /secret/nzbget.conf /config/nzbget.conf
-                      chown -R 1000:1000 /config /downloads
-                      chmod -R 755 /config /downloads
+                      chown -R 1000:1000 /config
+                      chmod -R u+rwX,g+rwX,o+rX /config
+                      chown 1000:1000 /downloads /downloads/complete /downloads/intermediate /downloads/tmp /downloads/nzb /downloads/queue /downloads/scripts /downloads/tv /downloads/movies /downloads/roms
+                      chmod 2775 /downloads /downloads/complete /downloads/intermediate /downloads/tmp /downloads/nzb /downloads/queue /downloads/scripts /downloads/tv /downloads/movies /downloads/roms
                       echo "nzbget.conf deployed successfully"
               containers:
                 main:
