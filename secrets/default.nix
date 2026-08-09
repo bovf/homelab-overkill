@@ -18,7 +18,6 @@
     secrets."pangolin/resources/jellyseerr/domain" = {};
     secrets."pangolin/resources/qbittorrent/domain" = {};
     secrets."pangolin/resources/nzbget/domain" = {};
-    secrets."pangolin/resources/gamarr/domain" = {};
     secrets."pangolin/resources/romm/domain" = {};
     secrets."pangolin/resources/grafana/domain" = {};
     secrets."pangolin/resources/prometheus/domain" = {};

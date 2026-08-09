@@ -3,7 +3,6 @@
   imports = [
     # Import apps with their entrypoints
     ./apps/bazarr
-    ./apps/gamarr
     ./apps/jellyfin
     ./apps/jellyseer
     ./apps/prowlarr
