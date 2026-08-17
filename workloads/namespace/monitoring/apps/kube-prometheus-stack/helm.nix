@@ -120,6 +120,8 @@
               distroless: false
 
           grafana:
+            image:
+              tag: 13.1.3
             sidecar:
               image:
                 tag: 2.10.1

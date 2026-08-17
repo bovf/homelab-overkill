@@ -21,17 +21,15 @@ in {
         targetNamespace = cfg.namespace;
         createNamespace = true;
         valuesContent = ''
+          # This cluster uses only L2Advertisement; the FRR backend is for BGP.
+          frrk8s:
+            enabled: false
           controller:
             tolerations:
               - operator: Exists
           speaker:
             tolerations:
               - operator: Exists
-          frr-k8s:
-            frrk8s:
-              frr:
-                image:
-                  tag: 10.6.1
         '';
       };
     };
