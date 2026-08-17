@@ -77,6 +77,9 @@
 
         additionalArguments:
           - "--log.level=INFO"
+          # Traefik 3 defaults to 60s for reading a complete request body;
+          # large Attic NAR uploads legitimately exceed that.
+          - "--entryPoints.websecure.transport.respondingTimeouts.readTimeout=10m"
       '';
     };
   };
