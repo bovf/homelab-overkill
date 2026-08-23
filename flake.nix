@@ -144,6 +144,9 @@
       # Hermes currently requires Python <3.14; nixpkgs' python3 may move ahead.
       python = final.python313;
       pyprojectOverrides = pyFinal: pyPrev: {
+        hermes-agent = pyPrev.hermes-agent.overrideAttrs (_: {
+          HERMES_NIX_BUILD = "1";
+        });
         python-olm = pyPrev.python-olm.overrideAttrs (old: {
           nativeBuildInputs =
             (old.nativeBuildInputs or [])
@@ -227,7 +230,7 @@
         ({pkgs, ...}: {
           sops.package =
             (pkgs.callPackage (sops-nix + "/pkgs/sops-install-secrets") {
-              vendorHash = "sha256-ANh5X1ZWtkHaQ0AVBoHTHETUSyb0DVhRvfqdKwYLYbs=";
+              vendorHash = "sha256-rdiuCTl92biIdCdRouCbqUgjqM50Gi/oY3k5oOWKd9E=";
             }).overrideAttrs (old: {
               patches = (old.patches or []) ++ [./nix/patches/sops-always-recreate-symlink.patch];
             });
