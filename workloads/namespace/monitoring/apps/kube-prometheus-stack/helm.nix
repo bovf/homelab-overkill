@@ -54,7 +54,7 @@
                 - ${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
             alertmanagerSpec:
               image:
-                tag: v0.33.1
+                tag: v0.34.0
               # Makes the "View in Alertmanager" link in emails public.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}"
             config:
@@ -96,8 +96,8 @@
                 - ${config.sops.placeholder."pangolin/resources/prometheus/domain"}
             prometheusSpec:
               image:
-                tag: v3.13.2
-                sha: 508729e0e2d18e11fd742a5a5ca70e557b940a93948c3c95fd0123a6fd538b69
+                tag: v3.14.0
+                sha: 5ce7540c3c00ef4ab0c9d2c995c6a5b9c421f44b4a115d97a2c7af3b1c21cbb0
               # Makes Prometheus generate public absolute links behind Traefik/Pangolin.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/prometheus/domain"}"
               enableFeatures:
@@ -111,7 +111,7 @@
               scrapeConfigSelectorNilUsesHelmValues: false
           kube-state-metrics:
             image:
-              tag: v2.19.1
+              tag: v2.20.0
 
           prometheus-node-exporter:
             image:
@@ -121,7 +121,7 @@
 
           grafana:
             image:
-              tag: 13.1.3
+              tag: "13.2"
             sidecar:
               image:
                 tag: 2.10.1
