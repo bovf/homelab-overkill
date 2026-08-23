@@ -8,8 +8,8 @@
 #   services.livekit         : the SFU.
 #   services.lk-jwt-service  : mints LiveKit JWTs after a Synapse OpenID check.
 # Both are fronted by the Pangolin Traefik over HTTPS; call media is direct on
-# 7881/tcp + 50000-50199/udp (opened in firewall.nix). Element X and modern
-# Element Web call only via Element Call — there is no legacy 1:1 path.
+# 7881/tcp + 50000/udp (opened in firewall.nix). Element X and modern Element
+# Web call only via Element Call — there is no legacy 1:1 path.
 let
   livekitDomain = "livekit.dobryops.com";
   lkJwtDomain = "lk-jwt.dobryops.com";
@@ -36,13 +36,12 @@ in {
       port = 7880;
       rtc = {
         tcp_port = 7881;
-        # Single-port UDP mux: one ICE candidate instead of a range, so the
-        # client can't flap between candidates mid-call (which interrupts
-        # media). port_range_* is pinned to the same single port so it can
-        # never contradict udp_port.
+        # Single-port UDP mux shared by every call. LiveKit gives port_range_*
+        # precedence, so zero the NixOS module's default range or the mux never
+        # opens and clients get no usable public UDP candidate.
         udp_port = 50000;
-        port_range_start = 50000;
-        port_range_end = 50000;
+        port_range_start = 0;
+        port_range_end = 0;
         use_external_ip = false;
         # Advertise only the uplink's address — no docker0 / WireGuard /
         # link-local. Pinning the interface (rather than node_ip) keeps the
