@@ -87,6 +87,27 @@ Mail hosting for `dobryops.com` is intentionally external via Proton Mail; this 
 Hale uses the `openai-codex` provider with `gpt-5.6-luna`. OAuth state remains mutable user data; authenticate or refresh it on `engineer` with:
 `sudo -u hale -H /run/current-system/sw/bin/hermes auth add openai-codex --type oauth --no-browser`.
 
+### Glance dashboard
+
+**Home** is the service catalogue, with a native tabbed **Media** group: app shortcuts, library counts, streams, TV, movies, requests and indexer health. The separate Media page is removed; **Mobile** remains a compact view with research KB, SparkyFitness and RomM shortcuts added. All 15 existing custom API widgets retain their requests, credentials wiring and cache intervals.
+
+Home covers the 30 user-facing HTTP resources, including Homarr, SearXNG, the research KB, SparkyFitness, RomM, pgAdmin, Uptime Kuma, Alertmanager, Speedtest and the camera. **`(LAN)`** identifies resources whose public Pangolin route is disabled; those links require the appropriate LAN/split-DNS access and do not enable public exposure. Raw Matrix/S3/registry/cache endpoints and Glance's own URL are deliberately not application launchers.
+
+[Dashboard configuration](workloads/namespace/dashboard/apps/glance/config.nix) owns the grouping and shortcuts. Use real Simple Icons names, selfh.st logos where a brand is absent, and Material Design icons for generic functions. Sportarr's dark SVG needs `auto-invert`; colored logos do not. CDN-hosted icons still depend on their providers; existing custom icons are served locally.
+
+Run the [maintenance check](workloads/namespace/dashboard/apps/glance/check.py) whenever resources, bookmarks, layout or icons change. It requires Python 3, Nix, `yq` and the cached locked flake inputs. It evaluates configuration without decrypting secrets; `--icons` contacts the configured icon providers, not application health APIs.
+
+```bash
+# Offline inventory, Media/Mobile layout, LAN labels and local icon checks:
+python3 workloads/namespace/dashboard/apps/glance/check.py
+# Also verify each public CDN icon URL returns a valid image:
+python3 workloads/namespace/dashboard/apps/glance/check.py --icons
+```
+
+A newly declared frontend without exactly one Home shortcut fails the check: add its bookmark, or document an intentional API-only exclusion in the checker. This is an explicit maintenance gate, not automatic service discovery or a live health report.
+
+Validated on 2026-09-08 with Glance `v0.8.6`: engineer's full build, 30 service shortcuts, 36 icon references, all seven Media tabs, and desktop/narrow-viewport browser checks. Browser API/RSS data was synthetic; this does not establish production backend health or deployment.
+
 ### SearXNG search
 
 The [image pin](workloads/namespace/dashboard/apps/searxng/helm.nix) is `2026.9.8-3fdc6d753` with its registry digest. [Settings](workloads/namespace/dashboard/apps/searxng/settings.nix) merge upstream defaults by engine name: **Brave, DuckDuckGo and Bing** are enabled; Google and Startpage are disabled by default after returning empty results/errors. Other categories, including science, remain available. Glance opens the HTML search page; JSON output and DuckDuckGo autocomplete are retained.
