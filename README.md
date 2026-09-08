@@ -87,6 +87,32 @@ Mail hosting for `dobryops.com` is intentionally external via Proton Mail; this 
 Hale uses the `openai-codex` provider with `gpt-5.6-luna`. OAuth state remains mutable user data; authenticate or refresh it on `engineer` with:
 `sudo -u hale -H /run/current-system/sw/bin/hermes auth add openai-codex --type oauth --no-browser`.
 
+### SearXNG search
+
+The [image pin](workloads/namespace/dashboard/apps/searxng/helm.nix) is `2026.9.8-3fdc6d753` with its registry digest. [Settings](workloads/namespace/dashboard/apps/searxng/settings.nix) merge upstream defaults by engine name: **Brave, DuckDuckGo and Bing** are enabled; Google and Startpage are disabled by default after returning empty results/errors. Other categories, including science, remain available. Glance opens the HTML search page; JSON output and DuckDuckGo autocomplete are retained.
+
+On 2026-09-08, an isolated candidate pod on engineer using these settings passed ten ordinary queries: all three web engines returned results, with no engine errors, in 0.62–1.57 seconds. HTML, JSON and autocomplete also passed. This is a bounded candidate test, not proof of production deployment or continuing provider availability. Saved browser engine preferences can override defaults; retest in a fresh session after rollout.
+
+Functional smoke check after deployment (configured Kubernetes access required):
+
+```bash
+# Terminal 1: expose only a loopback port; stop with Ctrl-C afterwards.
+kubectl -n dashboard port-forward service/searxng 18080:8098
+```
+
+```bash
+# Terminal 2: /healthz alone does not test external search engines.
+set -o pipefail
+curl --fail --silent --show-error --max-time 20 --get \
+  http://127.0.0.1:18080/search \
+  --data-urlencode 'q=NixOS documentation' \
+  --data-urlencode 'format=json' \
+  --data-urlencode 'language=en' \
+  | jq -e '(.results | length > 0) and (.unresponsive_engines | length == 0)'
+```
+
+To isolate a failure, add `--data-urlencode 'engines=bing'` (or `brave` / `duckduckgo`) and space requests out. Keep external queries out of Kubernetes probes. CAPTCHA/429 responses are provider failures, not a reason to disable suspension backoff or blindly increase timeouts. No new proxy, VPN, or timeout override is configured.
+
 ### MS Researcher Agent
 
 `services.ms-researcher` runs a dedicated Hermes Matrix bot on `engineer` for Multiple Sclerosis research tracking. It maintains a mutable Logseq-style KB at `/var/lib/ms-researcher/kb` and exposes it under `/home/ms-researcher/kb` for the agent.

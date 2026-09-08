@@ -1,9 +1,7 @@
 # Minimal settings.yml for SearXNG. Image ships its own default; this
 # ConfigMap overrides the bits we care about. Anything we don't set
 # falls back to the upstream settings.yml inside the container.
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."searxng/settings.yaml" = {
     content = ''
       apiVersion: v1
@@ -14,6 +12,21 @@
       data:
         settings.yml: |
           use_default_settings: true
+
+          # Override by name so other categories keep their upstream engines.
+          # Verified from engineer with the pinned image on 2026-09-08:
+          # Brave/DDG/Bing return web results; Google is empty and Startpage fails.
+          engines:
+            - name: brave
+              disabled: false
+            - name: duckduckgo
+              disabled: false
+            - name: bing
+              disabled: false
+            - name: google
+              disabled: true
+            - name: startpage
+              disabled: true
 
           general:
             instance_name: "DobryOps Search"
@@ -41,8 +54,8 @@
             infinite_scroll: true
             search_on_category_select: true
 
-          # Glance hits us via the cluster-internal Service for the
-          # homepage search bar; allow JSON output for that.
+          # Glance opens the HTML search page; JSON also supports API clients
+          # and the README's functional smoke check.
           search:
             safe_search: 0
             autocomplete: "duckduckgo"
@@ -51,9 +64,9 @@
               - html
               - json
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/searxng-settings.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/searxng-settings.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }
