@@ -40,7 +40,7 @@
                 main:
                   image:
                     repository: glanceapp/glance
-                    tag: "v0.8.5"
+                    tag: "v0.8.6"
                     pullPolicy: IfNotPresent
                   envFrom:
                     - secretRef:

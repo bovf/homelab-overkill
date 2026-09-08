@@ -113,6 +113,27 @@ curl --fail --silent --show-error --max-time 20 --get \
 
 To isolate a failure, add `--data-urlencode 'engines=bing'` (or `brave` / `duckduckgo`) and space requests out. Keep external queries out of Kubernetes probes. CAPTCHA/429 responses are provider failures, not a reason to disable suspension backoff or blindly increase timeouts. No new proxy, VPN, or timeout override is configured.
 
+### Workload image refresh (2026-09-08)
+
+These are the selected source versions, not a live rollout report. The eight image families cover the thirteen reported `ImageOutOfDate` alerts; existing chart versions and unrelated images remain unchanged.
+
+| Image | Version | Source |
+|---|---|---|
+| Argo CD | `v3.5.2` | [Argo CD Helm values](workloads/namespace/cicd/apps/argocd/helm.nix), both global and controller overrides |
+| Glance | `v0.8.6` | [Glance Helm values](workloads/namespace/dashboard/apps/glance/helm.nix) |
+| nginx | `1.31.5` | [KB viewer Helm values](workloads/namespace/knowledgebase/apps/ms-researcher-kb/helm.nix) |
+| curl | `8.22.0` | [qBittorrent port-sync](workloads/namespace/media/apps/qbittorrent/helm.nix) |
+| Grafana | `13.2.1` | [kube-prometheus-stack Helm values](workloads/namespace/monitoring/apps/kube-prometheus-stack/helm.nix) |
+| k8s-sidecar | `2.11.2` | Grafana Helm values above and [Loki Helm values](workloads/namespace/monitoring/apps/loki/helm.nix) |
+| Loki | `3.7.7` | [Loki Helm values](workloads/namespace/monitoring/apps/loki/helm.nix) |
+| Uptime Kuma | `2.5.3` | [Uptime Kuma Helm values](workloads/namespace/monitoring/apps/uptime-kuma/helm.nix) |
+
+The full engineer NixOS toplevel build passed. All eight affected chart releases rendered in upgrade mode before/after the change (165 resources per render set); checks confirmed only intended image-value fields changed and Service/Ingress/PVC specifications were unchanged. Registry manifest digests and Linux/amd64 availability were also checked. These checks do not deploy workloads or validate secret-substituted production manifests.
+
+Existing digest pins are preserved: change tag and digest together, including Grafana sidecar's separate `sha` field. Docker Hub and Quay publish the same target sidecar digest. Do not change alert exclusions to hide pending rollouts.
+
+Before deploying the stateful updates, take a consistent Uptime Kuma `/app/data` backup. A read-only live check on 2026-09-08 confirmed Grafana's `storage` volume is **`emptyDir`**, while Kuma uses the `uptime-kuma` PVC: protect Grafana's database/unprovisioned state before replacing its pod, or explicitly approve a persistent-storage migration. Keep Loki schema, storage and retention settings unchanged. Afterwards verify Argo reconciliation, Glance widgets, KB content, qBittorrent VPN/port synchronization, Grafana dashboard/datasource watches, Loki ingestion/historical queries, and Kuma monitors/notifications. Check running image IDs and allow for version-checker's 30-minute cache plus scrape/evaluation delay; the alert's 72-hour duration delays firing, not resolution. Roll back through the Nix pins, restoring compatible data if a database migration requires it.
+
 ### MS Researcher Agent
 
 `services.ms-researcher` runs a dedicated Hermes Matrix bot on `engineer` for Multiple Sclerosis research tracking. It maintains a mutable Logseq-style KB at `/var/lib/ms-researcher/kb` and exposes it under `/home/ms-researcher/kb` for the agent.
