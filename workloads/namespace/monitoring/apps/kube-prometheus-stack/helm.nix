@@ -120,6 +120,15 @@
               distroless: false
 
           grafana:
+            # First enablement creates an empty PVC; back up the old pod first.
+            persistence:
+              enabled: true
+              type: pvc
+              storageClassName: local-path
+              accessModes: [ReadWriteOnce]
+              size: 10Gi
+            deploymentStrategy:
+              type: Recreate
             image:
               tag: "13.2.1"
             sidecar:

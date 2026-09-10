@@ -15,6 +15,8 @@
         valuesContent: |
           controllers:
             main:
+              # Keep the chart default explicit: one SQLite writer during updates.
+              strategy: Recreate
               containers:
                 main:
                   image:
