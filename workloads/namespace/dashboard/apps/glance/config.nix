@@ -1,11 +1,10 @@
-# Glance dashboard config. Rendered via sops.templates so every
-# *.dobryops.com host is templated from SOPS - no plaintext domains in
-# git. API tokens are injected via env at runtime (see glance-env in
-# helm.nix) so rotating one doesn't reroll this whole Secret.
+# Glance dashboard config. App domains are rendered from SOPS;
+# external bookmarks below are explicit. API tokens use runtime env
+# injection (glance-env in helm.nix), so rotation does not rewrite this Secret.
 #
-# Layout = "Mission Control" home page + integrated Media page +
-# slim Mobile page. Bookmarks have selfh.st (`sh:`) / simple-icons
-# (`si:`) icons per link.
+# Layout = Home with a tabbed Media group + slim Mobile page.
+# From this directory: python3 check.py --icons checks coverage and icons.
+# Black selfh.st SVGs need auto-invert on the dark theme.
 #
 # Template helpers (see widget-custom-api.go):
 #   .JSON.{String,Int,Float,Bool,Array,Get,Exists} "<gjson-path>"
@@ -264,13 +263,14 @@ in {
                     # 6 balanced groups so glance lays them out 3×2.
                     # A 4-group layout wraps to 3+1 and orphans the last.
                     - type: bookmarks
+                      title: Apps & services
                       groups:
                         - title: Dev
                           links:
                             - title: GitLab
                               url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}
                               icon: si:gitlab
-                            - title: ArgoCD
+                            - title: ArgoCD (LAN)
                               url: https://${config.sops.placeholder."pangolin/resources/argocd/domain"}
                               icon: si:argo
                         - title: Monitor
@@ -281,14 +281,26 @@ in {
                             - title: Prometheus
                               url: https://${config.sops.placeholder."pangolin/resources/prometheus/domain"}
                               icon: si:prometheus
+                            - title: Alertmanager (LAN)
+                              url: https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
+                              icon: mdi:bell-alert-outline
+                            - title: Uptime Kuma
+                              url: https://${config.sops.placeholder."pangolin/resources/uptime/domain"}
+                              icon: sh:uptime-kuma
+                            - title: Speedtest
+                              url: https://${config.sops.placeholder."pangolin/resources/speedtest/domain"}
+                              icon: sh:speedtest-tracker
                         - title: Admin
                           links:
-                            - title: Pi-hole
+                            - title: Pi-hole (LAN)
                               url: https://${config.sops.placeholder."pangolin/resources/pihole/domain"}
                               icon: si:pihole
-                            - title: MinIO
+                            - title: MinIO (LAN)
                               url: https://${config.sops.placeholder."pangolin/resources/minio_console/domain"}
                               icon: si:minio
+                            - title: pgAdmin (LAN)
+                              url: https://${config.sops.placeholder."pangolin/resources/pgadmin/domain"}
+                              icon: sh:pgadmin
                         - title: Comms
                           links:
                             - title: Matrix
@@ -308,17 +320,192 @@ in {
                             - title: Blog
                               url: https://${config.sops.placeholder."pangolin/resources/whoami/domain"}
                               icon: auto-invert /assets/icons/blog.svg
-                        - title: Social
+                            - title: SparkyFitness
+                              url: https://${config.sops.placeholder."pangolin/resources/sparkyfitness/domain"}
+                              icon: mdi:dumbbell
+                            - title: Home Camera (LAN)
+                              url: https://${config.sops.placeholder."pangolin/resources/cam/domain"}
+                              icon: mdi:cctv
+                        - title: Daily
                           links:
-                            - title: YouTube
-                              url: https://www.youtube.com/
-                              icon: si:youtube
-                            - title: Reddit
-                              url: https://www.reddit.com/
-                              icon: si:reddit
-                            - title: NixOS Discourse
-                              url: https://discourse.nixos.org/
-                              icon: si:nixos
+                            - title: Homarr
+                              url: https://${config.sops.placeholder."pangolin/resources/home/domain"}
+                              icon: sh:homarr
+                            - title: SearXNG
+                              url: https://${config.sops.placeholder."pangolin/resources/search/domain"}
+                              icon: sh:searxng
+                            - title: MS Researcher KB
+                              url: https://${config.sops.placeholder."pangolin/resources/ms_kb/domain"}
+                              icon: sh:logseq
+
+                    # Media stays on Home: app shortcuts first, then status tabs.
+                    - type: group
+                      widgets:
+                        - type: bookmarks
+                          title: Media
+                          groups:
+                            - title: Library
+                              links:
+                                - title: Jellyfin
+                                  url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}
+                                  icon: si:jellyfin
+                                - title: Jellyseerr
+                                  url: https://${config.sops.placeholder."pangolin/resources/jellyseerr/domain"}
+                                  icon: sh:jellyseerr
+                                - title: RomM
+                                  url: https://${config.sops.placeholder."pangolin/resources/romm/domain"}
+                                  icon: sh:romm
+                            - title: Stack
+                              links:
+                                - title: Sonarr
+                                  url: https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}
+                                  icon: si:sonarr
+                                - title: Radarr
+                                  url: https://${config.sops.placeholder."pangolin/resources/radarr/domain"}
+                                  icon: si:radarr
+                                - title: Sportarr
+                                  url: https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
+                                  icon: auto-invert sh:sportarr
+                                - title: Prowlarr
+                                  url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}
+                                  icon: sh:prowlarr
+                                - title: Bazarr
+                                  url: https://${config.sops.placeholder."pangolin/resources/bazarr/domain"}
+                                  icon: di:bazarr
+                            - title: Queues
+                              links:
+                                - title: qBittorrent (LAN)
+                                  url: https://${config.sops.placeholder."pangolin/resources/qbittorrent/domain"}
+                                  icon: si:qbittorrent
+                                - title: NZBGet (LAN)
+                                  url: https://${config.sops.placeholder."pangolin/resources/nzbget/domain"}
+                                  icon: sh:nzbget
+
+                        - type: custom-api
+                          title: Library
+                          cache: 5m
+                          url: http://jellyfin.media.svc.cluster.local:8096/Items/Counts?api_key=''${JELLYFIN_KEY}
+                          template: |
+                            <div class="flex flex-column gap-5">
+                              <div class="flex justify-between"><span>Movies</span><span class="color-highlight">{{ .JSON.Int "MovieCount" }}</span></div>
+                              <div class="flex justify-between"><span>Shows</span><span class="color-highlight">{{ .JSON.Int "SeriesCount" }}</span></div>
+                              <div class="flex justify-between"><span>Episodes</span><span class="color-highlight">{{ .JSON.Int "EpisodeCount" }}</span></div>
+                              <div class="flex justify-between"><span>Songs</span><span class="color-highlight">{{ .JSON.Int "SongCount" }}</span></div>
+                            </div>
+
+                        - type: custom-api
+                          title: Streams
+                          cache: 30s
+                          url: http://jellyfin.media.svc.cluster.local:8096/Sessions?api_key=''${JELLYFIN_KEY}&activeWithinSeconds=60
+                          template: |
+                            {{ $playing := 0 }}
+                            {{ range .JSON.Array "" }}
+                              {{ if .Exists "NowPlayingItem" }}
+                                {{ $playing = add $playing 1 }}
+                              {{ end }}
+                            {{ end }}
+                            {{ if eq $playing 0 }}
+                              <p class="color-paragraph">No active streams</p>
+                            {{ else }}
+                              <ul class="list">
+                                {{ range .JSON.Array "" }}
+                                  {{ if .Exists "NowPlayingItem" }}
+                                    <li><span class="color-positive">●</span> {{ .String "UserName" }} · {{ .String "NowPlayingItem.Name" }}</li>
+                                  {{ end }}
+                                {{ end }}
+                              </ul>
+                            {{ end }}
+
+                        - type: custom-api
+                          title: TV
+                          cache: 10m
+                          url: http://sonarr.media.svc.cluster.local:8989/api/v3/calendar?start=${arrStart}&end=${arrEnd}&includeSeries=true&unmonitored=false
+                          headers:
+                            X-Api-Key: ''${SONARR_KEY}
+                            Accept: application/json
+                          template: |
+                            {{ $now := now }}
+                            {{ $items := .JSON.Array "" }}
+                            {{ if eq (len $items) 0 }}
+                              <p class="color-paragraph">Nothing scheduled</p>
+                            {{ else }}
+                              <ul class="list collapsible-container" data-collapse-after="6">
+                                {{ range $items }}
+                                  {{ $air := parseTime "2006-01-02T15:04:05Z" (.String "airDateUtc") }}
+                                  {{ if gt $air.Unix $now.Unix }}
+                                    <li>
+                                      <span class="color-highlight">{{ .String "series.title" }}</span>
+                                      · S{{ printf "%02d" (.Int "seasonNumber") }}E{{ printf "%02d" (.Int "episodeNumber") }}
+                                      · <span class="color-paragraph">{{ formatTime "Jan 02" $air }}</span>
+                                    </li>
+                                  {{ end }}
+                                {{ end }}
+                              </ul>
+                            {{ end }}
+
+                        - type: custom-api
+                          title: Movies
+                          cache: 10m
+                          url: http://radarr.media.svc.cluster.local:7878/api/v3/calendar?start=${arrStart}&end=${arrEnd}&unmonitored=false
+                          headers:
+                            X-Api-Key: ''${RADARR_KEY}
+                            Accept: application/json
+                          template: |
+                            {{ $now := now }}
+                            {{ $items := .JSON.Array "" }}
+                            {{ if eq (len $items) 0 }}
+                              <p class="color-paragraph">Nothing scheduled</p>
+                            {{ else }}
+                              <ul class="list collapsible-container" data-collapse-after="6">
+                                {{ range $items }}
+                                  {{ $dateStr := .String "physicalRelease" }}
+                                  {{ if eq $dateStr "" }}{{ $dateStr = .String "digitalRelease" }}{{ end }}
+                                  {{ if ne $dateStr "" }}
+                                    {{ $rel := parseTime "2006-01-02T15:04:05Z" $dateStr }}
+                                    {{ if gt $rel.Unix $now.Unix }}
+                                      <li>
+                                        <span class="color-highlight">{{ .String "title" }}</span>
+                                        · <span class="color-paragraph">{{ formatTime "Jan 02" $rel }}</span>
+                                      </li>
+                                    {{ end }}
+                                  {{ end }}
+                                {{ end }}
+                              </ul>
+                            {{ end }}
+
+                        - type: custom-api
+                          title: Requests
+                          cache: 5m
+                          url: http://jellyseerr.media.svc.cluster.local:5055/api/v1/request/count
+                          headers:
+                            X-Api-Key: ''${JELLYSEERR_KEY}
+                            Accept: application/json
+                          template: |
+                            <div class="flex flex-column gap-5">
+                              <div class="flex justify-between"><span>pending</span><span class="size-h4 color-highlight">{{ .JSON.Int "pending" }}</span></div>
+                              <div class="flex justify-between"><span>processing</span><span class="size-h4">{{ .JSON.Int "processing" }}</span></div>
+                              <div class="flex justify-between"><span>available</span><span class="size-h4 color-positive">{{ .JSON.Int "available" }}</span></div>
+                              <div class="flex justify-between"><span>declined</span><span class="size-h4 color-paragraph">{{ .JSON.Int "declined" }}</span></div>
+                            </div>
+
+                        - type: custom-api
+                          title: Indexers
+                          cache: 5m
+                          url: http://prowlarr.media.svc.cluster.local:9696/api/v1/health
+                          headers:
+                            X-Api-Key: ''${PROWLARR_KEY}
+                            Accept: application/json
+                          template: |
+                            {{ $issues := .JSON.Array "" }}
+                            {{ if eq (len $issues) 0 }}
+                              <p class="color-positive">All healthy</p>
+                            {{ else }}
+                              <ul class="list">
+                                {{ range $issues }}
+                                  <li><span class="color-negative">●</span> {{ .String "source" }} · {{ .String "message" }}</li>
+                                {{ end }}
+                              </ul>
+                            {{ end }}
 
                     - type: rss
                       title: News
@@ -339,6 +526,7 @@ in {
                 - size: small
                   widgets:
                     - type: bookmarks
+                      title: Links
                       groups:
                         - title: Infra
                           links:
@@ -351,6 +539,17 @@ in {
                             - title: Hetzner
                               url: https://console.hetzner.com/projects/11019344/dashboard
                               icon: si:hetzner
+                        - title: Social
+                          links:
+                            - title: YouTube
+                              url: https://www.youtube.com/
+                              icon: si:youtube
+                            - title: Reddit
+                              url: https://www.reddit.com/
+                              icon: si:reddit
+                            - title: NixOS Discourse
+                              url: https://discourse.nixos.org/
+                              icon: si:nixos
 
                     # NIXPKGS DRIFT - homelab-overkill. Sourced from GitHub
                     # raw since the repo isn't mirrored to the in-cluster
@@ -437,200 +636,6 @@ in {
                       hour-format: 24h
 
             # ────────────────────────────────────────────────────────────
-            # MEDIA
-            # ────────────────────────────────────────────────────────────
-            - name: Media
-              columns:
-                # ── left ──────────────────────────────────────────────
-                - size: small
-                  widgets:
-                    # Jellyfin library counts - Items/Counts is auth'd
-                    # via api_key query param. In-cluster Service so we
-                    # skip traefik/TLS overhead for this internal fetch.
-                    - type: custom-api
-                      title: Jellyfin Library
-                      cache: 5m
-                      url: http://jellyfin.media.svc.cluster.local:8096/Items/Counts?api_key=''${JELLYFIN_KEY}
-                      template: |
-                        <div class="flex flex-column gap-5">
-                          <div class="flex justify-between"><span>Movies</span><span class="color-highlight">{{ .JSON.Int "MovieCount" }}</span></div>
-                          <div class="flex justify-between"><span>Shows</span><span class="color-highlight">{{ .JSON.Int "SeriesCount" }}</span></div>
-                          <div class="flex justify-between"><span>Episodes</span><span class="color-highlight">{{ .JSON.Int "EpisodeCount" }}</span></div>
-                          <div class="flex justify-between"><span>Songs</span><span class="color-highlight">{{ .JSON.Int "SongCount" }}</span></div>
-                        </div>
-
-                    # Active Jellyfin streams
-                    - type: custom-api
-                      title: Active streams
-                      cache: 30s
-                      url: http://jellyfin.media.svc.cluster.local:8096/Sessions?api_key=''${JELLYFIN_KEY}&activeWithinSeconds=60
-                      template: |
-                        {{ $playing := 0 }}
-                        {{ range .JSON.Array "" }}
-                          {{ if .Exists "NowPlayingItem" }}
-                            {{ $playing = add $playing 1 }}
-                          {{ end }}
-                        {{ end }}
-                        {{ if eq $playing 0 }}
-                          <p class="color-paragraph">No active streams</p>
-                        {{ else }}
-                          <ul class="list">
-                            {{ range .JSON.Array "" }}
-                              {{ if .Exists "NowPlayingItem" }}
-                                <li><span class="color-positive">●</span> {{ .String "UserName" }} · {{ .String "NowPlayingItem.Name" }}</li>
-                              {{ end }}
-                            {{ end }}
-                          </ul>
-                        {{ end }}
-
-                # ── center ────────────────────────────────────────────
-                - size: full
-                  widgets:
-                    # All media app links in one widget at the top so the
-                    # rest of the column is data, not bookmarks.
-                    - type: bookmarks
-                      title: Apps
-                      groups:
-                        - title: Library
-                          links:
-                            - title: Jellyfin
-                              url: https://${config.sops.placeholder."pangolin/resources/jellyfin/domain"}
-                              icon: si:jellyfin
-                            - title: Jellyseerr
-                              url: https://${config.sops.placeholder."pangolin/resources/jellyseerr/domain"}
-                              icon: si:jellyseerr
-                        - title: Stack
-                          links:
-                            - title: Sonarr
-                              url: https://${config.sops.placeholder."pangolin/resources/sonarr/domain"}
-                              icon: si:sonarr
-                            - title: Radarr
-                              url: https://${config.sops.placeholder."pangolin/resources/radarr/domain"}
-                              icon: si:radarr
-                            - title: Sportarr
-                              url: https://${config.sops.placeholder."pangolin/resources/sportarr/domain"}
-                              icon: https://cdn.jsdelivr.net/gh/selfhst/icons@main/svg/sportarr.svg
-                            - title: Prowlarr
-                              url: https://${config.sops.placeholder."pangolin/resources/prowlarr/domain"}
-                              icon: si:prowlarr
-                            - title: Bazarr
-                              url: https://${config.sops.placeholder."pangolin/resources/bazarr/domain"}
-                              icon: di:bazarr
-                        - title: Queues
-                          links:
-                            - title: qBittorrent
-                              url: https://${config.sops.placeholder."pangolin/resources/qbittorrent/domain"}
-                              icon: si:qbittorrent
-                            - title: NZBGet
-                              url: https://${config.sops.placeholder."pangolin/resources/nzbget/domain"}
-                              icon: si:nzbget
-
-                    # Sonarr upcoming episodes
-                    - type: custom-api
-                      title: Upcoming - TV
-                      cache: 10m
-                      url: http://sonarr.media.svc.cluster.local:8989/api/v3/calendar?start=${arrStart}&end=${arrEnd}&includeSeries=true&unmonitored=false
-                      headers:
-                        X-Api-Key: ''${SONARR_KEY}
-                        Accept: application/json
-                      template: |
-                        {{ $now := now }}
-                        {{ $items := .JSON.Array "" }}
-                        {{ if eq (len $items) 0 }}
-                          <p class="color-paragraph">Nothing scheduled</p>
-                        {{ else }}
-                          <ul class="list collapsible-container" data-collapse-after="6">
-                            {{ range $items }}
-                              {{ $air := parseTime "2006-01-02T15:04:05Z" (.String "airDateUtc") }}
-                              {{ if gt $air.Unix $now.Unix }}
-                                <li>
-                                  <span class="color-highlight">{{ .String "series.title" }}</span>
-                                  · S{{ printf "%02d" (.Int "seasonNumber") }}E{{ printf "%02d" (.Int "episodeNumber") }}
-                                  · <span class="color-paragraph">{{ formatTime "Jan 02" $air }}</span>
-                                </li>
-                              {{ end }}
-                            {{ end }}
-                          </ul>
-                        {{ end }}
-
-                    # Radarr upcoming movies
-                    - type: custom-api
-                      title: Coming Soon - Movies
-                      cache: 10m
-                      url: http://radarr.media.svc.cluster.local:7878/api/v3/calendar?start=${arrStart}&end=${arrEnd}&unmonitored=false
-                      headers:
-                        X-Api-Key: ''${RADARR_KEY}
-                        Accept: application/json
-                      template: |
-                        {{ $now := now }}
-                        {{ $items := .JSON.Array "" }}
-                        {{ if eq (len $items) 0 }}
-                          <p class="color-paragraph">Nothing scheduled</p>
-                        {{ else }}
-                          <ul class="list collapsible-container" data-collapse-after="6">
-                            {{ range $items }}
-                              {{ $dateStr := .String "physicalRelease" }}
-                              {{ if eq $dateStr "" }}{{ $dateStr = .String "digitalRelease" }}{{ end }}
-                              {{ if ne $dateStr "" }}
-                                {{ $rel := parseTime "2006-01-02T15:04:05Z" $dateStr }}
-                                {{ if gt $rel.Unix $now.Unix }}
-                                  <li>
-                                    <span class="color-highlight">{{ .String "title" }}</span>
-                                    · <span class="color-paragraph">{{ formatTime "Jan 02" $rel }}</span>
-                                  </li>
-                                {{ end }}
-                              {{ end }}
-                            {{ end }}
-                          </ul>
-                        {{ end }}
-
-                    # Jellyseerr request counts. The Global API key in
-                    # Settings → General authenticates but lacks user
-                    # context - /api/v1/request returns 403 because
-                    # requests are per-user. /api/v1/request/count is
-                    # the system-level endpoint that works with just
-                    # the global key.
-                    - type: custom-api
-                      title: Requests
-                      cache: 5m
-                      url: http://jellyseerr.media.svc.cluster.local:5055/api/v1/request/count
-                      headers:
-                        X-Api-Key: ''${JELLYSEERR_KEY}
-                        Accept: application/json
-                      template: |
-                        <div class="flex flex-column gap-5">
-                          <div class="flex justify-between"><span>pending</span><span class="size-h4 color-highlight">{{ .JSON.Int "pending" }}</span></div>
-                          <div class="flex justify-between"><span>processing</span><span class="size-h4">{{ .JSON.Int "processing" }}</span></div>
-                          <div class="flex justify-between"><span>available</span><span class="size-h4 color-positive">{{ .JSON.Int "available" }}</span></div>
-                          <div class="flex justify-between"><span>declined</span><span class="size-h4 color-paragraph">{{ .JSON.Int "declined" }}</span></div>
-                        </div>
-
-                # ── right ─────────────────────────────────────────────
-                - size: small
-                  widgets:
-                    # *arr health from Prowlarr's perspective - Prowlarr
-                    # pings every connected indexer + downloader on
-                    # /api/v1/health and returns issue list.
-                    - type: custom-api
-                      title: Indexer Health
-                      cache: 5m
-                      url: http://prowlarr.media.svc.cluster.local:9696/api/v1/health
-                      headers:
-                        X-Api-Key: ''${PROWLARR_KEY}
-                        Accept: application/json
-                      template: |
-                        {{ $issues := .JSON.Array "" }}
-                        {{ if eq (len $issues) 0 }}
-                          <p class="color-positive">All healthy</p>
-                        {{ else }}
-                          <ul class="list">
-                            {{ range $issues }}
-                              <li><span class="color-negative">●</span> {{ .String "source" }} · {{ .String "message" }}</li>
-                            {{ end }}
-                          </ul>
-                        {{ end }}
-
-            # ────────────────────────────────────────────────────────────
             # MOBILE
             # ────────────────────────────────────────────────────────────
             - name: Mobile
@@ -659,6 +664,15 @@ in {
                             - title: GitLab
                               url: https://${config.sops.placeholder."pangolin/resources/gitlab/domain"}
                               icon: si:gitlab
+                            - title: MS Researcher KB
+                              url: https://${config.sops.placeholder."pangolin/resources/ms_kb/domain"}
+                              icon: sh:logseq
+                            - title: SparkyFitness
+                              url: https://${config.sops.placeholder."pangolin/resources/sparkyfitness/domain"}
+                              icon: mdi:dumbbell
+                            - title: RomM
+                              url: https://${config.sops.placeholder."pangolin/resources/romm/domain"}
+                              icon: sh:romm
 
                     - type: custom-api
                       title: Engineer

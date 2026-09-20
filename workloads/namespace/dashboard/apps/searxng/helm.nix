@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/searxng.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -26,7 +24,7 @@
                 main:
                   image:
                     repository: docker.io/searxng/searxng
-                    tag: "2026.5.31-7159b8aed"
+                    tag: "2026.9.8-3fdc6d753@sha256:3547509b419cd6a67333d6d68bd1ffad8d46d3669d82e7a7bd538f7b45827432"
                     pullPolicy: IfNotPresent
                   envFrom:
                     - secretRef:
@@ -102,9 +100,9 @@
                   subPath: settings.yml
                   readOnly: true
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/searxng.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/searxng.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

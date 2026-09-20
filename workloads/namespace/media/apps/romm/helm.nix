@@ -25,6 +25,7 @@
 
           controllers:
             main:
+              replicas: 1
               containers:
                 main:
                   image:

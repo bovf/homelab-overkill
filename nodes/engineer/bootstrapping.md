@@ -1,123 +1,112 @@
 # Engineer node — bootstrapping
 
-One-time setup that can't be expressed declaratively in nix because the
-upstream (pangolin admin UI, sops) is out-of-band. Re-run only when a
-fresh install of the engineer node is needed.
+This runbook covers the out-of-band Pangolin Basic WireGuard site and integration
+API credential. It describes the current module interface, not an unimplemented
+migration plan. For disk installation and SSH/SOPS key staging, use the
+[README setup](../../README.md#quick-start); for data recovery, see
+[mutable state](../../docs/project-context.md#mutable-state-and-recovery).
 
-## 1. Pangolin kernel-WG site (Stage 0 of `infrastructure/pangolin-kwg`)
+Do not recreate an existing site during a routine rebuild. Preserve its identity,
+Pangolin database, and credentials. Site creation, credential rotation, and host
+activation are operator actions, not safe documentation checks.
 
-These steps mint the Basic WireGuard site and the Integration API key
-that `services.pangolin-kwg` needs. See
-`infrastructure/pangolin-kwg/PLAN.md` for the full plan.
+## 1. Provision or recover the Basic WireGuard site
 
-### 1.1 Stage 0 investigation (do this on a throwaway site first)
+1. In the managed Pangolin organization, recover the existing `engineer-kernel`
+   site or create a Basic WireGuard site for a genuinely new installation.
+   Generate/store the client private key securely; give Pangolin only its public
+   key. Record the site ID, assigned tunnel CIDR, Gerbil public key, endpoint,
+   and allowed peer routes.
+2. Create an integration API key with permission to update the organization's
+   blueprint. Store its `<key_id>.<key_secret>` value securely. The current client
+   uses the integration endpoint `https://api.dobryops.com`, **not** a guessed
+   dashboard API path.
+3. Keep these values in the corresponding Bitwarden notes and synchronize them
+   into SOPS using the [secrets workflow](../../nix/apps/secrets.nix). The required
+   secret paths are:
 
-Before touching real configuration, validate against pangolin v1.17.1:
-
-1. **Throwaway Basic WG site.** Pangolin UI → Sites → Create Site → choose
-   "Basic WireGuard". Capture the issued config: gerbil's peer pubkey,
-   endpoint host:port, the address assigned inside the tunnel, and the
-   AllowedIPs to install on the client. Record verbatim.
-2. **Per-resource tunnel port allocation.** Add a test TCP resource bound
-   to the throwaway site (e.g. `proxy-port: 12345`). With `wg-quick up`
-   on a sacrificial machine using the issued config, tcpdump the wg
-   interface and `curl localhost:12345` from the VPS shell. Confirm what
-   (dst IP, dst port) pangolin actually writes inside the tunnel for that
-   resource. This drives the natRules shape.
-3. **Blueprint REST API.** Settings → Integrations → mint an API key.
-   Confirm with curl:
+   ```text
+   pangolin/instances/engineer-kernel/wg_private_key
+   pangolin/instances/engineer-kernel/site_id
+   pangolin/api-keys/blueprint-sync
    ```
-   curl -X PUT https://pangolin.dobryops.com/api/v1/org/<orgId>/blueprint \
-     -H "Authorization: Bearer <key_id>.<key_secret>" \
-     -H "Content-Type: application/json" \
-     -d '{"blueprint":"<base64-encoded-yaml>"}'
-   ```
-   Expect 2xx. Re-PUT the same payload — should be idempotent. Test a
-   garbage payload — record the error format.
-4. **Free LAN IP range** (only if pursuing axis B). Pick a non-DHCP
-   range, e.g. `192.168.1.200/29`. Confirm the home router won't fight
-   ARP announcements for those IPs.
 
-Tear down the throwaway site, test resource, and API key. Save findings
-to `nodes/engineer/pangolin-kwg-investigation.md`.
+   These are nested YAML keys in `secrets/secrets.yaml`, not literal slash-named
+   keys. Do not put private keys or API credentials in a Nix expression, shell
+   history, documentation, or a graph export. If editing SOPS directly, reconcile
+   the Bitwarden source before a later `pull`/`sync` can overwrite that edit.
 
-### 1.2 Real site provisioning
+## 2. Match the checked-in client configuration
 
-Once Stage 0 is settled and the natRules format is known:
+[`pangolin-kwg.nix`](pangolin-kwg.nix) is already imported by
+[`default.nix`](default.nix). Compare the issued site values with that file rather
+than adding a second configuration:
 
-1. **Generate the host's WG keypair on engineer:**
-   ```
-   sudo install -d -m 0700 /root/wg-bootstrap
-   sudo sh -c 'wg genkey | tee /root/wg-bootstrap/privatekey | wg pubkey > /root/wg-bootstrap/publickey'
-   sudo cat /root/wg-bootstrap/publickey
-   ```
-   (Copy the pubkey somewhere; you'll paste it into the pangolin UI.)
-2. **Pangolin UI → Sites → Create Site → Basic WireGuard.**
-   - Name: `engineer-kernel`
-   - Client Public Key: paste the pubkey from step 1
-   - Capture the issued values: gerbil pubkey, endpoint, tunnel address, AllowedIPs.
-3. **Pangolin UI → Settings → Integrations.** Create an API key for
-   blueprint sync. Capture as `<key_id>.<key_secret>`.
-4. **`sops edit secrets/secrets.yaml`** and add:
-   ```yaml
-   pangolin:
-     api-keys:
-       blueprint-sync: <key_id>.<key_secret>
-     instances:
-       engineer-kernel:
-         wg_private_key: |
-           <contents of /root/wg-bootstrap/privatekey>
-         peer_pubkey: <gerbil's pubkey>
-         endpoint: <gerbil-host:port>
-         address: <assigned-tunnel-CIDR>
-         allowed_ips: <space-or-newline-separated CIDRs>
-   ```
-5. **Shred the temporary key files:**
-   ```
-   sudo shred -u /root/wg-bootstrap/privatekey
-   sudo rm -rf /root/wg-bootstrap
-   ```
-6. **Add `services.pangolin-kwg` config** by importing `./pangolin-kwg.nix`
-   from `nodes/engineer/default.nix`. The file should look roughly like:
-   ```nix
-   { config, ... }: {
-     services.pangolin-kwg = {
-       enable   = true;
-       orgId    = "<orgId from pangolin URL>";
-       endpoint = "https://pangolin.dobryops.com";
-       instance = "engineer-kernel";
-       site = {
-         privateKeySopsPath = "pangolin/instances/engineer-kernel/wg_private_key";
-         peerPublicKey      = "<paste pubkey>";
-         endpoint           = "<paste endpoint>";
-         address            = [ "<paste CIDR>" ];
-         allowedIPs         = [ "<paste CIDRs>" ];
-       };
-       # natRules populated from Stage 0 findings
-       natRules = {
-         # example, replace once Stage 0 confirms the actual listenPort:
-         # traefik_dashboard = { listenPort = 12345; target = "traefik-dashboard.kube-system.svc.cluster.local:8080"; };
-       };
-     };
-   }
-   ```
-7. **Rebuild:** `deploy engineer` (or however your flow runs nixos-rebuild).
-   Verify:
-   - `wg show pangolin-kwg` shows the peer + recent handshake.
-   - `systemctl status pangolin-kwg-blueprint-sync` → `active (exited)`.
-   - `nft list table inet pangolin-kwg` → DNAT chain visible.
+- Organization and integration endpoint belong under
+  `services.pangolin-kwg.blueprintSync.{orgId,endpoint}`.
+- `site.privateKeySopsPath` and `site.siteIdSopsPath` point to the two site secrets.
+- `site.peerPublicKey`, `endpoint`, `address`, and `allowedIPs` describe the actual
+  peer. Current tunnel address: `100.89.128.16/30`; allowed peer:
+  `100.89.128.1/32`; UDP listen port: `51820`; keepalive: `5` seconds.
+- The shared [module](../../infrastructure/pangolin-kwg/default.nix) supplies MTU
+  `1280`. Keep it aligned with the VPS tunnel configuration.
+- Current `natRules = {}` is intentional. Kubernetes backends use Service
+  `externalIPs` on the tunnel IP and distinct ports; host SSH/k3s API bind directly.
+  There is no per-resource custom DNAT table to populate or require in a health
+  check. The [NAT module](../../infrastructure/pangolin-kwg/nat.nix) still supplies
+  forwarding/MSS handling.
 
-### 1.3 First per-resource migration
+If the assigned tunnel address changes, trace every reference before deploying:
 
-Pick a low-stakes resource (e.g. `traefik_dashboard`) and flip
-`viaKernelWg = true` in its `pangolin-blueprint.nix`. Rebuild. The
-existing newt blueprint loses the entry, the kwg path picks it up, and
-the resource binds to `engineer-kernel` in pangolin. Verify the URL still
-loads.
+```bash
+rg -n '100\.89\.128\.16|viaKernelWg|targetPort|externalIPs' nodes common workloads infrastructure
+```
 
-## Rotating the Integration API key
+The blueprint renderer rewrites target **hostnames**, not target ports. Update
+Service ports and resource ports together; no two backends may claim the same
+`(externalIP, protocol, port)` tuple. Check LAN IP allocation/routing separately
+against [`metallb.nix`](metallb.nix); L2 advertisement does not configure the router.
 
-1. Pangolin UI → Settings → Integrations → revoke + recreate.
-2. `sops edit secrets/secrets.yaml` → update
-   `pangolin/api-keys/blueprint-sync`.
-3. Rebuild — `pangolin-kwg-blueprint-sync.service` re-runs with the new key.
+## 3. Deploy and verify
+
+After reviewing keys, node target, and configuration changes, from the repo's dev
+shell:
+
+```bash
+nix run .#deploy -- update engineer-local
+```
+
+On `engineer`, inspect without printing secret files:
+
+```bash
+sudo wg show pangolin-kwg
+sudo systemctl --no-pager status wg-quick-pangolin-kwg.service pangolin-kwg-blueprint-sync.service
+sudo journalctl -u pangolin-kwg-blueprint-sync.service -n 50 --no-pager
+```
+
+Confirm a recent handshake after traffic, a successful blueprint oneshot, and an
+expected application response through the intended access path. An HTTP redirect
+to SSO alone does not prove backend health. A successful NixOS activation alone
+does not prove blueprint publication: the activation restart is best-effort.
+
+[`blueprint.nix`](../../infrastructure/pangolin-kwg/blueprint.nix) converts the
+rendered YAML to JSON, base64-encodes it, and PUTs it to
+`<blueprintSync.endpoint>/v1/org/<orgId>/blueprint`. That endpoint replaces the
+**entire organization blueprint**. Do not test it with a partial resource payload
+against the real organization. The CI-managed Newt ConfigMap flow remains a
+separate publication path.
+
+If peers disappear after a VPS Gerbil restart, inspect the
+`gerbil-basic-wg-reconcile.service` defined in
+[`nodes/pangolin/services.nix`](../pangolin/services.nix) before replacing keys or
+sites. The service restores Basic WG peers from Pangolin's SQLite state.
+
+## Rotating the integration API key
+
+1. Create a replacement key; keep the old one valid during the transition where
+   possible.
+2. Update `pangolin/api-keys/blueprint-sync` in the secure source and synchronize
+   the encrypted file. Do not include the credential in a commit message.
+3. Rebuild engineer and verify the sync service and affected resources as above.
+4. Revoke the old key after the replacement works. If immediate revocation is
+   required by an incident, expect sync downtime until the replacement is deployed.

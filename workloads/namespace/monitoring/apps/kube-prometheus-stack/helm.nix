@@ -54,7 +54,7 @@
                 - ${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
             alertmanagerSpec:
               image:
-                tag: v0.34.0
+                tag: v0.34.1
               # Makes the "View in Alertmanager" link in emails public.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}"
             config:
@@ -120,12 +120,21 @@
               distroless: false
 
           grafana:
+            # First enablement creates an empty PVC; back up the old pod first.
+            persistence:
+              enabled: true
+              type: pvc
+              storageClassName: local-path
+              accessModes: [ReadWriteOnce]
+              size: 10Gi
+            deploymentStrategy:
+              type: Recreate
             image:
-              tag: "13.2"
+              tag: "13.2.2"
             sidecar:
               image:
-                tag: 2.10.1
-                sha: 7eac5c4fed714a18d038fc9fea57d8744d113367935dac0ea4eb6a87cef704a3
+                tag: 2.11.2
+                sha: 2912be006f62f9ea080194cf6d3afcd90daead8d101d0ba686a137a849f6a4f6
             service:
               type: ClusterIP
               port: 32000

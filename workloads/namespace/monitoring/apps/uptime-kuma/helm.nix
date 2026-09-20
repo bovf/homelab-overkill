@@ -15,11 +15,13 @@
         valuesContent: |
           controllers:
             main:
+              # Keep the chart default explicit: one SQLite writer during updates.
+              strategy: Recreate
               containers:
                 main:
                   image:
                     repository: louislam/uptime-kuma
-                    tag: "2.5.0@sha256:a8610b3b4c38077922ba51b036691e06887d7cefd91fe620fd3d6d23d03dc240"
+                    tag: "2.5.5@sha256:c74379ac4509ce2d2c2633f509e67003ee2e45b6e995c5e43fc101f45a0e1fbe"
                     pullPolicy: IfNotPresent
                   env:
                     TZ: "Europe/Sofia"

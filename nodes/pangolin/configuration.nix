@@ -132,8 +132,8 @@
     kitty.terminfo
   ];
 
-  services.journald.extraConfig = ''
-    Storage=persistent
-    MaxRetentionSec=1month
-  '';
+  services.journald.settings.Journal = {
+    Storage = "persistent";
+    MaxRetentionSec = "1month";
+  };
 }
