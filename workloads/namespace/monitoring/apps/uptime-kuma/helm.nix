@@ -21,7 +21,7 @@
                 main:
                   image:
                     repository: louislam/uptime-kuma
-                    tag: "2.5.3@sha256:3e24e96c89efff0e3a4b0698cbdd36c15ad3022371db57166e5588853002ee5c"
+                    tag: "2.5.5@sha256:c74379ac4509ce2d2c2633f509e67003ee2e45b6e995c5e43fc101f45a0e1fbe"
                     pullPolicy: IfNotPresent
                   env:
                     TZ: "Europe/Sofia"

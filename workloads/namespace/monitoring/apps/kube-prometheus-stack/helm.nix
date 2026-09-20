@@ -54,7 +54,7 @@
                 - ${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
             alertmanagerSpec:
               image:
-                tag: v0.34.0
+                tag: v0.34.1
               # Makes the "View in Alertmanager" link in emails public.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}"
             config:
@@ -130,7 +130,7 @@
             deploymentStrategy:
               type: Recreate
             image:
-              tag: "13.2.1"
+              tag: "13.2.2"
             sidecar:
               image:
                 tag: 2.11.2

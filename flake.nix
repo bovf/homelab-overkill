@@ -228,12 +228,10 @@
         # sops-install-secrets directly via callPackage so we have
         # to override sops.package, not the overlay.
         ({pkgs, ...}: {
-          sops.package =
-            (pkgs.callPackage (sops-nix + "/pkgs/sops-install-secrets") {
-              vendorHash = "sha256-rdiuCTl92biIdCdRouCbqUgjqM50Gi/oY3k5oOWKd9E=";
-            }).overrideAttrs (old: {
-              patches = (old.patches or []) ++ [./nix/patches/sops-always-recreate-symlink.patch];
-            });
+          # Take the dependency hash from the locked upstream package definition.
+          sops.package = (pkgs.callPackage (sops-nix + "/default.nix") {}).sops-install-secrets.overrideAttrs (old: {
+            patches = (old.patches or []) ++ [./nix/patches/sops-always-recreate-symlink.patch];
+          });
         })
       ];
     in

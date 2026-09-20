@@ -76,7 +76,7 @@
       export SOPS_AGE_KEY_FILE="''${SOPS_AGE_KEY_FILE:-$HOME/.config/sops/age/keys.txt}"
 
       SECRETS_FILE=""
-      if [ -f "secrets/secrets.yaml" ] && command -v sops >/dev/null 2>&1; then
+      if [ "$mode" = "remote" ] && [ -f "secrets/secrets.yaml" ] && command -v sops >/dev/null 2>&1; then
         tmpdir="''${TMPDIR:-/tmp}"
         SECRETS_FILE="$(mktemp "$tmpdir/dobryops-kubeconfig-secrets.XXXXXX")"
         if sops --decrypt secrets/secrets.yaml >"$SECRETS_FILE" 2>/dev/null; then

@@ -10,7 +10,7 @@
 </pre>
 
 **A declarative, reproducible home infrastructure stack.**  
-*Kubernetes · NixOS · Encrypted Secrets · Zero Exposed Ports*
+*Kubernetes · NixOS · Encrypted Secrets · WireGuard-connected Public Edge*
 
 [![NixOS](https://img.shields.io/badge/NixOS-5277C3?style=for-the-badge&logo=nixos&logoColor=white)](https://nixos.org)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io)
@@ -26,9 +26,11 @@
 
 ## What This Is
 
-A self-hosted platform built **entirely from version-controlled configs**. Everything - infrastructure, applications, databases, secrets, and tunnels - is defined in code and reproducible from scratch.
+A self-hosted platform with **version-controlled infrastructure and application configuration**. Nix describes the hosts, workloads, secret wiring, and tunnels; databases, application data, OAuth sessions, and some initial provisioning remain mutable and need separate recovery procedures.
 
-> Uses **Nix flakes** to manage NixOS + k3s + Helm charts, **SOPS** for secure secret storage, and **Pangolin** for private network access.
+> Uses **Nix flakes** to manage NixOS + k3s + Helm charts, **SOPS** for secure secret storage, and **Pangolin** for public-edge and VPN access.
+
+Start with the [project knowledge base](docs/project-context.md) for the source map, operational boundaries, validation commands, and documentation maintenance checklist. See [engineer bootstrapping](nodes/engineer/bootstrapping.md) for initial WireGuard site setup. The [housekeeping audit](docs/housekeeping-audit.md) groups open issues by topic, with impacts, proposed fixes, and verification steps.
 
 ---
 
@@ -36,49 +38,62 @@ A self-hosted platform built **entirely from version-controlled configs**. Every
 
 <div align="center">
 
-| Service           | Purpose                                              | Status   |
-|-------------------|------------------------------------------------------|:--------:|
-| GitLab            | Git, CI/CD, container registry                       | Active   |
-| ArgoCD            | GitOps                                               | Active   |
-| Keel              | Auto-rollout on `:latest` digest change              | Active   |
-| MinIO             | S3 object storage                                    | Active   |
-| PostgreSQL        | SQL database                                         | Active   |
-| Jellyfin          | Media streaming                                      | Active   |
-| Sonarr            | TV show automation                                   | Active   |
-| Radarr            | Movie automation                                     | Active   |
-| Prowlarr          | Indexer management                                   | Active   |
-| Bazarr            | Subtitle automation                                  | Active   |
-| Jellyseerr        | Media request portal                                 | Active   |
-| qBittorrent       | Torrent client                                       | Active   |
-| NZBGet            | Usenet client                                        | Active   |
-| Sportarr          | Sports event automation (*arr-style)                 | Active   |
-| pgAdmin           | Postgres web admin                                   | Active   |
-| Grafana           | Metrics, logs, dashboards                            | Active   |
-| Prometheus        | Metrics store                                        | Active   |
-| Alertmanager      | Email alerts (Gmail SMTP)                            | Active   |
-| Loki + Alloy      | Log aggregation + collection (S3 → MinIO)            | Active   |
-| version-checker   | Image drift metrics                                  | Active   |
-| nova              | Helm chart drift (weekly CronJob)                    | Active   |
-| intel-gpu-exporter| Intel iGPU utilisation metrics                       | Active   |
-| intel-gpu-plugin  | Exposes the Intel iGPU to pods (QuickSync transcode) | Active   |
-| local-path-du     | Per-PVC disk usage exporter (du-based)               | Active   |
-| Pi-hole           | DNS / ad blocking + auto-aggregated LAN A records    | Active*  |
-| whoami            | Personal blog (auto-deploys on each main commit)     | Active   |
-| ezBookkeeping     | Personal finance / bookkeeping (Postgres-backed)     | Active   |
-| Matrix            | Synapse + Element Web + synapse-admin (fed-whitelist)| Active   |
-| Element Call      | LiveKit SFU + lk-jwt — Matrix RTC (runs on VPS)      | Active   |
-| Homarr            | Self-hosted homepage / launcher (`home.dobryops.com`)| Active   |
-| grafana-image-renderer | Headless-chromium PNG renderer for Grafana panels | Active   |
-| Squid             | HTTP forward proxy (LAN egress)                      | Active   |
-| ncps              | Nix binary cache proxy (caches `cache.nixos.org`)    | Active   |
-| Hale (Saxton)     | Matrix-connected hermes-agent: media-ordering skills, restricted k8s observer SA, runs as system user `hale` on engineer | Active |
-| MS Researcher     | Matrix-connected hermes-agent for MS research KB, RSS enrichment, PubMed/CrossRef/SearXNG verification, and Monday digest | Active |
-| pangolin-kwg      | Host-side kernel WG client (engineer ↔ pangolin VPS) | Active   |
-| newt-cicd         | In-cluster userspace WG for CI-managed gitops flow   | Active   |
-| MetalLB           | L2-mode LoadBalancer for per-service LAN IPs         | Active   |
-| cert-manager      | Wildcard `*.dobryops.com` via Let's Encrypt DNS-01   | Active   |
+| Service | Purpose | Configuration |
+|---------|---------|:-------------:|
+| GitLab + Nix runner | Git, CI/CD, container registry, cache builds | Declared |
+| ArgoCD | GitOps for separately managed applications | Declared |
+| Keel | Opt-in image rollouts (including whoami's `latest` tag) | Declared |
+| Reloader | Restart workloads watching changed Secrets/ConfigMaps | Declared |
+| MinIO | S3 object storage | Declared |
+| PostgreSQL | SQL database | Declared |
+| Jellyfin | Media streaming | Declared |
+| Sonarr | TV show automation | Declared |
+| Radarr | Movie automation | Declared |
+| Prowlarr | Indexer management | Declared |
+| Bazarr | Subtitle automation | Declared |
+| Jellyseerr | Media request portal | Declared |
+| qBittorrent | Torrent client | Declared |
+| NZBGet | Usenet client | Declared |
+| Sportarr | Sports event automation | Declared |
+| RomM | ROM library management | Declared |
+| pgAdmin | Postgres web admin | Declared |
+| Grafana | Metrics, logs, dashboards | Declared |
+| Prometheus | Metrics store | Declared |
+| Alertmanager | Email alerts (Gmail SMTP) | Declared |
+| Loki + Alloy | Log aggregation and collection (S3 → MinIO) | Declared |
+| version-checker | Image drift metrics | Declared |
+| nova | Helm chart drift (weekly CronJob) | Declared |
+| intel-gpu-exporter | Intel iGPU utilisation metrics | Declared |
+| Intel device plugins | Expose the Intel iGPU to pods for QuickSync | Declared |
+| local-path-du | Per-PVC disk usage exporter | Declared |
+| Pi-hole | DNS / ad blocking and aggregated LAN A records | Declared* |
+| whoami | Personal blog | Declared |
+| ezBookkeeping | Personal finance (Postgres-backed) | Declared |
+| SparkyFitness | Fitness tracking (Postgres-backed) | Declared |
+| Matrix | Synapse, Element Web, synapse-admin | Declared |
+| Element Call | LiveKit SFU + lk-jwt, native services on VPS | Declared |
+| Homarr | Homepage / launcher (`home.dobryops.com`) | Declared |
+| Glance | Service and infrastructure dashboard | Declared |
+| SearXNG | Metasearch | Declared |
+| Uptime Kuma | Per-workload monitors and status page | Declared |
+| speedtest-tracker | Internet speed history | Declared |
+| go2rtc | Camera stream gateway | Declared |
+| grafana-image-renderer | PNG renderer for Grafana panels | Declared |
+| Attic | Hosted Nix binary cache (`badwater`) | Declared |
+| Squid | HTTP forward proxy (LAN egress) | Declared |
+| ncps | Nix binary cache proxy | Declared |
+| Hale (Saxton) | Matrix Hermes agent; media API actions and read-only k8s observer | Enabled |
+| MS Researcher | MS research KB writer, RSS enrichment and digest | Disabled |
+| KotH DM | Matrix campaign agent; module and skills retained | Disabled |
+| MS Researcher KB viewer | Independent read-only Logseq publisher | Declared |
+| pangolin-kwg | Host-side kernel WG (engineer ↔ VPS) | Enabled |
+| newt-cicd | In-cluster userspace WG for CI-managed GitOps | Declared |
+| MetalLB | L2 LoadBalancer for per-service LAN IPs | Declared |
+| cert-manager | Wildcard `*.dobryops.com` via Let's Encrypt DNS-01 | Declared |
 
 </div>
+
+These are repository declarations, **not a live health report**. A deployed workload, its Pangolin public-resource `enabled` flag, and LAN access are separate controls. For example, ArgoCD and Pi-hole remain declared while their public resources are disabled.
 
 > \* Pi-hole serves DNS for the cluster's domains via per-workload `local-dns.nix` declarations aggregated into `FTLCONF_dns_hosts`. Setting it as the LAN's upstream DNS is a router-side change.
 
@@ -157,20 +172,22 @@ Before deploying the stateful updates, take a consistent Uptime Kuma `/app/data`
 
 ### MS Researcher Agent
 
-`services.ms-researcher` runs a dedicated Hermes Matrix bot on `engineer` for Multiple Sclerosis research tracking. It maintains a mutable Logseq-style KB at `/var/lib/ms-researcher/kb` and exposes it under `/home/ms-researcher/kb` for the agent.
+`services.ms-researcher` and all its agent, Matrix, skills, cron, MCP, KB and Git-sync flags are **disabled** in `nodes/engineer/default.nix`. The configuration was retained after the Codex subscription was cancelled. The independently imported `knowledgebase` viewer is still configured; that does not mean research or Git synchronization is running.
 
-What it does:
+When enabled, the module manages a dedicated Hermes Matrix bot and a mutable Logseq-style KB at `/var/lib/ms-researcher/kb`, bind-mounted at `/home/ms-researcher/kb`.
+
+Preserved intent when enabled (implemented through agent skills/jobs, not a guarantee of completed research):
 - Watches curated MS research/news/trial/practical-living RSS feeds every 6 hours.
 - Scores source credibility and filters out low-trust, miracle-cure, product-pitch, or unverified claims.
 - Verifies research through PubMed, CrossRef, ClinicalTrials.gov, SearXNG, and official/recognized MS sources before writing KB pages.
 - Writes citation-grounded pages, run reports, journals, and weekly reports under the KB tree.
 - Publishes a reader-friendly Monday morning "This week in MS" digest at 08:00 Europe/Sofia.
-- Exposes the KB as a read-only Logseq-style web view at `ms-kb.dobryops.com` via the `knowledgebase` namespace.
-- Cleans generated RSS raw cache weekly after the digest while preserving manual raw ingests and the RSS seen ledger.
+- The independent `knowledgebase` viewer exposes the KB at `ms-kb.dobryops.com`, even while the writer is disabled.
+- Schedules generated RSS raw-cache cleanup after the digest; the preserved cleanup example needs the V2-layout/safety fixes recorded in the project knowledge base before re-enabling it.
 - Syncs the KB to GitLab every 10 minutes when `/var/lib/ms-researcher/kb` has been initialized as a git repo.
 
-Operational notes:
-- Codex subscription auth is mutable user state. Authenticate with:
+Operational notes (writer setup applies only after re-enabling it):
+- Codex subscription auth is mutable user state. For the preserved provider, authenticate with:
   `sudo -u ms-researcher -H /run/current-system/sw/bin/hermes auth add openai-codex --type oauth --no-browser`
 - The KB git repo is initialized manually as `ms-researcher`; Nix wires git/ssh/sops credentials but does not clone over mutable state.
 - The web viewer pulls `git@gitlab.dobryops.com:knowledge-base/ms-researcher-kb.git` over SSH every few minutes and republishes the static Logseq view when the repo changes.
@@ -178,8 +195,9 @@ Operational notes:
 - The KB uses a V2 date/type layout: canonical content in `content/{studies,trials,practical,reports,queries}/...`, journals in `journals/YYYY/MM/YYYY_MM_DD.md`, and navigation pages in `pages/`.
 - The agent's `kb-maintain` skill self-heals legacy flat files into that layout and refreshes `Start Here`, `Index`, and sub-index pages.
 - The viewer also exposes raw KB file-tree browsing at `/kb/`; `.git` paths are blocked.
-- The viewer is read-only; editing remains through the agent, GitLab, or local Logseq.
-- `koth-dm` is disabled on `engineer`; `hale` is unchanged.
+- The viewer is read-only; editing remains through GitLab/local Logseq or the writer if re-enabled. It publishes the full KB, including raw files, so do not put credentials or private material in that repository.
+- `koth-dm` is also disabled on `engineer`; `hale` is enabled.
+- See [KB lifecycle and known limitations](docs/project-context.md#agent-and-research-kb-lifecycle) before re-enabling automation.
 
 ---
 
@@ -197,14 +215,19 @@ Operational notes:
 ```bash
 git clone https://github.com/bovf/homelab-overkill.git
 cd homelab-overkill
+nix develop
 ```
+
+The dev shell supplies operator tools and generates SSH aliases; entering it can decrypt node metadata into `.cache/` and install Git hooks. It is not a side-effect-free inspection command.
 
 **2. Pull secrets from Bitwarden**
 ```bash
 nix run .#secrets -- pull
 nix run .#secrets -- init
-nix run .#secrets -- bootstrap <node>
+nix run .#secrets -- bootstrap <node>  # engineer or pangolin
 ```
+
+Bootstrap adds recipients but does **not** rekey an existing encrypted file by default. Review `.sops.yaml`, then run `nix run .#secrets -- rekey` if recipients changed before installing. See [mutable state and recovery](docs/project-context.md#mutable-state-and-recovery).
 
 Secrets live in one encrypted file, `secrets/secrets.yaml`, including the
 Pangolin VPS service environment and LiveKit credentials. SOPS recipients are
@@ -213,6 +236,9 @@ managed in `.sops.yaml`; raw SSH public keys are supported via
 for compatibility during migration.
 
 **3. Install on your node**
+
+**Destructive:** installation runs disko partitioning and reboots the target. Verify its disk configuration and backups first. After bootstrap, re-enter `nix develop` if node metadata was unavailable on the first shell entry.
+
 ```bash
 nix run .#deploy -- install engineer-local
 nix run .#deploy -- install pangolin-remote
@@ -242,8 +268,8 @@ Host pangolin pangolin-remote
   IdentityFile ~/.ssh/$USER      # per-machine convention, never configured
 ```
 
-Node addresses and the SSH user are never stored in the repo — they live
-encrypted in `secrets/secrets.yaml` under `nodes:`. Run `nix run .#bootstrap`
+Deployment address and SSH-user metadata are read from the encrypted `nodes:`
+block in `secrets/secrets.yaml`, rather than embedded in the flake's deploy targets. Run `nix run .#bootstrap`
 once (or just enter the dev shell with your age key present) to materialize
 them into the gitignored `.cache/nodes.json`; dev shells and nix apps resolve
 them from there at runtime. The SSH identity is always the machine-local
@@ -306,18 +332,18 @@ k9s
 | 8    | Pi-hole       | Cluster DNS upstream; LAN A records + DoH adlist             |
 | 9    | cert-manager  | Wildcard `*.dobryops.com` via Let's Encrypt DNS-01           |
 | 10   | Reloader      | Rolling-restarts pods when watched ConfigMaps/Secrets change |
-| 11   | Keel          | Rolls deployments on `:latest` digest change                 |
-| 12   | GitOps        | Edit → commit → deploy. Always reproducible                  |
+| 11   | Keel          | Rolls opted-in workloads when their configured image changes |
+| 12   | Change flow   | Edit → validate → commit → explicitly deploy host configuration |
 
 ---
 
 ## Security Model
 
-For the known places where setup or app configuration is intentionally not fully
-Nix-declarative, see `notes/not-declerative-functionality.md`.
+For setup and app state that are not fully Nix-declarative, see [mutable state and recovery](docs/project-context.md#mutable-state-and-recovery).
 
-> **No sensitive data exists in plain text in this repository.**  
-> Every domain name, credential, email, and API key is encrypted at rest via SOPS and injected at runtime.
+Credentials are intended to live in SOPS and be injected at activation/runtime. Domains, email addresses, public keys and network configuration also appear in plaintext source; this is **not** a blanket guarantee that the repository contains no sensitive metadata. `nodes/pangolin/guards.nix` has an unresolved security TODO concerning its plaintext admin IP allowlist.
+
+The VPS deliberately exposes web, SSH, WireGuard and media ports. Public-resource enablement and SSO are per-resource choices, not universal protection for every access path.
 
 ### How Secrets Reach Workloads
 
@@ -334,7 +360,7 @@ secrets/secrets.yaml  (SOPS encrypted)
 
 ### Pangolin Blueprint System
 
-Each workload self-registers via a `pangolin-blueprint.nix` file. On `nixos-rebuild switch`, `pangolin-kwg-blueprint-sync.service` renders the full org blueprint and PUTs it to Pangolin's REST API — no manual UI changes, no in-cluster aggregator pod for engineer-side resources.
+Workloads needing Pangolin exposure declare a `pangolin-blueprint.nix` entry. Activation renders the full organization blueprint and attempts `pangolin-kwg-blueprint-sync.service` to publish it to the integration API. Routine resource updates do not require manual UI edits or an in-cluster aggregator pod for engineer-side resources; initial site/API-key provisioning is still external.
 
 The cicd-gitops site keeps the legacy ConfigMap aggregator (cronjob in `cicd/apps/newt/`) because its blueprint is CI-managed, not nix-managed.
 
@@ -344,7 +370,7 @@ Supports:
 
 ### sops-nix Symlink Patch
 
-k3s detects manifest changes via `mtime + SHA256` on the file inode - symlink `mtime` never changes when target content changes. A patch to `sops-install-secrets` forces symlinks to be **recreated on every activation**, giving them a fresh `mtime` so k3s re-applies updated manifests within **~15 seconds**.
+The local `sops-install-secrets` patch recreates rendered-file symlinks on activation, giving k3s a fresh change signal when template content changes. Preserve this compatibility patch when updating sops-nix; verify reconciliation on the node rather than assuming a fixed deployment latency.
 
 ### SOPS SSH Recipient Model
 
@@ -366,8 +392,8 @@ configuration only lists keys known to exist on the current hosts to avoid noisy
 
 ### Git Hooks and Formatting
 
-The dev shell auto-installs two Nix-store-managed hooks when entering `nix-shell`
-(or any shell that evaluates `.#devShells.<system>.default`). Existing manual,
+The dev shell auto-installs two Nix-store-managed hooks when entering `nix develop`
+(or another shell that runs `.#devShells.<system>.default`'s shell hook). Existing manual,
 non-symlink hooks are left untouched.
 
 - **`pre-commit`** — checks staged `.nix` files with `nix run .#fmt -- --check <files>`. It fails fast if Alejandra would reformat them.
@@ -391,7 +417,7 @@ repo-native entry point and the one used by the hook.
 - **`.gitleaksignore`** — native gitleaks per-finding fingerprints; `# Reason: ...` comment on the line ABOVE each fingerprint (gitleaks doesn't support inline comments)
 - **`.trufflehog-allowlist`** — custom file consumed by the scan app's trufflehog wrapper; same `# Reason:` + fingerprint convention. Fingerprint format: `<DetectorName>:<commit-sha>:<file>:<line>`
 
-No categorical suppression — no path-based allowlists, no regex allowlists. Pin a finding in commit A line 286, and a similar-looking real secret in commit B line 12 still fires. Each pin is a deliberate, reviewable line with a written reason. Both scanners are added to the devShell `packages` so they're on `$PATH` inside `nix-shell` for ad-hoc use too.
+No categorical suppression — no path-based allowlists, no regex allowlists. Pin a finding in commit A line 286, and a similar-looking real secret in commit B line 12 still fires. Each pin is a deliberate, reviewable line with a written reason. Both scanners are added to the devShell `packages` so they're on `$PATH` inside `nix develop` for ad-hoc use too. TruffleHog verification may contact providers; the scan is not an offline documentation check.
 
 ---
 
@@ -399,14 +425,15 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 
 ```
 .
-├── flake.nix                  # Entry point + sops-nix patch overlay + uv2nix
+├── flake.nix                  # Entry point + sops.package patch + Hermes uv2nix overlay
 ├── flake.lock
 ├── .sops.yaml
 ├── .gitleaksignore            # gitleaks per-finding allowlist (fingerprints + reasons)
 ├── .trufflehog-allowlist      # trufflehog per-finding allowlist (fingerprints + reasons)
 ├── README.md
-├── notes/
-│   └── not-declerative-functionality.md  # Inventory/runbook for imperative state and setup
+├── docs/
+│   ├── project-context.md     # Source map, mutable state, checks, docs maintenance
+│   └── housekeeping-audit.md  # Open issues, impacts, proposed fixes, verification
 │
 ├── nix/                       # Nix apps and tooling
 │   ├── apps/
@@ -430,7 +457,7 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   │   ├── pangolin-kwg.nix         # kwg client + blueprint-sync wiring
 │   │   ├── pangolin-resources.nix   # Host-level TCP resources (ssh, k8s API)
 │   │   └── metallb.nix              # MetalLB pool config
-│   ├── pangolin/              # VPS edge node: Pangolin, Traefik, LiveKit
+│   └── pangolin/              # VPS edge node: Pangolin, Traefik, LiveKit
 │   │   ├── configuration.nix
 │   │   ├── disk-config.nix
 │   │   ├── services.nix
@@ -438,7 +465,7 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   │   ├── element-call.nix
 │   │   ├── guards.nix
 │   │   └── virtualization.nix
-│   └── sentry-level-01/       # Future worker node (scaffolded, disabled)
+│   # sentry-level-01 exists only as commented flake metadata; no node directory
 │
 ├── infrastructure/            # Host-level cluster + tunnel modules
 │   ├── k3s/                   # Cluster config (server + agent roles)
@@ -454,25 +481,29 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   ├── default.nix
 │   ├── lib/                   # lan-services + pangolin-blueprint generators
 │   └── namespace/
-│       ├── kube-system/       # traefik, node-feature-discovery
+│       ├── kube-system/       # traefik, coredns, node-feature-discovery
 │       ├── intel-device-plugins/  # Intel GPU device plugin + operator
 │       ├── knowledgebase/     # MS Researcher KB read-only Logseq published web UI
 │       ├── database/          # postgresql, minio (+ loki bucket init), pgadmin
-│       ├── cicd/              # gitlab, argocd, reloader, keel, newt
+│       ├── cicd/              # gitlab, gitlab-nix-runner, argocd, reloader, keel, newt
+│       ├── dashboard/         # glance, searxng
 │       ├── media/             # jellyfin, sonarr, radarr, prowlarr, bazarr,
-│       │                      # jellyseerr, qbittorrent, nzbget, sportarr
+│       │                      # jellyseerr, qbittorrent, nzbget, sportarr, romm
 │       ├── monitoring/        # kube-prometheus-stack, loki, alloy,
 │       │                      # grafana-image-renderer, version-checker,
 │       │                      # nova, intel-gpu-exporter,
-│       │                      # local-path-du-exporter, grafana-dashboards
+│       │                      # local-path-du-exporter, grafana-dashboards,
+│       │                      # uptime-kuma, speedtest-tracker
 │       │                      #   (incl. node-overview desktop +
 │       │                      #    node-overview-mobile-{s,m,l})
 │       ├── cert-manager/      # letsencrypt cluster issuer
 │       ├── dns/               # pihole
 │       ├── finance/           # ezbookkeeping
+│       ├── health/            # sparkyfitness
 │       ├── matrix/            # synapse, element, synapse-admin
 │       ├── homarr/            # homepage / launcher (home.dobryops.com)
-│       ├── proxy/             # squid, ncps
+│       ├── proxy/             # attic-cache, squid, ncps
+│       ├── surveillance/      # go2rtc
 │       └── blog/              # whoami personal blog
 │
 ├── common/                    # Shared NixOS modules
@@ -489,21 +520,20 @@ No categorical suppression — no path-based allowlists, no regex allowlists. Pi
 │   ├── ms-researcher.nix      # MS research Hermes agent, Matrix bootstrap, KB git sync,
 │   │                          # RSS cron jobs, PubMed/CrossRef/SearXNG MCP wiring
 │   ├── ms-researcher-skills/  # KB research, ingest, journal, RSS watch, RSS cleanup skills
-│   └── ms-researcher-cron/    # 6-hour RSS enrichment, Monday digest, RSS raw cleanup
+│   ├── ms-researcher-cron/    # Preserved RSS/digest/cleanup jobs (agent disabled)
+│   ├── koth-dm.nix, koth-dm-skills/  # Preserved campaign agent (disabled)
+│   └── mcps/                 # Six FastMCP Python packages for research/campaign tools
 │
-├── secrets/                   # SOPS-encrypted secrets
-│   ├── secrets.yaml           # Encrypted engineer/workload/Pangolin values (age)
-│   └── default.nix            # sops.secrets declarations
-│
-└── scripts/                   # One-shot ops helpers
-    └── homarr-seed-boards.sh  # Reseeds Homarr boards via SQLite
+└── secrets/                   # SOPS-encrypted secrets
+    ├── secrets.yaml           # Encrypted engineer/workload/Pangolin values (age)
+    └── default.nix            # sops.secrets declarations
 ```
 
 ---
 
 ## Workload Pattern
 
-Every app follows a consistent, predictable structure:
+Most chart-backed apps use this structure; import only the components needed:
 
 ```
 workloads/namespace/<ns>/apps/<app>/
@@ -517,7 +547,7 @@ workloads/namespace/<ns>/apps/<app>/
                              #   `service.externalIPs` doesn't propagate
 ```
 
-> All `helm.nix` and `middleware.nix` files use `sops.templates` - domain names and credentials are **never present in git**.
+Use `sops.templates` for YAML requiring secret placeholders. Non-secret objects use `services.k3s.manifests`; PostgreSQL is a raw StatefulSet, and bundled Traefik/CoreDNS charts use `HelmChartConfig`. Apps can also own `uptime.nix`, init Jobs, PVCs and service definitions. See the [change checklist](docs/project-context.md#keeping-documentation-current).
 
 ### Three access paths
 
@@ -525,11 +555,13 @@ A resource is reachable via one or more of:
 
 | Path | Hostname | Goes through | Used when |
 |---|---|---|---|
-| **Pangolin public** | `*.dobryops.com` | Public IP → pangolin VPS → kwg tunnel → backend | Off-LAN, no VPN. SSO-gated for HTTP. |
-| **Pangolin client (olm)** | Tunnel IP (`100.89.128.x`) or DNS | Mac/iOS olm WG → pangolin VPS → kwg tunnel → backend | Off-LAN with VPN installed. No public ports needed. |
+| **Pangolin public** | `*.dobryops.com` | Public IP → pangolin VPS → kwg tunnel → backend | Off-LAN, no VPN. Enablement and SSO depend on the resource. |
+| **Pangolin client (olm)** | Tunnel IP (`100.89.128.x`) or DNS | Mac/iOS olm WG → pangolin VPS → kwg tunnel → backend | Off-LAN with VPN installed. No per-application public ports needed. |
 | **LAN-direct** | LAN IP (`192.168.2.x`), resolved via Pi-hole | MetalLB L2 announce → traefik → backend | On-LAN. No round-trip via the VPS. |
 
-`viaKernelWg = true` (the default for every workload now) routes the resource through the host-side `pangolin-kwg` tunnel — kube-proxy externalIPs on each Service catches the matching `100.89.128.16:<port>` and DNATs to the backend pod. The blueprint sync service PUTs the rendered YAML to Pangolin's REST API on every `nixos-rebuild switch`, so resources rebind without manual UI work.
+Existing workload resources explicitly set `viaKernelWg = true`; the option default is `false`. The kernel-WG path sends traffic to `100.89.128.16:<unique-service-port>`, where kube-proxy's Service `externalIPs` rules deliver it to the backend pod. Host SSH and the k3s API listen directly on that tunnel IP.
+
+The sync service converts rendered YAML to base64-encoded JSON and PUTs the **whole organization blueprint** to Pangolin's integration API. Activation attempts this on every rebuild; check the service result separately, because a successful rebuild does not prove the API sync succeeded.
 
 ### Local DNS aggregation
 
@@ -537,23 +569,21 @@ Each workload's `local-dns.nix` declares one `{ host, ip }` entry under `workloa
 
 ### DNS topology
 
-Pi-hole is the single resolver for both LAN clients and cluster pods:
+Pi-hole is the preferred split-horizon resolver; host and cluster configuration include public fallback resolvers. LAN clients use it only when configured on the router/client:
 
 ```
-LAN clients  ───┐
-                ├──> 192.168.2.2 (pihole) ──> 1.1.1.1 (Cloudflare upstream)
-Cluster pods ───┤
-                └──> 10.43.0.10 (CoreDNS) ──> 192.168.2.2 (pihole)
+LAN clients  ──> 192.168.2.2 (Pi-hole) ──> 1.1.1.1 / 1.0.0.1
+Cluster pods ──> 10.43.0.10 (CoreDNS) ──> Pi-hole / public fallbacks
 ```
 
-`networking.nameservers = [ "192.168.2.2" "1.1.1.1" ]` on engineer makes the host point at pihole; CoreDNS inherits the node's `/etc/resolv.conf` via `dnsPolicy: Default`, so every pod's external DNS gets logged in pihole too. `1.1.1.1` is the failover if pihole is down. Pi-hole's own pod uses `8.8.8.8/8.8.4.4` via `podDnsConfig` to avoid the chicken-and-egg.
+`networking.nameservers = [ "192.168.2.2" "1.1.1.1" ]` makes engineer prefer Pi-hole. CoreDNS also has an explicit `dobryops.com` forwarding block with sequential Pi-hole, Cloudflare and Google fallback in `workloads/namespace/dns/apps/pihole/coredns-custom.nix`. Fallback can return public rather than LAN addresses, so not every lookup is guaranteed to pass through Pi-hole. Pi-hole's own pod uses `8.8.8.8/8.8.4.4` via `podDnsConfig` to avoid a resolver loop.
 
 ### TLS
 
 Two terminators handle TLS, depending on the access path:
 
-- **Public path** — Cloudflare-fronted pangolin VPS terminates TLS at the edge with its own `*.dobryops.com` cert. Tunnel-internal traffic to engineer is plain HTTP. No cluster cert needed.
-- **LAN-direct path** — cert-manager issues a wildcard `*.dobryops.com` cert from Let's Encrypt via the **DNS-01** solver against the Cloudflare zone (the only way LE issues wildcards). Traefik picks it up as `tlsStore.default.defaultCertificate`, so every LAN-side HTTPS request to `*.dobryops.com` is served with a publicly-trusted cert — no per-device root-CA install.
+- **Public path** — VPS Traefik terminates TLS using Pangolin's ACME resolver. The current Nix configuration leaves DNS-01 unset (HTTP-01 default); it does not declare an edge wildcard certificate or prove Cloudflare proxying. Backend HTTP/HTTPS is selected per resource. LiveKit and lk-jwt signaling are separate native VPS routes.
+- **LAN-direct path** — cert-manager is configured to issue a wildcard `*.dobryops.com` cert from Let's Encrypt via the Cloudflare **DNS-01** solver. Traefik references it as `tlsStore.default.defaultCertificate`. Successful issuance supplies publicly trusted LAN-side TLS without a per-device root CA; actual certificate readiness/expiry requires a live check.
 
 ---
 

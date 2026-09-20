@@ -16,7 +16,7 @@
           image:
             registry: docker.io
             repository: dpage/pgadmin4
-            tag: "9.17@sha256:2f4ce946ddf8360680d7eff4eaba1d91859eb6b4003e6623bad5c63a322c2f4d"
+            tag: "9.18.0@sha256:c332c5f6dfba995d9ebc4af261d93506d6876085d712eaaa3defc8dd1a3f26de"
             pullPolicy: IfNotPresent
 
           env:
