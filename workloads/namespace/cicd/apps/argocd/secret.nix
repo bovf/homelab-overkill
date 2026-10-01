@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates = {
     "argocd/gitlab-repo-credentials.yaml" = {
       content = ''

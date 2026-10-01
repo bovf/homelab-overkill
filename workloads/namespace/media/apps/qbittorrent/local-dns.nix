@@ -1,8 +1,6 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   workloads.localDnsRecords.qbittorrent = {
     host = config.sops.placeholder."pangolin/resources/qbittorrent/domain";
-    ip   = "192.168.2.48";
+    ip = "192.168.2.48";
   };
 }

@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.grafana-dashboard-storage.content = {
     apiVersion = "v1";
     kind = "ConfigMap";

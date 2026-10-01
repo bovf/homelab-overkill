@@ -1,9 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   workloads.uptimeMonitors.radarr = {
-    name      = "Radarr";
+    name = "Radarr";
     domainKey = "pangolin/resources/radarr/domain";
-    group     = "Media";
+    group = "Media";
   };
 }

@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."middleware/argocd-headers.yaml" = {
     content = ''
       apiVersion: traefik.io/v1alpha1
@@ -21,9 +19,9 @@
             Referrer-Policy: "strict-origin-when-cross-origin"
           sslRedirect: true
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/argocd-middleware.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/argocd-middleware.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

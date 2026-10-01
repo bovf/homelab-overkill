@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.postgresql-service.content = {
     apiVersion = "v1";
     kind = "Service";
@@ -11,12 +9,14 @@
     };
     spec = {
       type = "ClusterIP";
-      ports = [{
-        port = 5432;
-        targetPort = 5432;
-        protocol = "TCP";
-        name = "postgres";
-      }];
+      ports = [
+        {
+          port = 5432;
+          targetPort = 5432;
+          protocol = "TCP";
+          name = "postgres";
+        }
+      ];
       selector.app = "postgresql";
     };
   };

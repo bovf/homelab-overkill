@@ -30,7 +30,7 @@
                 main:
                   image:
                     repository: docker.io/rommapp/romm
-                    tag: "5.1@sha256:ce9d86ab531e09fede45d00f426e3bf2d1f5dd14846f94d6360d77a92a413028"
+                    tag: "5.3.1@sha256:0d66b4ea152a237c7f24b95e87459f46d3c596a7c0b35a82f26bc971487278b3"
                   envFrom:
                     - secretRef:
                         name: romm-credentials

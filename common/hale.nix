@@ -1,6 +1,10 @@
-{ config, lib, pkgs, ... }:
-
-let cfg = config.services.hale;
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  cfg = config.services.hale;
 in {
   options.services.hale = {
     enable = lib.mkEnableOption "Saxton Hale — hermes-agent host integration";
@@ -94,25 +98,25 @@ in {
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      users.groups.hale = { };
+      users.groups.hale = {};
       users.users.hale = {
         isSystemUser = true;
-        group        = "hale";
-        description  = "Saxton Hale";
-        home         = "/home/hale";
-        createHome   = true;
-        shell        = pkgs.bashInteractive;
-        extraGroups  = [ "systemd-journal" ];
+        group = "hale";
+        description = "Saxton Hale";
+        home = "/home/hale";
+        createHome = true;
+        shell = pkgs.bashInteractive;
+        extraGroups = ["systemd-journal"];
         openssh.authorizedKeys.keys =
           config.users.users.engineer.openssh.authorizedKeys.keys;
       };
 
-      environment.systemPackages = [ cfg.agent.package ];
+      environment.systemPackages = [cfg.agent.package];
     }
 
     (lib.mkIf cfg.kubeAccess.enable {
-      users.groups.hale-kube = { };
-      users.users.hale.extraGroups = [ "hale-kube" ];
+      users.groups.hale-kube = {};
+      users.users.hale.extraGroups = ["hale-kube"];
 
       systemd.tmpfiles.rules = [
         "d /etc/hale 0755 root root -"
@@ -126,10 +130,10 @@ in {
 
       systemd.services.hale-kubeconfig = {
         description = "Render hale's read-only kubeconfig from hermes-observer SA";
-        after = [ "k3s.service" ];
-        wants = [ "k3s.service" ];
-        wantedBy = [ "multi-user.target" ];
-        path = [ pkgs.kubectl pkgs.coreutils ];
+        after = ["k3s.service"];
+        wants = ["k3s.service"];
+        wantedBy = ["multi-user.target"];
+        path = [pkgs.kubectl pkgs.coreutils];
         serviceConfig = {
           Type = "oneshot";
           RemainAfterExit = true;
@@ -200,40 +204,47 @@ in {
         metadata.name = "hermes-observer";
         rules = [
           {
-            apiGroups = [ "" ];
+            apiGroups = [""];
             resources = [
-              "pods" "pods/log" "pods/status"
-              "services" "endpoints" "configmaps"
-              "events" "nodes" "namespaces"
-              "persistentvolumeclaims" "persistentvolumes"
+              "pods"
+              "pods/log"
+              "pods/status"
+              "services"
+              "endpoints"
+              "configmaps"
+              "events"
+              "nodes"
+              "namespaces"
+              "persistentvolumeclaims"
+              "persistentvolumes"
               "replicationcontrollers"
             ];
-            verbs = [ "get" "list" "watch" ];
+            verbs = ["get" "list" "watch"];
           }
           {
-            apiGroups = [ "apps" ];
-            resources = [ "deployments" "statefulsets" "daemonsets" "replicasets" ];
-            verbs = [ "get" "list" "watch" ];
+            apiGroups = ["apps"];
+            resources = ["deployments" "statefulsets" "daemonsets" "replicasets"];
+            verbs = ["get" "list" "watch"];
           }
           {
-            apiGroups = [ "batch" ];
-            resources = [ "jobs" "cronjobs" ];
-            verbs = [ "get" "list" "watch" ];
+            apiGroups = ["batch"];
+            resources = ["jobs" "cronjobs"];
+            verbs = ["get" "list" "watch"];
           }
           {
-            apiGroups = [ "networking.k8s.io" ];
-            resources = [ "ingresses" "networkpolicies" ];
-            verbs = [ "get" "list" "watch" ];
+            apiGroups = ["networking.k8s.io"];
+            resources = ["ingresses" "networkpolicies"];
+            verbs = ["get" "list" "watch"];
           }
           {
-            apiGroups = [ "discovery.k8s.io" ];
-            resources = [ "endpointslices" ];
-            verbs = [ "get" "list" "watch" ];
+            apiGroups = ["discovery.k8s.io"];
+            resources = ["endpointslices"];
+            verbs = ["get" "list" "watch"];
           }
           {
-            apiGroups = [ "events.k8s.io" ];
-            resources = [ "events" ];
-            verbs = [ "get" "list" "watch" ];
+            apiGroups = ["events.k8s.io"];
+            resources = ["events"];
+            verbs = ["get" "list" "watch"];
           }
         ];
       };
@@ -247,11 +258,13 @@ in {
           kind = "ClusterRole";
           name = "hermes-observer";
         };
-        subjects = [{
-          kind = "ServiceAccount";
-          name = "hermes-observer";
-          namespace = "hermes";
-        }];
+        subjects = [
+          {
+            kind = "ServiceAccount";
+            name = "hermes-observer";
+            namespace = "hermes";
+          }
+        ];
       };
 
       services.k3s.manifests.hermes-observer-token.content = {
@@ -271,41 +284,48 @@ in {
         skillsDir = ./hale-skills;
         skillNames = builtins.attrNames (builtins.readDir skillsDir);
       in {
-        systemd.tmpfiles.rules = [
-          "d /home/hale/.hermes 0700 hale hale -"
-          "d /home/hale/.hermes/skills 0755 hale hale -"
-        ] ++ map
+        systemd.tmpfiles.rules =
+          [
+            "d /home/hale/.hermes 0700 hale hale -"
+            "d /home/hale/.hermes/skills 0755 hale hale -"
+          ]
+          ++ map
           (n: "L+ /home/hale/.hermes/skills/${n} - - - - ${skillsDir}/${n}")
           skillNames;
       }
     ))
 
     (lib.mkIf cfg.agent.enable {
-      systemd.tmpfiles.rules = [
-        "d /home/hale/.hermes 0700 hale hale -"
-      ] ++ lib.optionals (cfg.agent.soulFile != null) [
-        "L+ /home/hale/.hermes/SOUL.md - - - - ${cfg.agent.soulFile}"
-        "h /home/hale/.hermes/SOUL.md - hale hale - -"
-      ];
+      systemd.tmpfiles.rules =
+        [
+          "d /home/hale/.hermes 0700 hale hale -"
+        ]
+        ++ lib.optionals (cfg.agent.soulFile != null) [
+          "L+ /home/hale/.hermes/SOUL.md - - - - ${cfg.agent.soulFile}"
+          "h /home/hale/.hermes/SOUL.md - hale hale - -"
+        ];
 
       systemd.services.hermes-agent = {
         description = "Hermes Agent (Saxton Hale)";
         restartTriggers = lib.optional (cfg.agent.soulFile != null) cfg.agent.soulFile;
-        after = [ "network-online.target" ]
+        after =
+          ["network-online.target"]
           ++ lib.optional cfg.kubeAccess.enable "hale-kubeconfig.service";
-        wants = [ "network-online.target" ];
+        wants = ["network-online.target"];
         requires = lib.optional cfg.kubeAccess.enable "hale-kubeconfig.service";
-        wantedBy = [ "multi-user.target" ];
-        environment = {
-          HOME = "/home/hale";
-          HERMES_GATEWAY_HOST = cfg.agent.gatewayBind;
-          HERMES_GATEWAY_PORT = toString cfg.agent.gatewayPort;
-          PYTHONUNBUFFERED = "1";
-        } // lib.optionalAttrs cfg.kubeAccess.enable {
-          KUBECONFIG = "/etc/hale/kubeconfig";
-        };
+        wantedBy = ["multi-user.target"];
+        environment =
+          {
+            HOME = "/home/hale";
+            HERMES_GATEWAY_HOST = cfg.agent.gatewayBind;
+            HERMES_GATEWAY_PORT = toString cfg.agent.gatewayPort;
+            PYTHONUNBUFFERED = "1";
+          }
+          // lib.optionalAttrs cfg.kubeAccess.enable {
+            KUBECONFIG = "/etc/hale/kubeconfig";
+          };
         serviceConfig = {
-          User  = "hale";
+          User = "hale";
           Group = "hale";
           WorkingDirectory = "/home/hale";
           ExecStart = "${cfg.agent.package}/bin/hermes gateway";
@@ -316,13 +336,13 @@ in {
           NoNewPrivileges = true;
           ProtectSystem = "strict";
           ProtectHome = "read-only";
-          ReadWritePaths = [ "/home/hale" ];
+          ReadWritePaths = ["/home/hale"];
           PrivateTmp = true;
           PrivateDevices = true;
           ProtectKernelTunables = true;
           ProtectKernelModules = true;
           ProtectControlGroups = true;
-          RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
+          RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
           RestrictNamespaces = true;
           LockPersonality = true;
           CapabilityBoundingSet = "";
@@ -331,30 +351,36 @@ in {
       };
     })
 
-    (lib.mkIf (cfg.enable && cfg.agent.matrix.enable) {
-        nixpkgs.config.permittedInsecurePackages = [ "olm-3.2.16" ];
+    (
+      lib.mkIf (cfg.enable && cfg.agent.matrix.enable) {
+        nixpkgs.config.permittedInsecurePackages = ["olm-3.2.16"];
 
-        sops.secrets = {
-          ${cfg.agent.matrix.passwordSopsKey} = { };
-          ${cfg.agent.matrix.sharedSecretSopsKey} = { };
-          ${cfg.agent.matrix.serverDomainSopsKey} = { };
-        } // lib.optionalAttrs (cfg.agent.matrix.authorizedUsersSopsKey != null) {
-          ${cfg.agent.matrix.authorizedUsersSopsKey} = { };
-        } // lib.optionalAttrs (cfg.agent.matrix.allowedRoomsSopsKey != null) {
-          ${cfg.agent.matrix.allowedRoomsSopsKey} = { };
-        } // lib.optionalAttrs (cfg.agent.matrix.homeChannelChatIdSopsKey != null) {
-          ${cfg.agent.matrix.homeChannelChatIdSopsKey} = { };
-        } // lib.optionalAttrs cfg.agent.media.enable {
-          "hermes/radarr_api_key"       = { };
-          "hermes/sonarr_api_key"       = { };
-          "hermes/sportarr_api_key"     = { };
-          "hermes/prowlarr_api_key"     = { };
-          "hermes/bazarr_api_key"       = { };
-          "hermes/qbittorrent_username" = { };
-          "hermes/qbittorrent_password" = { };
-          "hermes/nzbget_hale_username" = { };
-          "hermes/nzbget_hale_password" = { };
-        };
+        sops.secrets =
+          {
+            ${cfg.agent.matrix.passwordSopsKey} = {};
+            ${cfg.agent.matrix.sharedSecretSopsKey} = {};
+            ${cfg.agent.matrix.serverDomainSopsKey} = {};
+          }
+          // lib.optionalAttrs (cfg.agent.matrix.authorizedUsersSopsKey != null) {
+            ${cfg.agent.matrix.authorizedUsersSopsKey} = {};
+          }
+          // lib.optionalAttrs (cfg.agent.matrix.allowedRoomsSopsKey != null) {
+            ${cfg.agent.matrix.allowedRoomsSopsKey} = {};
+          }
+          // lib.optionalAttrs (cfg.agent.matrix.homeChannelChatIdSopsKey != null) {
+            ${cfg.agent.matrix.homeChannelChatIdSopsKey} = {};
+          }
+          // lib.optionalAttrs cfg.agent.media.enable {
+            "hermes/radarr_api_key" = {};
+            "hermes/sonarr_api_key" = {};
+            "hermes/sportarr_api_key" = {};
+            "hermes/prowlarr_api_key" = {};
+            "hermes/bazarr_api_key" = {};
+            "hermes/qbittorrent_username" = {};
+            "hermes/qbittorrent_password" = {};
+            "hermes/nzbget_hale_username" = {};
+            "hermes/nzbget_hale_password" = {};
+          };
 
         sops.templates."hermes-matrix-bootstrap-secret.yaml" = {
           content = ''
@@ -369,10 +395,10 @@ in {
               shared_secret: "${config.sops.placeholder.${cfg.agent.matrix.sharedSecretSopsKey}}"
               server_name: "${config.sops.placeholder.${cfg.agent.matrix.serverDomainSopsKey}}"
           '';
-          path  = "/var/lib/rancher/k3s/server/manifests/hermes-matrix-bootstrap-secret.yaml";
+          path = "/var/lib/rancher/k3s/server/manifests/hermes-matrix-bootstrap-secret.yaml";
           owner = "root";
           group = "root";
-          mode  = "0600";
+          mode = "0600";
         };
 
         systemd.tmpfiles.rules = [
@@ -414,11 +440,11 @@ in {
               NZBGET_PASSWORD=${config.sops.placeholder."hermes/nzbget_hale_password"}
             ''}
           '';
-          path  = "/home/hale/.hermes/.env";
+          path = "/home/hale/.hermes/.env";
           owner = "hale";
           group = "hale";
-          mode  = "0600";
-          restartUnits = [ "hermes-agent.service" ];
+          mode = "0600";
+          restartUnits = ["hermes-agent.service"];
         };
 
         services.k3s.manifests.hermes-matrix-bootstrap.content = {
@@ -432,111 +458,132 @@ in {
             backoffLimit = 5;
             template.spec = {
               restartPolicy = "Never";
-              volumes = [{
-                name = "avatar";
-                hostPath = {
-                  path = "/etc/hale/avatar.png";
-                  type = "File";
-                };
-              }];
-              containers = [{
-                name = "register";
-                image = cfg.agent.matrix.synapseImage;
-                command = [ "bash" ];
-                args = [
-                  "-ec"
-                  ''
-                    set -o pipefail
-                    SYNAPSE=http://synapse.matrix.svc.cluster.local:8008
-
-                    until curl -fsS "$SYNAPSE/_matrix/client/versions" >/dev/null 2>&1; do
-                      echo "waiting for synapse..."
-                      sleep 3
-                    done
-
-                    OUT=$(register_new_matrix_user \
-                      -u "$BOT_USER" -p "$BOT_PASSWORD" --no-admin \
-                      -k "$SHARED_SECRET" \
-                      "$SYNAPSE" 2>&1) || true
-                    echo "$OUT"
-                    echo "$OUT" | grep -qE 'Success|User ID already taken|already exists' \
-                      || { echo "register failed unexpectedly" >&2; exit 1; }
-
-                    LOGIN_PAYLOAD=$(python3 -c '
-                    import os, json
-                    print(json.dumps({
-                        "type": "m.login.password",
-                        "identifier": {"type": "m.id.user", "user": os.environ["BOT_USER"]},
-                        "password": os.environ["BOT_PASSWORD"],
-                    }))')
-                    ACCESS_TOKEN=$(curl -fsS -X POST "$SYNAPSE/_matrix/client/v3/login" \
-                      -H 'Content-Type: application/json' \
-                      -d "$LOGIN_PAYLOAD" \
-                      | python3 -c 'import sys, json; print(json.load(sys.stdin)["access_token"])')
-
-                    DN_PAYLOAD=$(python3 -c '
-                    import os, json
-                    print(json.dumps({"displayname": os.environ["DISPLAY_NAME"]}))')
-                    curl -fsS -X PUT \
-                      "$SYNAPSE/_matrix/client/v3/profile/@$BOT_USER:$SERVER_NAME/displayname" \
-                      -H "Authorization: Bearer $ACCESS_TOKEN" \
-                      -H 'Content-Type: application/json' \
-                      -d "$DN_PAYLOAD"
-                    echo "displayname set to '$DISPLAY_NAME' for @$BOT_USER:$SERVER_NAME"
-
-                    MXC=$(curl -fsS -X POST \
-                      "$SYNAPSE/_matrix/media/v3/upload?filename=hale" \
-                      -H "Authorization: Bearer $ACCESS_TOKEN" \
-                      -H "Content-Type: $AVATAR_MIME" \
-                      --data-binary "@/etc/hale-avatar/avatar" \
-                      | python3 -c 'import sys, json; print(json.load(sys.stdin)["content_uri"])')
-                    AV_PAYLOAD=$(MXC="$MXC" python3 -c '
-                    import os, json
-                    print(json.dumps({"avatar_url": os.environ["MXC"]}))')
-                    curl -fsS -X PUT \
-                      "$SYNAPSE/_matrix/client/v3/profile/@$BOT_USER:$SERVER_NAME/avatar_url" \
-                      -H "Authorization: Bearer $ACCESS_TOKEN" \
-                      -H 'Content-Type: application/json' \
-                      -d "$AV_PAYLOAD"
-                    echo "avatar_url set to $MXC for @$BOT_USER:$SERVER_NAME"
-                  ''
-                ];
-                env = [
-                  { name = "BOT_USER";     value = cfg.agent.matrix.userLocalpart; }
-                  { name = "DISPLAY_NAME"; value = cfg.agent.matrix.displayName; }
-                  { name = "AVATAR_MIME";  value = cfg.agent.matrix.avatarMimeType; }
-                  {
-                    name = "BOT_PASSWORD";
-                    valueFrom.secretKeyRef = {
-                      name = "hermes-matrix-bootstrap";
-                      key  = "bot_password";
-                    };
-                  }
-                  {
-                    name = "SHARED_SECRET";
-                    valueFrom.secretKeyRef = {
-                      name = "hermes-matrix-bootstrap";
-                      key  = "shared_secret";
-                    };
-                  }
-                  {
-                    name = "SERVER_NAME";
-                    valueFrom.secretKeyRef = {
-                      name = "hermes-matrix-bootstrap";
-                      key  = "server_name";
-                    };
-                  }
-                ];
-                volumeMounts = [{
+              volumes = [
+                {
                   name = "avatar";
-                  mountPath = "/etc/hale-avatar/avatar";
-                  readOnly = true;
-                }];
-                resources = {
-                  requests = { cpu = "50m";  memory = "128Mi"; };
-                  limits   = { cpu = "500m"; memory = "256Mi"; };
-                };
-              }];
+                  hostPath = {
+                    path = "/etc/hale/avatar.png";
+                    type = "File";
+                  };
+                }
+              ];
+              containers = [
+                {
+                  name = "register";
+                  image = cfg.agent.matrix.synapseImage;
+                  command = ["bash"];
+                  args = [
+                    "-ec"
+                    ''
+                      set -o pipefail
+                      SYNAPSE=http://synapse.matrix.svc.cluster.local:8008
+
+                      until curl -fsS "$SYNAPSE/_matrix/client/versions" >/dev/null 2>&1; do
+                        echo "waiting for synapse..."
+                        sleep 3
+                      done
+
+                      OUT=$(register_new_matrix_user \
+                        -u "$BOT_USER" -p "$BOT_PASSWORD" --no-admin \
+                        -k "$SHARED_SECRET" \
+                        "$SYNAPSE" 2>&1) || true
+                      echo "$OUT"
+                      echo "$OUT" | grep -qE 'Success|User ID already taken|already exists' \
+                        || { echo "register failed unexpectedly" >&2; exit 1; }
+
+                      LOGIN_PAYLOAD=$(python3 -c '
+                      import os, json
+                      print(json.dumps({
+                          "type": "m.login.password",
+                          "identifier": {"type": "m.id.user", "user": os.environ["BOT_USER"]},
+                          "password": os.environ["BOT_PASSWORD"],
+                      }))')
+                      ACCESS_TOKEN=$(curl -fsS -X POST "$SYNAPSE/_matrix/client/v3/login" \
+                        -H 'Content-Type: application/json' \
+                        -d "$LOGIN_PAYLOAD" \
+                        | python3 -c 'import sys, json; print(json.load(sys.stdin)["access_token"])')
+
+                      DN_PAYLOAD=$(python3 -c '
+                      import os, json
+                      print(json.dumps({"displayname": os.environ["DISPLAY_NAME"]}))')
+                      curl -fsS -X PUT \
+                        "$SYNAPSE/_matrix/client/v3/profile/@$BOT_USER:$SERVER_NAME/displayname" \
+                        -H "Authorization: Bearer $ACCESS_TOKEN" \
+                        -H 'Content-Type: application/json' \
+                        -d "$DN_PAYLOAD"
+                      echo "displayname set to '$DISPLAY_NAME' for @$BOT_USER:$SERVER_NAME"
+
+                      MXC=$(curl -fsS -X POST \
+                        "$SYNAPSE/_matrix/media/v3/upload?filename=hale" \
+                        -H "Authorization: Bearer $ACCESS_TOKEN" \
+                        -H "Content-Type: $AVATAR_MIME" \
+                        --data-binary "@/etc/hale-avatar/avatar" \
+                        | python3 -c 'import sys, json; print(json.load(sys.stdin)["content_uri"])')
+                      AV_PAYLOAD=$(MXC="$MXC" python3 -c '
+                      import os, json
+                      print(json.dumps({"avatar_url": os.environ["MXC"]}))')
+                      curl -fsS -X PUT \
+                        "$SYNAPSE/_matrix/client/v3/profile/@$BOT_USER:$SERVER_NAME/avatar_url" \
+                        -H "Authorization: Bearer $ACCESS_TOKEN" \
+                        -H 'Content-Type: application/json' \
+                        -d "$AV_PAYLOAD"
+                      echo "avatar_url set to $MXC for @$BOT_USER:$SERVER_NAME"
+                    ''
+                  ];
+                  env = [
+                    {
+                      name = "BOT_USER";
+                      value = cfg.agent.matrix.userLocalpart;
+                    }
+                    {
+                      name = "DISPLAY_NAME";
+                      value = cfg.agent.matrix.displayName;
+                    }
+                    {
+                      name = "AVATAR_MIME";
+                      value = cfg.agent.matrix.avatarMimeType;
+                    }
+                    {
+                      name = "BOT_PASSWORD";
+                      valueFrom.secretKeyRef = {
+                        name = "hermes-matrix-bootstrap";
+                        key = "bot_password";
+                      };
+                    }
+                    {
+                      name = "SHARED_SECRET";
+                      valueFrom.secretKeyRef = {
+                        name = "hermes-matrix-bootstrap";
+                        key = "shared_secret";
+                      };
+                    }
+                    {
+                      name = "SERVER_NAME";
+                      valueFrom.secretKeyRef = {
+                        name = "hermes-matrix-bootstrap";
+                        key = "server_name";
+                      };
+                    }
+                  ];
+                  volumeMounts = [
+                    {
+                      name = "avatar";
+                      mountPath = "/etc/hale-avatar/avatar";
+                      readOnly = true;
+                    }
+                  ];
+                  resources = {
+                    requests = {
+                      cpu = "50m";
+                      memory = "128Mi";
+                    };
+                    limits = {
+                      cpu = "500m";
+                      memory = "256Mi";
+                    };
+                  };
+                }
+              ];
             };
           };
         };

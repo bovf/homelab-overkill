@@ -1,33 +1,31 @@
 # Sibling Services: the gitlab chart's webservice/registry sub-blocks
 # don't propagate externalIPs into the rendered Services.
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.gitlab-webservice-extip.content = {
     apiVersion = "v1";
-    kind       = "Service";
+    kind = "Service";
     metadata = {
-      name      = "gitlab-webservice-extip";
+      name = "gitlab-webservice-extip";
       namespace = "cicd";
       labels = {
-        app                              = "gitlab-webservice-extip";
+        app = "gitlab-webservice-extip";
         "homelab.dobryops.com/extip-for" = "gitlab-webservice-default";
       };
     };
     spec = {
-      type        = "ClusterIP";
-      externalIPs = [ "100.89.128.16" ];
+      type = "ClusterIP";
+      externalIPs = ["100.89.128.16"];
       selector = {
-        app                          = "webservice";
-        release                      = "gitlab";
+        app = "webservice";
+        release = "gitlab";
         "gitlab.com/webservice-name" = "default";
       };
       ports = [
         {
-          name       = "http";
-          port       = 8181;
+          name = "http";
+          port = 8181;
           targetPort = 8181;
-          protocol   = "TCP";
+          protocol = "TCP";
         }
       ];
     };
@@ -35,28 +33,28 @@
 
   services.k3s.manifests.gitlab-registry-extip.content = {
     apiVersion = "v1";
-    kind       = "Service";
+    kind = "Service";
     metadata = {
-      name      = "gitlab-registry-extip";
+      name = "gitlab-registry-extip";
       namespace = "cicd";
       labels = {
-        app                              = "gitlab-registry-extip";
+        app = "gitlab-registry-extip";
         "homelab.dobryops.com/extip-for" = "gitlab-registry";
       };
     };
     spec = {
-      type        = "ClusterIP";
-      externalIPs = [ "100.89.128.16" ];
+      type = "ClusterIP";
+      externalIPs = ["100.89.128.16"];
       selector = {
-        app     = "registry";
+        app = "registry";
         release = "gitlab";
       };
       ports = [
         {
-          name       = "http";
-          port       = 5000;
+          name = "http";
+          port = 5000;
           targetPort = 5000;
-          protocol   = "TCP";
+          protocol = "TCP";
         }
       ];
     };
@@ -67,28 +65,28 @@
   # the WG tunnel).
   services.k3s.manifests.gitlab-shell-extip.content = {
     apiVersion = "v1";
-    kind       = "Service";
+    kind = "Service";
     metadata = {
-      name      = "gitlab-shell-extip";
+      name = "gitlab-shell-extip";
       namespace = "cicd";
       labels = {
-        app                              = "gitlab-shell-extip";
+        app = "gitlab-shell-extip";
         "homelab.dobryops.com/extip-for" = "gitlab-gitlab-shell";
       };
     };
     spec = {
-      type        = "ClusterIP";
-      externalIPs = [ "100.89.128.16" ];
+      type = "ClusterIP";
+      externalIPs = ["100.89.128.16"];
       selector = {
-        app     = "gitlab-shell";
+        app = "gitlab-shell";
         release = "gitlab";
       };
       ports = [
         {
-          name       = "ssh";
-          port       = 22022;
+          name = "ssh";
+          port = 22022;
           targetPort = 2222;
-          protocol   = "TCP";
+          protocol = "TCP";
         }
       ];
     };

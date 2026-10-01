@@ -1,5 +1,4 @@
-{ config, ... }:
-
+{config, ...}:
 # Homarr's runtime env vars. Note: Homarr v1 stores INTEGRATION credentials
 # (Jellyfin/Sonarr/Radarr/etc. API keys) in its own SQLite database, entered
 # via the web UI on first run. They aren't sourced from this Secret at run
@@ -44,9 +43,9 @@
         NZBGET_PASSWORD: "${config.sops.placeholder."media/nzbget/password"}"
         GRAFANA_EMBED_API_TOKEN: "${config.sops.placeholder."monitoring/grafana/embed_api_token"}"
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/homarr-env.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/homarr-env.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

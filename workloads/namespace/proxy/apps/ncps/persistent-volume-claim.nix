@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.ncps-pvc.content = {
     apiVersion = "v1";
     kind = "PersistentVolumeClaim";
@@ -9,7 +7,7 @@
       namespace = "proxy";
     };
     spec = {
-      accessModes = [ "ReadWriteOnce" ];
+      accessModes = ["ReadWriteOnce"];
       storageClassName = "local-path";
       resources.requests.storage = "20Gi";
     };

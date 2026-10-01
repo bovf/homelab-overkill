@@ -1,4 +1,4 @@
-{ ... }: {
+{...}: {
   disko.devices = {
     disk.main = {
       device = "/dev/disk/by-id/nvme-eui.002538c881b0b073";
@@ -13,7 +13,7 @@
               type = "filesystem";
               format = "vfat";
               mountpoint = "/boot";
-              mountOptions = [ "umask=0077" ];
+              mountOptions = ["umask=0077"];
             };
           };
           root = {

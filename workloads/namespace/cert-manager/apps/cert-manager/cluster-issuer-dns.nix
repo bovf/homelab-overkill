@@ -1,9 +1,7 @@
 # Wildcard-capable ClusterIssuer using Let's Encrypt DNS-01 with the
 # Cloudflare solver. Pairs with the existing http01 `letsencrypt` issuer
 # (kept as a fallback for ingress-validated certs).
-{ config, ... }:
-
-{
+{config, ...}: {
   # Holds the Cloudflare API token cert-manager passes to the DNS-01 solver.
   sops.templates."cert-manager-cloudflare-token.yaml" = {
     content = ''
@@ -16,10 +14,10 @@
       stringData:
         api-token: "${config.sops.placeholder."cloudflare/api_token"}"
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/cert-manager-cloudflare-token.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/cert-manager-cloudflare-token.yaml";
     owner = "root";
     group = "root";
-    mode  = "0600";
+    mode = "0600";
   };
 
   sops.templates."cert-manager-clusterissuer-dns.yaml" = {
@@ -41,9 +39,9 @@
                     name: cloudflare-api-token-secret
                     key: api-token
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/cert-manager-clusterissuer-dns.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/cert-manager-clusterissuer-dns.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

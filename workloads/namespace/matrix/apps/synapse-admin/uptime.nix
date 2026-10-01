@@ -1,9 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   workloads.uptimeMonitors.synapse_admin = {
-    name      = "Synapse Admin";
+    name = "Synapse Admin";
     domainKey = "pangolin/resources/synapse_admin/domain";
-    group     = "Comms";
+    group = "Comms";
   };
 }

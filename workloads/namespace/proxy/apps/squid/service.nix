@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.squid-service.content = {
     apiVersion = "v1";
     kind = "Service";
@@ -12,12 +10,14 @@
     spec = {
       type = "LoadBalancer";
       loadBalancerIP = "192.168.2.3";
-      ports = [{
-        port = 3128;
-        targetPort = 3128;
-        protocol = "TCP";
-        name = "proxy";
-      }];
+      ports = [
+        {
+          port = 3128;
+          targetPort = 3128;
+          protocol = "TCP";
+          name = "proxy";
+        }
+      ];
       selector.app = "squid";
     };
   };

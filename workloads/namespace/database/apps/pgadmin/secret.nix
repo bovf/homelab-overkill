@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."database/pgadmin-credentials.yaml" = {
     content = ''
       apiVersion: v1

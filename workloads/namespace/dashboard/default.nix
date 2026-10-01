@@ -1,8 +1,6 @@
 # Dashboard namespace — homepage launcher (glance) + its in-cluster search
 # backend (searxng).
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./apps/glance
     ./apps/searxng

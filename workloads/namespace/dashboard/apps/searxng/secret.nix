@@ -1,8 +1,6 @@
 # SEARXNG_SECRET signs session cookies + image-proxy URLs. 32 random bytes
 # hex'd:  openssl rand -hex 32
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."searxng/env.yaml" = {
     content = ''
       apiVersion: v1
@@ -14,9 +12,9 @@
       stringData:
         SEARXNG_SECRET: "${config.sops.placeholder."searxng/secret"}"
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/searxng-env.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/searxng-env.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

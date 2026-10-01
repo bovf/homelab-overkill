@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/whoami.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -86,9 +84,9 @@
                         identifier: main
                         port: http
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/whoami.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/whoami.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

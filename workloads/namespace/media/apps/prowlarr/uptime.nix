@@ -1,9 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   workloads.uptimeMonitors.prowlarr = {
-    name      = "Prowlarr";
+    name = "Prowlarr";
     domainKey = "pangolin/resources/prowlarr/domain";
-    group     = "Media";
+    group = "Media";
   };
 }

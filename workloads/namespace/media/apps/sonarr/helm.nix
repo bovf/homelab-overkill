@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/sonarr.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -61,9 +59,9 @@
               globalMounts:
                 - path: /config
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/sonarr.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/sonarr.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

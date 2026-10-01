@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.grafana-dashboard-traefik.content = {
     apiVersion = "v1";
     kind = "ConfigMap";
@@ -9,9 +7,10 @@
       namespace = "monitoring";
       labels.grafana_dashboard = "1";
     };
-    data."traefik.json" = builtins.replaceStrings
-      [ "\${DS_PROMETHEUS}" ]
-      [ "Prometheus" ]
+    data."traefik.json" =
+      builtins.replaceStrings
+      ["\${DS_PROMETHEUS}"]
+      ["Prometheus"]
       (builtins.readFile ./dashboards/traefik.json);
   };
 }

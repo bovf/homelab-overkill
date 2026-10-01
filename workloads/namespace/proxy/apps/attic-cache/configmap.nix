@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.attic-cache-config.content = {
     apiVersion = "v1";
     kind = "ConfigMap";

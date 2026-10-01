@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.squid-configmap.content = {
     apiVersion = "v1";
     kind = "ConfigMap";

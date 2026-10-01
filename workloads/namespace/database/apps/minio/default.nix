@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./configmap.nix
     ./gitlab-secret.nix

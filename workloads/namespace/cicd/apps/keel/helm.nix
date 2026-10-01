@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.keel.content = {
     apiVersion = "helm.cattle.io/v1";
     kind = "HelmChart";

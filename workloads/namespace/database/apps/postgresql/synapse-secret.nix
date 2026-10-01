@@ -1,5 +1,4 @@
-{ config, ... }:
-
+{config, ...}:
 # database-ns copy of the Synapse DB password, consumed by the
 # postgresql-synapse-init Job. Synapse itself reads the same value via
 # its node-rendered homeserver.yaml (matrix/apps/synapse/secret.nix).
@@ -19,9 +18,9 @@
         host: postgresql.database.svc.cluster.local
         port: "5432"
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/synapse-postgres-credentials.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/synapse-postgres-credentials.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

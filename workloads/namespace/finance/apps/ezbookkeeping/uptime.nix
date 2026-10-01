@@ -1,9 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   workloads.uptimeMonitors.ezbookkeeping = {
-    name      = "ezBookkeeping";
+    name = "ezBookkeeping";
     domainKey = "pangolin/resources/ezbookkeeping/domain";
-    group     = "Personal";
+    group = "Personal";
   };
 }

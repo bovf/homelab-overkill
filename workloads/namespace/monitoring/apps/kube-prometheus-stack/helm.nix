@@ -96,8 +96,8 @@
                 - ${config.sops.placeholder."pangolin/resources/prometheus/domain"}
             prometheusSpec:
               image:
-                tag: v3.14.0
-                sha: 5ce7540c3c00ef4ab0c9d2c995c6a5b9c421f44b4a115d97a2c7af3b1c21cbb0
+                tag: v3.15.0
+                sha: efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
               # Makes Prometheus generate public absolute links behind Traefik/Pangolin.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/prometheus/domain"}"
               enableFeatures:

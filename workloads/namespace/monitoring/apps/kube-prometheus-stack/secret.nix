@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates = {
     "monitoring/grafana-admin-password.yaml" = {
       content = ''

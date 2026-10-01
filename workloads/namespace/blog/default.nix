@@ -1,7 +1,5 @@
 # Personal blog namespace.
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./apps/whoami
   ];

@@ -1,9 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   workloads.uptimeMonitors.search = {
-    name      = "SearXNG";
+    name = "SearXNG";
     domainKey = "pangolin/resources/search/domain";
-    group     = "Dashboard";
+    group = "Dashboard";
   };
 }

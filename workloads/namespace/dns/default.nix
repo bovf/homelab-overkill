@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./apps/pihole
   ];
@@ -13,6 +11,6 @@
 
   # Pi-hole's LoadBalancer Service binds host port 53 via klipper-lb.
   # Open the firewall so LAN clients can actually reach it.
-  networking.firewall.allowedUDPPorts = [ 53 ];
-  networking.firewall.allowedTCPPorts = [ 53 ];
+  networking.firewall.allowedUDPPorts = [53];
+  networking.firewall.allowedTCPPorts = [53];
 }

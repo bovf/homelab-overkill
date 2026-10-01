@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."pihole/secret.yaml" = {
     content = ''
       apiVersion: v1
@@ -12,9 +10,9 @@
       stringData:
         password: "${config.sops.placeholder."pihole/web_password"}"
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/pihole-secret.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/pihole-secret.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

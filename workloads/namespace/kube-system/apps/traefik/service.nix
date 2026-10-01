@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.traefik-dashboard-svc.content = {
     apiVersion = "v1";
     kind = "Service";
@@ -14,7 +12,7 @@
     };
     spec = {
       type = "ClusterIP";
-      externalIPs = [ "100.89.128.16" ];
+      externalIPs = ["100.89.128.16"];
       # Service port bumped from 8080 to avoid the tunnel-side
       # externalIPs collision with qbittorrent's :8080.
       ports = [

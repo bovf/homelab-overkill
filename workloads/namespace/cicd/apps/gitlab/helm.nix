@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/gitlab.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -201,9 +199,9 @@
                   cpu: 500m
                   memory: 512Mi
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/gitlab.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/gitlab.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

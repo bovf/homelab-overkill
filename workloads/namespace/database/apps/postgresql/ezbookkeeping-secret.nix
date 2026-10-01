@@ -1,5 +1,4 @@
-{ config, ... }:
-
+{config, ...}:
 # database-ns copy of the ezbookkeeping DB password, consumed by the
 # postgresql-ezbookkeeping-init Job. The finance-ns app reads the same
 # value from its own ezbookkeeping-credentials secret.
@@ -17,9 +16,9 @@
         username: ezbookkeeping
         database: ezbookkeeping
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/ezbookkeeping-postgres-credentials.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/ezbookkeeping-postgres-credentials.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

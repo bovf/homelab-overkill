@@ -1,9 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   workloads.uptimeMonitors.jellyfin = {
-    name      = "Jellyfin";
+    name = "Jellyfin";
     domainKey = "pangolin/resources/jellyfin/domain";
-    group     = "Media";
+    group = "Media";
   };
 }

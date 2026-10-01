@@ -1,9 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   workloads.uptimeMonitors.bazarr = {
-    name      = "Bazarr";
+    name = "Bazarr";
     domainKey = "pangolin/resources/bazarr/domain";
-    group     = "Media";
+    group = "Media";
   };
 }

@@ -1,19 +1,25 @@
-{ config, lib, nodeConfig, nodes, ... }:
-with lib;
-let
+{
+  config,
+  lib,
+  nodeConfig,
+  nodes,
+  ...
+}:
+with lib; let
   cfg = config.infrastructure.k3s;
 
-  controllerNode = lib.findFirst
+  controllerNode =
+    lib.findFirst
     (n: n.nodeType == "controller")
     null
     (lib.attrValues nodes);
 in {
   config = mkIf (nodeConfig.role == "agent" && cfg.enable) {
-
     services.k3s = {
       enable = true;
       role = "agent";
-      serverAddr = mkIf (controllerNode != null)
+      serverAddr =
+        mkIf (controllerNode != null)
         "https://${controllerNode.ip}:6443";
 
       extraFlags = [
@@ -22,8 +28,8 @@ in {
       ];
     };
 
-    networking.firewall.allowedTCPPorts = [ 10250 ];
-    networking.firewall.allowedUDPPorts = [ 8472 ];
+    networking.firewall.allowedTCPPorts = [10250];
+    networking.firewall.allowedUDPPorts = [8472];
 
     workloads.enable = mkDefault false;
 

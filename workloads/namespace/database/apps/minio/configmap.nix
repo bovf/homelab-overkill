@@ -1,5 +1,4 @@
-{ ... }:
-{
+{...}: {
   services.k3s.manifests.minio-default-public-policy.content = {
     apiVersion = "v1";
     kind = "ConfigMap";
@@ -13,9 +12,9 @@
         Statement = [
           {
             Effect = "Allow";
-            Principal = { AWS = [ "*" ]; };
-            Action = [ "s3:GetObject" ];
-            Resource = [ "arn:aws:s3:::default/*" ];
+            Principal = {AWS = ["*"];};
+            Action = ["s3:GetObject"];
+            Resource = ["arn:aws:s3:::default/*"];
           }
         ];
       };

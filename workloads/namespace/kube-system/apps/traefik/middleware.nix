@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."traefik-dashboard-redirect.yaml" = {
     content = ''
       apiVersion: traefik.io/v1alpha1
@@ -14,10 +12,10 @@
           replacement: "https://${config.sops.placeholder."pangolin/resources/traefik_dashboard/domain"}/dashboard/"
           permanent: true
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/traefik-dashboard-redirect.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/traefik-dashboard-redirect.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 
   sops.templates."traefik-dashboard-ingressroute.yaml" = {
@@ -48,9 +46,9 @@
               - kind: TraefikService
                 name: api@internal
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/traefik-dashboard-ingressroute.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/traefik-dashboard-ingressroute.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

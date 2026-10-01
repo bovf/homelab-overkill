@@ -1,6 +1,9 @@
-{ config, lib, ... }:
-with lib;
-let
+{
+  config,
+  lib,
+  ...
+}:
+with lib; let
   cfg = config.services.pangolin-kwg;
 in {
   config = mkMerge [
@@ -9,7 +12,7 @@ in {
         ${cfg.site.privateKeySopsPath} = {};
         # Consumed via sops.placeholder by the blueprint renderer; the
         # placeholder lookup requires the secret to be declared.
-        ${cfg.site.siteIdSopsPath}     = {};
+        ${cfg.site.siteIdSopsPath} = {};
       };
     })
     (mkIf (cfg.enable && cfg.blueprintSync.enable) {

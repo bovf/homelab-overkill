@@ -1,7 +1,5 @@
 # synapse-admin — web GUI for Synapse user/room administration
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./helm.nix
     ./configmap.nix

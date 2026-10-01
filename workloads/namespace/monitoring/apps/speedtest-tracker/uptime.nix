@@ -1,9 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   workloads.uptimeMonitors.speedtest = {
-    name      = "Speedtest";
+    name = "Speedtest";
     domainKey = "pangolin/resources/speedtest/domain";
-    group     = "Dashboard";
+    group = "Dashboard";
   };
 }

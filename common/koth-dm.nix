@@ -1,6 +1,10 @@
-{ config, lib, pkgs, ... }:
-
-let cfg = config.services.koth-dm;
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}: let
+  cfg = config.services.koth-dm;
 in {
   options.services.koth-dm = {
     enable = lib.mkEnableOption "KotH DM — second hermes-agent host integration (D&D Game-Master persona)";
@@ -100,15 +104,15 @@ in {
 
   config = lib.mkIf cfg.enable (lib.mkMerge [
     {
-      users.groups.koth-dm = { };
+      users.groups.koth-dm = {};
       users.users.koth-dm = {
         isSystemUser = true;
-        group        = "koth-dm";
-        description  = "KotH Dungeon Master (hermes-agent)";
-        home         = "/home/koth-dm";
-        createHome   = true;
-        shell        = pkgs.bashInteractive;
-        extraGroups  = [ "systemd-journal" ];
+        group = "koth-dm";
+        description = "KotH Dungeon Master (hermes-agent)";
+        home = "/home/koth-dm";
+        createHome = true;
+        shell = pkgs.bashInteractive;
+        extraGroups = ["systemd-journal"];
         openssh.authorizedKeys.keys =
           config.users.users.engineer.openssh.authorizedKeys.keys;
       };
@@ -119,10 +123,12 @@ in {
         skillsDir = ./koth-dm-skills;
         skillNames = builtins.attrNames (builtins.readDir skillsDir);
       in {
-        systemd.tmpfiles.rules = [
-          "d /home/koth-dm/.hermes 0700 koth-dm koth-dm -"
-          "d /home/koth-dm/.hermes/skills 0755 koth-dm koth-dm -"
-        ] ++ map
+        systemd.tmpfiles.rules =
+          [
+            "d /home/koth-dm/.hermes 0700 koth-dm koth-dm -"
+            "d /home/koth-dm/.hermes/skills 0755 koth-dm koth-dm -"
+          ]
+          ++ map
           (n: "L+ /home/koth-dm/.hermes/skills/${n} - - - - ${skillsDir}/${n}")
           skillNames;
       }
@@ -130,9 +136,9 @@ in {
 
     (lib.mkIf cfg.agent.enable (
       let
-        diceRollerMcp       = pkgs.callPackage ./mcps/dice-roller       { };
-        turnTrackerMcp      = pkgs.callPackage ./mcps/turn-tracker      { };
-        characterSheetsMcp  = pkgs.callPackage ./mcps/character-sheets  { };
+        diceRollerMcp = pkgs.callPackage ./mcps/dice-roller {};
+        turnTrackerMcp = pkgs.callPackage ./mcps/turn-tracker {};
+        characterSheetsMcp = pkgs.callPackage ./mcps/character-sheets {};
         mcpSyncScript = pkgs.writeShellScript "koth-dm-mcp-sync" ''
           set -eu
           HERMES=${cfg.agent.package}/bin/hermes
@@ -152,17 +158,21 @@ in {
             --env KOTH_STATE_DIR=/home/koth-dm/.hermes/koth-state
         '';
       in {
-        systemd.tmpfiles.rules = [
-          "d /home/koth-dm/.hermes 0700 koth-dm koth-dm -"
-        ] ++ lib.optionals (cfg.agent.soulFile != null) [
-          "L+ /home/koth-dm/.hermes/SOUL.md - - - - ${cfg.agent.soulFile}"
-          "h /home/koth-dm/.hermes/SOUL.md - koth-dm koth-dm - -"
-        ] ++ lib.optionals (cfg.agent.campaignFile != null) [
-          "L+ /home/koth-dm/.hermes/CAMPAIGN.md - - - - ${cfg.agent.campaignFile}"
-          "h /home/koth-dm/.hermes/CAMPAIGN.md - koth-dm koth-dm - -"
-        ] ++ lib.optionals cfg.agent.mcps.enable [
-          "d /home/koth-dm/.hermes/koth-state 0700 koth-dm koth-dm -"
-        ];
+        systemd.tmpfiles.rules =
+          [
+            "d /home/koth-dm/.hermes 0700 koth-dm koth-dm -"
+          ]
+          ++ lib.optionals (cfg.agent.soulFile != null) [
+            "L+ /home/koth-dm/.hermes/SOUL.md - - - - ${cfg.agent.soulFile}"
+            "h /home/koth-dm/.hermes/SOUL.md - koth-dm koth-dm - -"
+          ]
+          ++ lib.optionals (cfg.agent.campaignFile != null) [
+            "L+ /home/koth-dm/.hermes/CAMPAIGN.md - - - - ${cfg.agent.campaignFile}"
+            "h /home/koth-dm/.hermes/CAMPAIGN.md - koth-dm koth-dm - -"
+          ]
+          ++ lib.optionals cfg.agent.mcps.enable [
+            "d /home/koth-dm/.hermes/koth-state 0700 koth-dm koth-dm -"
+          ];
 
         systemd.services."hermes-agent.koth-dm" = {
           description = "Hermes Agent (KotH GM)";
@@ -170,9 +180,9 @@ in {
             lib.optional (cfg.agent.soulFile != null) cfg.agent.soulFile
             ++ lib.optional (cfg.agent.campaignFile != null) cfg.agent.campaignFile
             ++ lib.optional cfg.agent.skills.enable ./koth-dm-skills;
-          after = [ "network-online.target" ];
-          wants = [ "network-online.target" ];
-          wantedBy = [ "multi-user.target" ];
+          after = ["network-online.target"];
+          wants = ["network-online.target"];
+          wantedBy = ["multi-user.target"];
           environment = {
             HOME = "/home/koth-dm";
             HERMES_HOME = "/home/koth-dm/.hermes";
@@ -181,12 +191,12 @@ in {
             PYTHONUNBUFFERED = "1";
           };
           serviceConfig = {
-            User  = "koth-dm";
+            User = "koth-dm";
             Group = "koth-dm";
             WorkingDirectory = "/home/koth-dm";
             ExecStartPre =
               lib.optional cfg.agent.skills.dropBundled
-                "${cfg.agent.package}/bin/hermes skills opt-out --remove --yes"
+              "${cfg.agent.package}/bin/hermes skills opt-out --remove --yes"
               ++ lib.optional cfg.agent.mcps.enable "${mcpSyncScript}";
             ExecStart = "${cfg.agent.package}/bin/hermes gateway";
             Restart = "on-failure";
@@ -196,13 +206,13 @@ in {
             NoNewPrivileges = true;
             ProtectSystem = "strict";
             ProtectHome = "read-only";
-            ReadWritePaths = [ "/home/koth-dm" ];
+            ReadWritePaths = ["/home/koth-dm"];
             PrivateTmp = true;
             PrivateDevices = true;
             ProtectKernelTunables = true;
             ProtectKernelModules = true;
             ProtectControlGroups = true;
-            RestrictAddressFamilies = [ "AF_INET" "AF_INET6" "AF_UNIX" ];
+            RestrictAddressFamilies = ["AF_INET" "AF_INET6" "AF_UNIX"];
             RestrictNamespaces = true;
             LockPersonality = true;
             CapabilityBoundingSet = "";
@@ -212,20 +222,25 @@ in {
       }
     ))
 
-    (lib.mkIf (cfg.enable && cfg.agent.matrix.enable) {
-        nixpkgs.config.permittedInsecurePackages = [ "olm-3.2.16" ];
+    (
+      lib.mkIf (cfg.enable && cfg.agent.matrix.enable) {
+        nixpkgs.config.permittedInsecurePackages = ["olm-3.2.16"];
 
-        sops.secrets = {
-          ${cfg.agent.matrix.passwordSopsKey} = { };
-          ${cfg.agent.matrix.sharedSecretSopsKey} = { };
-          ${cfg.agent.matrix.serverDomainSopsKey} = { };
-        } // lib.optionalAttrs (cfg.agent.matrix.authorizedUsersSopsKey != null) {
-          ${cfg.agent.matrix.authorizedUsersSopsKey} = { };
-        } // lib.optionalAttrs (cfg.agent.matrix.allowedRoomsSopsKey != null) {
-          ${cfg.agent.matrix.allowedRoomsSopsKey} = { };
-        } // lib.optionalAttrs (cfg.agent.matrix.homeChannelChatIdSopsKey != null) {
-          ${cfg.agent.matrix.homeChannelChatIdSopsKey} = { };
-        };
+        sops.secrets =
+          {
+            ${cfg.agent.matrix.passwordSopsKey} = {};
+            ${cfg.agent.matrix.sharedSecretSopsKey} = {};
+            ${cfg.agent.matrix.serverDomainSopsKey} = {};
+          }
+          // lib.optionalAttrs (cfg.agent.matrix.authorizedUsersSopsKey != null) {
+            ${cfg.agent.matrix.authorizedUsersSopsKey} = {};
+          }
+          // lib.optionalAttrs (cfg.agent.matrix.allowedRoomsSopsKey != null) {
+            ${cfg.agent.matrix.allowedRoomsSopsKey} = {};
+          }
+          // lib.optionalAttrs (cfg.agent.matrix.homeChannelChatIdSopsKey != null) {
+            ${cfg.agent.matrix.homeChannelChatIdSopsKey} = {};
+          };
 
         sops.templates."hermes-matrix-bootstrap-koth-dm-secret.yaml" = {
           content = ''
@@ -240,18 +255,20 @@ in {
               shared_secret: "${config.sops.placeholder.${cfg.agent.matrix.sharedSecretSopsKey}}"
               server_name: "${config.sops.placeholder.${cfg.agent.matrix.serverDomainSopsKey}}"
           '';
-          path  = "/var/lib/rancher/k3s/server/manifests/hermes-matrix-bootstrap-koth-dm-secret.yaml";
+          path = "/var/lib/rancher/k3s/server/manifests/hermes-matrix-bootstrap-koth-dm-secret.yaml";
           owner = "root";
           group = "root";
-          mode  = "0600";
+          mode = "0600";
         };
 
-        systemd.tmpfiles.rules = [
-          "d /home/koth-dm/.hermes 0700 koth-dm koth-dm -"
-        ] ++ lib.optionals (cfg.agent.matrix.avatarImage != null) [
-          "d /etc/koth-dm 0755 root root -"
-          "C+ /etc/koth-dm/avatar.png 0444 root root - ${cfg.agent.matrix.avatarImage}"
-        ];
+        systemd.tmpfiles.rules =
+          [
+            "d /home/koth-dm/.hermes 0700 koth-dm koth-dm -"
+          ]
+          ++ lib.optionals (cfg.agent.matrix.avatarImage != null) [
+            "d /etc/koth-dm 0755 root root -"
+            "C+ /etc/koth-dm/avatar.png 0444 root root - ${cfg.agent.matrix.avatarImage}"
+          ];
 
         sops.templates."koth-dm-hermes-env" = {
           content = ''
@@ -268,11 +285,11 @@ in {
               MATRIX_HOME_ROOM_NAME=KotH Campaign
             ''}
           '';
-          path  = "/home/koth-dm/.hermes/.env";
+          path = "/home/koth-dm/.hermes/.env";
           owner = "koth-dm";
           group = "koth-dm";
-          mode  = "0600";
-          restartUnits = [ "hermes-agent.koth-dm.service" ];
+          mode = "0600";
+          restartUnits = ["hermes-agent.koth-dm.service"];
         };
 
         services.k3s.manifests.hermes-matrix-bootstrap-koth-dm.content = {
@@ -293,106 +310,123 @@ in {
                   type = "File";
                 };
               };
-              containers = [{
-                name = "register";
-                image = cfg.agent.matrix.synapseImage;
-                command = [ "bash" ];
-                args = [
-                  "-ec"
-                  ''
-                    set -o pipefail
-                    SYNAPSE=http://synapse.matrix.svc.cluster.local:8008
+              containers = [
+                {
+                  name = "register";
+                  image = cfg.agent.matrix.synapseImage;
+                  command = ["bash"];
+                  args = [
+                    "-ec"
+                    ''
+                      set -o pipefail
+                      SYNAPSE=http://synapse.matrix.svc.cluster.local:8008
 
-                    until curl -fsS "$SYNAPSE/_matrix/client/versions" >/dev/null 2>&1; do
-                      echo "waiting for synapse..."
-                      sleep 3
-                    done
+                      until curl -fsS "$SYNAPSE/_matrix/client/versions" >/dev/null 2>&1; do
+                        echo "waiting for synapse..."
+                        sleep 3
+                      done
 
-                    OUT=$(register_new_matrix_user \
-                      -u "$BOT_USER" -p "$BOT_PASSWORD" --no-admin \
-                      -k "$SHARED_SECRET" \
-                      "$SYNAPSE" 2>&1) || true
-                    echo "$OUT"
-                    echo "$OUT" | grep -qE 'Success|User ID already taken|already exists' \
-                      || { echo "register failed unexpectedly" >&2; exit 1; }
+                      OUT=$(register_new_matrix_user \
+                        -u "$BOT_USER" -p "$BOT_PASSWORD" --no-admin \
+                        -k "$SHARED_SECRET" \
+                        "$SYNAPSE" 2>&1) || true
+                      echo "$OUT"
+                      echo "$OUT" | grep -qE 'Success|User ID already taken|already exists' \
+                        || { echo "register failed unexpectedly" >&2; exit 1; }
 
-                    LOGIN_PAYLOAD=$(python3 -c '
-                    import os, json
-                    print(json.dumps({
-                        "type": "m.login.password",
-                        "identifier": {"type": "m.id.user", "user": os.environ["BOT_USER"]},
-                        "password": os.environ["BOT_PASSWORD"],
-                    }))')
-                    ACCESS_TOKEN=$(curl -fsS -X POST "$SYNAPSE/_matrix/client/v3/login" \
-                      -H 'Content-Type: application/json' \
-                      -d "$LOGIN_PAYLOAD" \
-                      | python3 -c 'import sys, json; print(json.load(sys.stdin)["access_token"])')
+                      LOGIN_PAYLOAD=$(python3 -c '
+                      import os, json
+                      print(json.dumps({
+                          "type": "m.login.password",
+                          "identifier": {"type": "m.id.user", "user": os.environ["BOT_USER"]},
+                          "password": os.environ["BOT_PASSWORD"],
+                      }))')
+                      ACCESS_TOKEN=$(curl -fsS -X POST "$SYNAPSE/_matrix/client/v3/login" \
+                        -H 'Content-Type: application/json' \
+                        -d "$LOGIN_PAYLOAD" \
+                        | python3 -c 'import sys, json; print(json.load(sys.stdin)["access_token"])')
 
-                    DN_PAYLOAD=$(python3 -c '
-                    import os, json
-                    print(json.dumps({"displayname": os.environ["DISPLAY_NAME"]}))')
-                    curl -fsS -X PUT \
-                      "$SYNAPSE/_matrix/client/v3/profile/@$BOT_USER:$SERVER_NAME/displayname" \
-                      -H "Authorization: Bearer $ACCESS_TOKEN" \
-                      -H 'Content-Type: application/json' \
-                      -d "$DN_PAYLOAD"
-                    echo "displayname set to '$DISPLAY_NAME' for @$BOT_USER:$SERVER_NAME"
+                      DN_PAYLOAD=$(python3 -c '
+                      import os, json
+                      print(json.dumps({"displayname": os.environ["DISPLAY_NAME"]}))')
+                      curl -fsS -X PUT \
+                        "$SYNAPSE/_matrix/client/v3/profile/@$BOT_USER:$SERVER_NAME/displayname" \
+                        -H "Authorization: Bearer $ACCESS_TOKEN" \
+                        -H 'Content-Type: application/json' \
+                        -d "$DN_PAYLOAD"
+                      echo "displayname set to '$DISPLAY_NAME' for @$BOT_USER:$SERVER_NAME"
 
-                    ${lib.optionalString (cfg.agent.matrix.avatarImage != null) ''
-                    MXC=$(curl -fsS -X POST \
-                      "$SYNAPSE/_matrix/media/v3/upload?filename=koth-dm" \
-                      -H "Authorization: Bearer $ACCESS_TOKEN" \
-                      -H "Content-Type: $AVATAR_MIME" \
-                      --data-binary "@/etc/koth-dm-avatar/avatar" \
-                      | python3 -c 'import sys, json; print(json.load(sys.stdin)["content_uri"])')
-                    AV_PAYLOAD=$(MXC="$MXC" python3 -c '
-                    import os, json
-                    print(json.dumps({"avatar_url": os.environ["MXC"]}))')
-                    curl -fsS -X PUT \
-                      "$SYNAPSE/_matrix/client/v3/profile/@$BOT_USER:$SERVER_NAME/avatar_url" \
-                      -H "Authorization: Bearer $ACCESS_TOKEN" \
-                      -H 'Content-Type: application/json' \
-                      -d "$AV_PAYLOAD"
-                    echo "avatar_url set to $MXC for @$BOT_USER:$SERVER_NAME"
-                    ''}
-                  ''
-                ];
-                env = [
-                  { name = "BOT_USER";     value = cfg.agent.matrix.userLocalpart; }
-                  { name = "DISPLAY_NAME"; value = cfg.agent.matrix.displayName; }
-                  { name = "AVATAR_MIME";  value = cfg.agent.matrix.avatarMimeType; }
-                  {
-                    name = "BOT_PASSWORD";
-                    valueFrom.secretKeyRef = {
-                      name = "hermes-matrix-bootstrap-koth-dm";
-                      key  = "bot_password";
+                      ${lib.optionalString (cfg.agent.matrix.avatarImage != null) ''
+                        MXC=$(curl -fsS -X POST \
+                          "$SYNAPSE/_matrix/media/v3/upload?filename=koth-dm" \
+                          -H "Authorization: Bearer $ACCESS_TOKEN" \
+                          -H "Content-Type: $AVATAR_MIME" \
+                          --data-binary "@/etc/koth-dm-avatar/avatar" \
+                          | python3 -c 'import sys, json; print(json.load(sys.stdin)["content_uri"])')
+                        AV_PAYLOAD=$(MXC="$MXC" python3 -c '
+                        import os, json
+                        print(json.dumps({"avatar_url": os.environ["MXC"]}))')
+                        curl -fsS -X PUT \
+                          "$SYNAPSE/_matrix/client/v3/profile/@$BOT_USER:$SERVER_NAME/avatar_url" \
+                          -H "Authorization: Bearer $ACCESS_TOKEN" \
+                          -H 'Content-Type: application/json' \
+                          -d "$AV_PAYLOAD"
+                        echo "avatar_url set to $MXC for @$BOT_USER:$SERVER_NAME"
+                      ''}
+                    ''
+                  ];
+                  env = [
+                    {
+                      name = "BOT_USER";
+                      value = cfg.agent.matrix.userLocalpart;
+                    }
+                    {
+                      name = "DISPLAY_NAME";
+                      value = cfg.agent.matrix.displayName;
+                    }
+                    {
+                      name = "AVATAR_MIME";
+                      value = cfg.agent.matrix.avatarMimeType;
+                    }
+                    {
+                      name = "BOT_PASSWORD";
+                      valueFrom.secretKeyRef = {
+                        name = "hermes-matrix-bootstrap-koth-dm";
+                        key = "bot_password";
+                      };
+                    }
+                    {
+                      name = "SHARED_SECRET";
+                      valueFrom.secretKeyRef = {
+                        name = "hermes-matrix-bootstrap-koth-dm";
+                        key = "shared_secret";
+                      };
+                    }
+                    {
+                      name = "SERVER_NAME";
+                      valueFrom.secretKeyRef = {
+                        name = "hermes-matrix-bootstrap-koth-dm";
+                        key = "server_name";
+                      };
+                    }
+                  ];
+                  volumeMounts = lib.optional (cfg.agent.matrix.avatarImage != null) {
+                    name = "avatar";
+                    mountPath = "/etc/koth-dm-avatar/avatar";
+                    readOnly = true;
+                  };
+                  resources = {
+                    requests = {
+                      cpu = "50m";
+                      memory = "128Mi";
                     };
-                  }
-                  {
-                    name = "SHARED_SECRET";
-                    valueFrom.secretKeyRef = {
-                      name = "hermes-matrix-bootstrap-koth-dm";
-                      key  = "shared_secret";
+                    limits = {
+                      cpu = "500m";
+                      memory = "256Mi";
                     };
-                  }
-                  {
-                    name = "SERVER_NAME";
-                    valueFrom.secretKeyRef = {
-                      name = "hermes-matrix-bootstrap-koth-dm";
-                      key  = "server_name";
-                    };
-                  }
-                ];
-                volumeMounts = lib.optional (cfg.agent.matrix.avatarImage != null) {
-                  name = "avatar";
-                  mountPath = "/etc/koth-dm-avatar/avatar";
-                  readOnly = true;
-                };
-                resources = {
-                  requests = { cpu = "50m";  memory = "128Mi"; };
-                  limits   = { cpu = "500m"; memory = "256Mi"; };
-                };
-              }];
+                  };
+                }
+              ];
             };
           };
         };

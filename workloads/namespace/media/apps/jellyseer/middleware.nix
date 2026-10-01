@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."middleware/jellyseerr-headers.yaml" = {
     content = ''
       apiVersion: traefik.io/v1alpha1
@@ -20,9 +18,9 @@
             X-XSS-Protection: "1; mode=block"
             Referrer-Policy: "strict-origin-when-cross-origin"
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/jellyseerr-middleware.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/jellyseerr-middleware.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

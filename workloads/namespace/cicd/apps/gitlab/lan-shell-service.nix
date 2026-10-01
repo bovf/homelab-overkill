@@ -2,9 +2,7 @@
 # user-facing port stays in the encrypted secrets file rather than the
 # nix store. Shares 192.168.2.21 with the auto-generated `gitlab-lan`
 # Service via MetalLB allow-shared-ip.
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."gitlab/gitlab-shell-lan.yaml" = {
     content = ''
       apiVersion: v1
@@ -29,9 +27,9 @@
             targetPort: 2222
             protocol: TCP
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/gitlab-shell-lan.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/gitlab-shell-lan.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

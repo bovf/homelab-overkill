@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/homarr.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -105,9 +103,9 @@
               globalMounts:
                 - path: /appdata
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/homarr.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/homarr.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

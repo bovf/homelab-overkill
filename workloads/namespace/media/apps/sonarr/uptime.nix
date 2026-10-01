@@ -1,9 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   workloads.uptimeMonitors.sonarr = {
-    name      = "Sonarr";
+    name = "Sonarr";
     domainKey = "pangolin/resources/sonarr/domain";
-    group     = "Media";
+    group = "Media";
   };
 }

@@ -8,18 +8,16 @@
 # previously-saved state file under /var/lib/alsa, which is itself ephemeral
 # on a fresh install. Setting the levels explicitly is one fewer state file
 # to chase.
-{ pkgs, ... }:
-
-{
+{pkgs, ...}: {
   systemd.services.alsa-capture-init = {
     description = "Set ALSA capture levels for the surveillance webcam mic";
-    wantedBy = [ "multi-user.target" ];
-    after    = [ "systemd-modules-load.service" "sound.target" ];
+    wantedBy = ["multi-user.target"];
+    after = ["systemd-modules-load.service" "sound.target"];
     serviceConfig = {
-      Type            = "oneshot";
+      Type = "oneshot";
       RemainAfterExit = true;
     };
-    path = [ pkgs.alsa-utils ];
+    path = [pkgs.alsa-utils];
     script = ''
       # snd_hda_intel may register a few seconds after the boot target —
       # poll briefly so we don't race the module load.

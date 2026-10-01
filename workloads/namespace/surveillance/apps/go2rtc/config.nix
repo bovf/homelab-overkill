@@ -9,14 +9,12 @@
 #
 # Camera : /dev/video0  (UVC, MJPG 1280x720@30 confirmed via v4l2-ctl)
 # Mic    : ALSA hw:0,0  (ALC289 capture device, confirmed via arecord -l)
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.go2rtc-config.content = {
     apiVersion = "v1";
-    kind       = "ConfigMap";
+    kind = "ConfigMap";
     metadata = {
-      name      = "go2rtc-config";
+      name = "go2rtc-config";
       namespace = "surveillance";
     };
     data."go2rtc.yaml" = ''

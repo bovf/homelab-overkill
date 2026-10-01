@@ -1,9 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   workloads.uptimeMonitors.sportarr = {
-    name      = "Sportarr";
+    name = "Sportarr";
     domainKey = "pangolin/resources/sportarr/domain";
-    group     = "Media";
+    group = "Media";
   };
 }

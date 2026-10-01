@@ -18,6 +18,7 @@
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAICoJQa9vHbT65SMInKKKsEaYV7pLZK/oWkoEStXt18F4 engineer@engineer.local"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIF3+IDT9G8GpMl4ylKF51mjcYec5xUxAES4X6CK4PwHs heavy@heavy"
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDfHd3xytCwlEoHn0BOYF92f3C7yX9pCczt4GX7E7f15 spy@spy"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDMjuqoLVxpGFom17PkJ5yYHJz9CjtFhDfh4bwV1jZy2 titan-elite-2@titan-elite-2"
     ];
   };
 

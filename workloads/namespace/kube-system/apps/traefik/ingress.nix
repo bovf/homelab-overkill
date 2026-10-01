@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."traefik-dashboard-ingress.yaml" = {
     content = ''
       apiVersion: networking.k8s.io/v1
@@ -31,9 +29,9 @@
                       port:
                         number: 8080
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/traefik-dashboard-ingress.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/traefik-dashboard-ingress.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

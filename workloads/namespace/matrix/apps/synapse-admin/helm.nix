@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/synapse-admin.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -91,9 +89,9 @@
                   subPath: config.json
                   readOnly: true
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/synapse-admin.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/synapse-admin.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

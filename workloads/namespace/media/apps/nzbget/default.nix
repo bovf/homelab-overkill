@@ -1,7 +1,5 @@
 # Nzbget app entrypoint
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./helm.nix
     ./middleware.nix

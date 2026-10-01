@@ -1,9 +1,6 @@
-{ config, ... }:
-
-let
+{config, ...}: let
   matrixDomain = config.sops.placeholder."pangolin/resources/matrix/domain";
-in
-{
+in {
   # restrictBaseUrl locks synapse-admin to our homeserver so the login
   # form can't be pointed elsewhere. Rendered via sops.templates only to
   # keep the domain out of git.
@@ -20,9 +17,9 @@ in
             "restrictBaseUrl": "https://${matrixDomain}"
           }
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/synapse-admin-config.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/synapse-admin-config.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

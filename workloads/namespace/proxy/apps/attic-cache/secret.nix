@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.secrets."attic/server_token_rs256_secret_base64" = {};
   sops.secrets."attic/admin_token" = {};
   sops.secrets."attic/ci_push_token" = {};

@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.grafana-dashboard-intel-gpu.content = {
     apiVersion = "v1";
     kind = "ConfigMap";

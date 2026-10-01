@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates = {
     "gitlab/initial-root-password.yaml" = {
       content = ''
@@ -18,7 +16,7 @@
       group = "root";
       mode = "0644";
     };
-    
+
     "gitlab/postgres-secret.yaml" = {
       content = ''
         apiVersion: v1
@@ -35,7 +33,7 @@
       group = "root";
       mode = "0644";
     };
-    
+
     "gitlab/minio-connection.yaml" = {
       content = ''
         apiVersion: v1
@@ -59,7 +57,7 @@
       group = "root";
       mode = "0644";
     };
-    
+
     "gitlab/registry-storage.yaml" = {
       content = ''
         apiVersion: v1
@@ -85,7 +83,7 @@
       group = "root";
       mode = "0644";
     };
-    
+
     "gitlab/runner-secret.yaml" = {
       content = ''
         apiVersion: v1

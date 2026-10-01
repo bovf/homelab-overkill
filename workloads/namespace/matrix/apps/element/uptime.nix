@@ -1,9 +1,7 @@
-{ ... }:
-
-{
+{...}: {
   workloads.uptimeMonitors.element = {
-    name      = "Matrix";
+    name = "Matrix";
     domainKey = "pangolin/resources/element/domain";
-    group     = "Comms";
+    group = "Comms";
   };
 }

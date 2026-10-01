@@ -1,7 +1,5 @@
 # Homarr — single-page homepage / launcher for the whole stack.
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./apps/homarr
   ];

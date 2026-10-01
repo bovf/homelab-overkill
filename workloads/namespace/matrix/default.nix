@@ -1,8 +1,6 @@
 # Matrix namespace — private Synapse homeserver, Element Web client, and
 # synapse-admin. Voice/video is Element Call (LiveKit SFU on the Pangolin VPS).
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./apps/synapse
     ./apps/element

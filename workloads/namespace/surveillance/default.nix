@@ -1,7 +1,5 @@
 # Surveillance namespace — currently holds the laptop-webcam streamer.
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./apps/go2rtc
   ];

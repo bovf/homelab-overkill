@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."database/gitlab-postgres-credentials.yaml" = {
     content = ''
       apiVersion: v1

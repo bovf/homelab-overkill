@@ -1,5 +1,4 @@
-{ ... }:
-{
+{...}: {
   networking.firewall.extraCommands = ''
     iptables -I INPUT -s 10.42.0.0/16 -j ACCEPT
     iptables -I INPUT -s 10.43.0.0/16 -j ACCEPT

@@ -1,7 +1,5 @@
 # Personal finance namespace.
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./apps/ezbookkeeping
   ];

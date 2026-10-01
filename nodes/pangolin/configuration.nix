@@ -113,6 +113,9 @@
 
     # spy
     "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDfHd3xytCwlEoHn0BOYF92f3C7yX9pCczt4GX7E7f15 spy@spy"
+
+    # titan
+    "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIDMjuqoLVxpGFom17PkJ5yYHJz9CjtFhDfh4bwV1jZy2 titan-elite-2@titan-elite-2"
   ];
 
   environment.systemPackages = with pkgs; [

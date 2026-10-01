@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."cert-manager-clusterissuer.yaml" = {
     content = ''
       apiVersion: cert-manager.io/v1
@@ -18,9 +16,9 @@
                 ingress:
                   class: traefik
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/cert-manager-clusterissuer.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/cert-manager-clusterissuer.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

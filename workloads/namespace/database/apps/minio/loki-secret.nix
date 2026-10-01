@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."database/loki-minio-credentials.yaml" = {
     content = ''
       apiVersion: v1

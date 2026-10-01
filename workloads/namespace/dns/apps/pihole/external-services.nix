@@ -1,32 +1,30 @@
 # Sibling Service: the mojo2600 chart's serviceWeb block doesn't
 # propagate externalIPs into the rendered Service.
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.pihole-web-extip.content = {
     apiVersion = "v1";
-    kind       = "Service";
+    kind = "Service";
     metadata = {
-      name      = "pihole-web-extip";
+      name = "pihole-web-extip";
       namespace = "dns";
       labels = {
-        app                              = "pihole-web-extip";
+        app = "pihole-web-extip";
         "homelab.dobryops.com/extip-for" = "pihole-web";
       };
     };
     spec = {
-      type        = "ClusterIP";
-      externalIPs = [ "100.89.128.16" ];
+      type = "ClusterIP";
+      externalIPs = ["100.89.128.16"];
       selector = {
-        app     = "pihole";
+        app = "pihole";
         release = "pihole";
       };
       ports = [
         {
-          name       = "http";
-          port       = 8089;
+          name = "http";
+          port = 8089;
           targetPort = 8089;
-          protocol   = "TCP";
+          protocol = "TCP";
         }
       ];
     };

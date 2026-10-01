@@ -1,6 +1,4 @@
-{ config, ... }:
-
-{
+{config, ...}: {
   sops.templates."helm/speedtest-tracker.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -110,9 +108,9 @@
               globalMounts:
                 - path: /config
     '';
-    path  = "/var/lib/rancher/k3s/server/manifests/speedtest-tracker.yaml";
+    path = "/var/lib/rancher/k3s/server/manifests/speedtest-tracker.yaml";
     owner = "root";
     group = "root";
-    mode  = "0644";
+    mode = "0644";
   };
 }

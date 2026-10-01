@@ -3,9 +3,7 @@
 # kube-prometheus-stack helm values. Renders dashboards to PNG at a fixed
 # desktop viewport so the responsive single-column stacking never triggers —
 # the source of truth for iOS-widget URLs.
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./deployment.nix
     ./secret.nix

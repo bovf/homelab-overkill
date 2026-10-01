@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   services.k3s.manifests.local-path-du-exporter-config.content = {
     apiVersion = "v1";
     kind = "ConfigMap";

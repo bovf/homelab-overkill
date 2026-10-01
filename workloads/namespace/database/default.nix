@@ -1,6 +1,4 @@
-{ ... }:
-
-{
+{...}: {
   imports = [
     ./apps/postgresql
     ./apps/pgadmin

@@ -1,8 +1,6 @@
-{ ... }:
-{
+{...}: {
   networking = {
     networkmanager.enable = true;
-    firewall.allowedTCPPorts = [ 22 ];
+    firewall.allowedTCPPorts = [22];
   };
 }
-

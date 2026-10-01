@@ -1,9 +1,6 @@
-{ pkgs, ... }:
-
-let
+{pkgs, ...}: let
   atticServer = pkgs.attic-server;
-in
-{
+in {
   services.k3s.manifests.attic-cache-gc-cronjob.content = {
     apiVersion = "batch/v1";
     kind = "CronJob";
@@ -23,45 +20,47 @@ in
           metadata.labels.app = "attic-cache-gc";
           spec = {
             restartPolicy = "OnFailure";
-            containers = [{
-              name = "gc";
-              image = "busybox:latest";
-              imagePullPolicy = "IfNotPresent";
-              command = [
-                "${atticServer}/bin/atticd"
-                "-f"
-                "/etc/atticd/server.toml"
-                "--mode"
-                "garbage-collector-once"
-              ];
-              envFrom = [{ secretRef.name = "attic-cache-secret"; }];
-              volumeMounts = [
-                {
-                  name = "nix-store";
-                  mountPath = "/nix/store";
-                  readOnly = true;
-                }
-                {
-                  name = "attic-config";
-                  mountPath = "/etc/atticd";
-                  readOnly = true;
-                }
-                {
-                  name = "attic-data";
-                  mountPath = "/var/lib/atticd";
-                }
-              ];
-              resources = {
-                requests = {
-                  cpu = "100m";
-                  memory = "256Mi";
+            containers = [
+              {
+                name = "gc";
+                image = "busybox:latest";
+                imagePullPolicy = "IfNotPresent";
+                command = [
+                  "${atticServer}/bin/atticd"
+                  "-f"
+                  "/etc/atticd/server.toml"
+                  "--mode"
+                  "garbage-collector-once"
+                ];
+                envFrom = [{secretRef.name = "attic-cache-secret";}];
+                volumeMounts = [
+                  {
+                    name = "nix-store";
+                    mountPath = "/nix/store";
+                    readOnly = true;
+                  }
+                  {
+                    name = "attic-config";
+                    mountPath = "/etc/atticd";
+                    readOnly = true;
+                  }
+                  {
+                    name = "attic-data";
+                    mountPath = "/var/lib/atticd";
+                  }
+                ];
+                resources = {
+                  requests = {
+                    cpu = "100m";
+                    memory = "256Mi";
+                  };
+                  limits = {
+                    cpu = "1";
+                    memory = "1Gi";
+                  };
                 };
-                limits = {
-                  cpu = "1";
-                  memory = "1Gi";
-                };
-              };
-            }];
+              }
+            ];
             volumes = [
               {
                 name = "nix-store";

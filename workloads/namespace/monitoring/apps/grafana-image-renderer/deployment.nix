@@ -23,7 +23,7 @@
           containers = [
             {
               name = "renderer";
-              image = "docker.io/grafana/grafana-image-renderer:v5.12.3@sha256:cf36a94431662540a72d2058a43e0cbf72638334475d8216a25a77526a627be7";
+              image = "docker.io/grafana/grafana-image-renderer:v5.12.4@sha256:4c5574b3261ca7566fbca11d3fb3615bd8e753c69cb4fe9108f3ec8d1d3841d6";
               ports = [
                 {
                   name = "http";
