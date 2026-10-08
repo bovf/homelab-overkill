@@ -296,6 +296,53 @@ kubectl get nodes
 k9s
 ```
 
+### Nix store maintenance
+
+From `nix develop`, use the same node targets as deployment:
+
+```bash
+nix run .#store-cleanup -- engineer-local --report
+nix run .#store-cleanup -- engineer-local --clean --reboot
+nix run .#store-cleanup -- pangolin-remote --clean --reboot
+# If the selected system has already been booted:
+nix run .#store-cleanup -- engineer-local --clean
+```
+
+`--report` is read-only: filesystem total/used/available space, allocated Nix store
+size and capacity percentage, system generations and reboot status. Separate
+root/store filesystems are reported separately; hard links are counted once.
+
+`--clean` requires confirmation and a healthy, fully booted current system. It
+keeps **current + one previous system generation**, refreshes boot entries, runs
+Nix GC and optimises the store, then reports GC/optimisation savings and observed
+free-space change. Other builds/workloads can affect these measurements; do not
+deploy concurrently. Newer generations left after a rollback must be resolved
+manually before pruning. Errors stop the operation; already completed steps are
+not undone.
+
+`--reboot` explicitly permits downtime and waits for a changed boot ID, the
+expected system and healthy services before cleanup (up to 60 reconnect attempts,
+5 seconds apart, plus SSH connection time). Reconnection or health failures stop
+before pruning. **Reboot engineer through `engineer-local`**, not
+`engineer-remote`: startup blueprint sync disables its public SSH resource.
+
+The app uses the dev shell's SSH configuration; root connections need no sudo,
+and non-root connections use a normal remote sudo prompt. No credentials are
+saved. User profiles, explicit GC roots, application/PVC data and backups are
+untouched. A retained NixOS generation does **not** roll back database migrations.
+
+Weekly automatic GC retains 30 days on **both nodes** (`--delete-older-than 30d`).
+The manual app does not change that schedule or policy. Engineer's existing
+automatic store optimisation remains enabled; manual `--clean` optimises either
+node. Other GC roots may retain store paths even after system generations are
+pruned.
+
+Synthetic checks (no real SSH, reboot or store garbage collection):
+
+```bash
+bash nix/apps/check-store-cleanup.sh
+```
+
 ---
 
 ## How It Works

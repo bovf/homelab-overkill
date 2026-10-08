@@ -6,6 +6,13 @@
 }: {
   system.stateVersion = "24.11";
 
+  # Match engineer's existing scheduled retention; manual cleanup is separate.
+  nix.gc = {
+    automatic = true;
+    dates = "weekly";
+    options = "--delete-older-than 30d";
+  };
+
   imports = [
     ./disk-config.nix
   ];

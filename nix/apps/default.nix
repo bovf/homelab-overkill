@@ -12,6 +12,7 @@
     fmtModule = import ./fmt.nix {inherit nixpkgs;};
     updateModule = import ./update.nix {inherit nixpkgs;};
     bootstrapModule = import ./bootstrap.nix {inherit nixpkgs;};
+    storeCleanupModule = import ./store-cleanup.nix {inherit nixpkgs;};
   in {
     secrets = secretsModule.mkSecretsApp system;
     deploy = deployModule.mkDeployApp system enabledNodes;
@@ -21,5 +22,6 @@
     fmt = fmtModule.mkFmtApp system;
     update = updateModule.mkUpdateApp system enabledNodes;
     bootstrap = bootstrapModule.mkBootstrapApp system;
+    store-cleanup = storeCleanupModule.mkStoreCleanupApp system enabledNodes;
   };
 }

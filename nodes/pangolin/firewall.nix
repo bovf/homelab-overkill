@@ -18,6 +18,7 @@
       1025 # SSH PortSwap
       2222 # GitLab SSH (Pangolin tcp-2222 entry point)
       2223 # Engineer SSH (Pangolin tcp-2223 entry point)
+      2224 # Heavy SSH (Pangolin tcp-2224 entry point)
       6443 # k8s API
       6544 # Engineer k8s API (Pangolin tcp-6544 entry point)
       7881 # LiveKit SFU — ICE/TCP media fallback (Element Call)

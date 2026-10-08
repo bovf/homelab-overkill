@@ -141,8 +141,8 @@
     hermesAgentOverlay = final: prev: let
       workspace = uv2nix.lib.workspace.loadWorkspace {workspaceRoot = hermes-agent-src;};
       pyprojOverlay = workspace.mkPyprojectOverlay {sourcePreference = "wheel";};
-      # Hermes currently requires Python <3.14; nixpkgs' python3 may move ahead.
-      python = final.python313;
+      # Hermes' uv.lock now supports Python 3.14+, despite its bootstrap metadata.
+      python = final.python314;
       pyprojectOverrides = pyFinal: pyPrev: {
         hermes-agent = pyPrev.hermes-agent.overrideAttrs (_: {
           HERMES_NIX_BUILD = "1";

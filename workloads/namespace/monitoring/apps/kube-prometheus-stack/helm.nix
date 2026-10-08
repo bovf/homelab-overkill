@@ -130,7 +130,7 @@
             deploymentStrategy:
               type: Recreate
             image:
-              tag: "13.2.2"
+              tag: "13.2.3"
             sidecar:
               image:
                 tag: 2.11.2

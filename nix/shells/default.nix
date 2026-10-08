@@ -359,6 +359,11 @@ in {
       echo "  nix run .#scan                                   - gitleaks + trufflehog secret scan"
       echo "  nix run .#update                                 - update flake, fmt, scan; builds cache targets on Linux"
       echo "  HOMELAB_UPDATE_PUSH_CACHE=1 nix run .#update     - also push built outputs to Attic badwater"
+      echo "  nix run .#store-cleanup -- <target> --report     - disk/store usage and reboot status (read-only)"
+      echo "  nix run .#store-cleanup -- <target> --clean      - keep current + one rollback, GC and optimise"
+      echo "  nix run .#store-cleanup -- <target> --clean --reboot - reboot, verify health, then clean"
+      echo "    Reboot interrupts services; use engineer-local or pangolin-remote, not engineer-remote."
+      echo "    Manual cleanup prunes system rollback history; weekly GC retains 30 days on both nodes."
       echo ""
       echo
     '';

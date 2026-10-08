@@ -91,7 +91,8 @@ in {
     # Re-fire on every rebuild to recover from pangolin/gerbil state drift
     # (e.g. gerbil restart wiped peers) even when the local YAML didn't
     # change. Can't use restartTriggers=[toplevel] — that's a cycle.
-    system.activationScripts.pangolin-kwg-blueprint-resync = lib.stringAfter ["etc"] ''
+    # Publish the newly rendered blueprint, not the previous secret generation.
+    system.activationScripts.pangolin-kwg-blueprint-resync = lib.stringAfter ["etc" "setupSecrets"] ''
       ${pkgs.systemd}/bin/systemctl restart pangolin-kwg-blueprint-sync.service || true
     '';
 

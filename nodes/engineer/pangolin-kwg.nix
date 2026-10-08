@@ -20,6 +20,10 @@
       persistentKeepalive = 5;
     };
 
-    natRules = {};
+    natRules.heavy_ssh = {
+      protocol = "tcp";
+      listenPort = 2224;
+      target = "192.168.1.5:22";
+    };
   };
 }

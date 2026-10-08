@@ -50,11 +50,11 @@ than adding a second configuration:
   `100.89.128.1/32`; UDP listen port: `51820`; keepalive: `5` seconds.
 - The shared [module](../../infrastructure/pangolin-kwg/default.nix) supplies MTU
   `1280`. Keep it aligned with the VPS tunnel configuration.
-- Current `natRules = {}` is intentional. Kubernetes backends use Service
-  `externalIPs` on the tunnel IP and distinct ports; host SSH/k3s API bind directly.
-  There is no per-resource custom DNAT table to populate or require in a health
-  check. The [NAT module](../../infrastructure/pangolin-kwg/nat.nix) still supplies
-  forwarding/MSS handling.
+- Kubernetes backends use Service `externalIPs` on the tunnel IP and distinct
+  ports; engineer SSH/k3s API bind directly. `natRules.heavy_ssh` forwards tunnel
+  TCP `2224` to the heavy workstation at `192.168.1.5:22`. The
+  [NAT module](../../infrastructure/pangolin-kwg/nat.nix) supplies DNAT,
+  masquerading for return traffic, and forwarding/MSS handling.
 
 If the assigned tunnel address changes, trace every reference before deploying:
 
@@ -96,10 +96,50 @@ rendered YAML to JSON, base64-encodes it, and PUTs it to
 against the real organization. The CI-managed Newt ConfigMap flow remains a
 separate publication path.
 
-If peers disappear after a VPS Gerbil restart, inspect the
-`gerbil-basic-wg-reconcile.service` defined in
-[`nodes/pangolin/services.nix`](../pangolin/services.nix) before replacing keys or
-sites. The service restores Basic WG peers from Pangolin's SQLite state.
+Pangolin 1.24 includes Basic WG peers in Gerbil's configuration, so the old
+`gerbil-basic-wg-reconcile.service` workaround is no longer needed. If peers
+disappear after a VPS Gerbil restart, inspect Pangolin/Gerbil logs and the kernel
+peer state before replacing keys or sites.
+
+## Heavy workstation SSH
+
+The separate `heavy_ssh` resource preserves engineer's management SSH endpoint.
+Both public SSH resources default to **disabled**; enable them manually in
+Pangolin only when needed. Blueprint synchronization resets them to disabled.
+Local engineer SSH is unaffected.
+
+```text
+pangolin.dobryops.com:2224 -> engineer 100.89.128.16:2224 -> heavy 192.168.1.5:22
+```
+
+Keep heavy's LAN address static/reserved and authorize the client's SSH key on
+heavy. This raw TCP resource does not use Pangolin browser SSO; SSH authentication
+and the host-key fingerprint belong to heavy. Masquerading makes heavy see
+engineer's LAN address, so source-IP-based bans can block every forwarded client.
+
+The encrypted `pangolin/resources/heavy_ssh/port` value must be the string
+`"2224"`, not the number `2224`; `sops-nix` does not install numeric secret leaves.
+Keep the Bitwarden `pangolin` note in sync before the next secrets `pull`/`sync`.
+
+Check configuration without decrypting secrets or contacting hosts:
+
+```bash
+nix eval --offline --impure --file nix/apps/check-heavy-ssh.nix
+```
+
+When deployment is authorized, rebuild engineer and the VPS, allow TCP `2224` in
+any provider firewall, and confirm full blueprint synchronization succeeded.
+Manually enable the two SSH resources in Pangolin for testing, verify heavy's
+host-key fingerprint before accepting the new endpoint, then run:
+
+```bash
+ssh -p 2224 heavy@pangolin.dobryops.com 'test "$(hostname)" = heavy'
+ssh engineer-remote hostname
+```
+
+Both checks must pass while enabled; disable the resources again afterward. Do
+not repoint `engineer_ssh` to heavy. Also check existing public applications after
+activating the NAT rules.
 
 ## Rotating the integration API key
 

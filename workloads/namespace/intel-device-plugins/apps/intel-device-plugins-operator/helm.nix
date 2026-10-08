@@ -9,7 +9,7 @@
     spec = {
       repo = "https://intel.github.io/helm-charts/";
       chart = "intel-device-plugins-operator";
-      version = "0.37.0";
+      version = "0.37.1";
       targetNamespace = "intel-device-plugins";
       createNamespace = false;
       valuesContent = ''
