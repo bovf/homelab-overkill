@@ -312,7 +312,9 @@ nix run .#store-cleanup -- engineer-local --clean
 size and capacity percentage, system generations and reboot status. Separate
 root/store filesystems are reported separately; hard links are counted once.
 
-`--clean` requires confirmation and a healthy, fully booted current system. It
+`--clean` requires confirmation, the fully booted current system, and active SSH
+and node-core services (k3s on engineer; Pangolin/Gerbil/Traefik on the VPS).
+Unrelated failed systemd units are shown as warnings, not a cleanup blocker. It
 keeps **current + one previous system generation**, refreshes boot entries, runs
 Nix GC and optimises the store, then reports GC/optimisation savings and observed
 free-space change. Other builds/workloads can affect these measurements; do not
@@ -323,7 +325,9 @@ not undone.
 `--reboot` explicitly permits downtime and waits for a changed boot ID, the
 expected system and healthy services before cleanup (up to 60 reconnect attempts,
 5 seconds apart, plus SSH connection time). Reconnection or health failures stop
-before pruning. **Reboot engineer through `engineer-local`**, not
+before pruning and show the last readiness error. If the reboot completed, resolve
+any core-service error and retry with **`--clean` alone**, without another reboot.
+**Reboot engineer through `engineer-local`**, not
 `engineer-remote`: startup blueprint sync disables its public SSH resource.
 
 The app uses the dev shell's SSH configuration; root connections need no sudo,

@@ -17,7 +17,7 @@
       valuesContent = ''
         global:
           image:
-            tag: "1.18.1@sha256:7fed6605e0a104a337e1cb903bbb1225f80c7f6e5e56ff1eb1d70c57740d8e0f"
+            tag: "1.19.1@sha256:c89f01cb387bf6c598959036cbf56306b068a43e8784345bee7398b7af8ee2e1"
           podAnnotations:
             configmap.reloader.stakater.com/reload: "pangolin-blueprint-cicd-gitops"
 
@@ -39,6 +39,8 @@
 
             extraEnv:
               BLUEPRINT_FILE: "/config/blueprint.yaml"
+              # Credentials come from the Secret, not a writable config cache.
+              CONFIG_FILE: "/dev/null"
 
             extraVolumes:
               - name: pangolin-blueprint

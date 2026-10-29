@@ -36,7 +36,7 @@
                 main:
                   image:
                     repository: alexxit/go2rtc
-                    tag: "1.9.14"
+                    tag: "1.9.15@sha256:e098de5c2f8040dc3d4784ed2d5cfdac3b0979f9349afe587ef6a670a14b9f4d"
                     pullPolicy: IfNotPresent
                   env:
                     TZ: "Europe/Sofia"

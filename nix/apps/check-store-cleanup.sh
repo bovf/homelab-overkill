@@ -115,8 +115,16 @@ case "${0##*/}" in
     ;;
   systemctl)
     case "$1" in
-      is-system-running) [[ ${UNHEALTHY:-0} == 0 ]] ;;
-      is-active) [[ ${UNHEALTHY:-0} == 0 && ! ( ${INACTIVE_GERBIL:-0} == 1 && ${3:-} == gerbil ) ]] ;;
+      is-system-running)
+        if [[ ${UNHEALTHY:-0} == 1 ]]; then echo starting; exit 1;
+        elif [[ ${DEGRADED:-0} == 1 ]]; then echo degraded; exit 1;
+        else echo running; fi
+        ;;
+      --failed) echo 'alsa-capture-init.service loaded failed failed Webcam audio levels' ;;
+      is-active)
+        [[ ${UNHEALTHY:-0} == 0 && ! ( ${INACTIVE_GERBIL:-0} == 1 && ${3:-} == gerbil ) \
+          && ! ( ${INACTIVE_SSHD:-0} == 1 && ${3:-} == sshd ) ]]
+        ;;
       reboot)
         [[ ${FAIL_REBOOT:-0} == 0 ]]
         echo reboot >> "$FIXTURE/actions"
@@ -188,6 +196,17 @@ grep -q 'Optimisation store reduction: 64KiB' "$scratch/output"
 grep -q 'Total store reduction: 128KiB' "$scratch/output"
 [[ -f $scratch/store/one && -f $scratch/store/two && ! -e $scratch/store/garbage ]]
 reset_fixture
+DEGRADED=1 "$app" engineer-local --clean > "$scratch/output" 2>&1 <<< engineer-local
+[[ $(< "$scratch/actions") == $'prune\nboot\ngc\noptimise' ]]
+grep -q 'Warning: systemd is degraded' "$scratch/output"
+grep -q 'alsa-capture-init.service' "$scratch/output"
+reset_fixture
+expect_failure env DEGRADED=1 INACTIVE_SSHD=1 "$app" engineer-local --clean <<< engineer-local
+expect_failure env DEGRADED=1 FAKE_HOST=pangolin INACTIVE_GERBIL=1 "$app" pangolin-remote --clean <<< pangolin-remote
+expect_failure env DEGRADED=1 UNBOOTED=1 "$app" engineer-local --clean <<< engineer-local
+DEGRADED=1 UNBOOTED=1 "$app" engineer-local --clean --reboot > "$scratch/output" 2>&1 <<< engineer-local
+[[ $(< "$scratch/actions") == $'reboot\nprune\nboot\ngc\noptimise' ]]
+reset_fixture
 UNBOOTED=1 REBOOT_DISCONNECT=255 "$app" engineer-local --clean --reboot > "$scratch/output" <<< engineer-local
 [[ $(< "$scratch/actions") == $'reboot\nprune\nboot\ngc\noptimise' ]]
 for scenario in SAME_BOOT NO_RETURN WRONG_BOOT UNHEALTHY; do
@@ -195,6 +214,14 @@ for scenario in SAME_BOOT NO_RETURN WRONG_BOOT UNHEALTHY; do
   if env "$scenario=1" "$app" engineer-local --clean --reboot > "$scratch/output" 2>&1 <<< engineer-local; then exit 1; fi
   [[ $(< "$scratch/actions") == reboot ]]
 done
+# Reboot succeeded, but readiness timed out: plain --clean must resume safely.
+reset_fixture
+if UNHEALTHY=1 "$app" engineer-local --clean --reboot > "$scratch/output" 2>&1 <<< engineer-local; then exit 1; fi
+[[ $(< "$scratch/actions") == reboot ]]
+grep -q 'System is not ready (state: starting)' "$scratch/output"
+grep -q 'retry: nix run .#store-cleanup -- engineer-local --clean' "$scratch/output"
+DEGRADED=1 "$app" engineer-local --clean > "$scratch/output" 2>&1 <<< engineer-local
+[[ $(< "$scratch/actions") == $'reboot\nprune\nboot\ngc\noptimise' ]]
 for scenario in FAIL_BOOT_MENU PROFILE_CHANGED FAIL_GC; do
   reset_fixture
   if env "$scenario=1" "$app" engineer-local --clean > "$scratch/output" 2>&1 <<< engineer-local; then exit 1; fi
@@ -215,4 +242,4 @@ ln -s system-5-link "$scratch/profile/system"
 "$REAL_NIX_ENV" -p "$scratch/profile/system" --delete-generations +2 >/dev/null
 [[ -L $scratch/profile/system-4-link && -L $scratch/profile/system-5-link ]]
 [[ ! -L $scratch/profile/system-1-link && ! -L $scratch/profile/system-2-link && ! -L $scratch/profile/system-3-link ]]
-printf '%s\n' 'PASS: read-only reporting, confirmation, retention, reboot/health failures, root/sudo, hardlinks and measured cleanup.'
+printf '%s\n' 'PASS: reporting, retention, degraded-system warnings, core-service gates, timeout/resume, root/sudo and measured cleanup.'

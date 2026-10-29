@@ -13,13 +13,6 @@
     hash = "sha256-OA7xNQl5O5sYJMbtx4apTxQs+dqkh8tvBStLM6oMAsk=";
   };
 in {
-  assertions = [
-    {
-      assertion = lib.versionOlder pkgs.fosrl-pangolin.version "1.24.0";
-      message = "Remove the Pangolin 1.24.0 backport and this assertion from nodes/pangolin/services.nix: nixpkgs now provides ${pkgs.fosrl-pangolin.version}.";
-    }
-  ];
-
   # ─── sops-nix ─────────────────────────────────────────────────────────
   # Decrypts ../../secrets/secrets.yaml using the VPS SSH identity.
   # Existing converted age recipients are supported through age.sshKeyPaths;
@@ -51,22 +44,6 @@ in {
   # at /var/lib/pangolin (default), same layout as the docker-compose ./config.
   services.pangolin = {
     enable = true;
-    # Temporary backport of NixOS/nixpkgs#562300 until nixpkgs-unstable catches up.
-    package = pkgs.fosrl-pangolin.overrideAttrs (final: old: {
-      version = "1.24.0";
-      src = old.src.override {
-        tag = "1.24.0";
-        hash = "sha256-EYyqT7yDz1KpkCyb1niOZcSNxkRMJ6LXjuAcXPhemgM=";
-      };
-      npmDepsHash = "sha256-nWlIy+1m6IJuGaXV3U1ampTL9Xvxj7jONuJ0ecGAU3g=";
-      npmDeps = pkgs.fetchNpmDeps {
-        name = "pangolin-${final.version}-npm-deps";
-        inherit (final) src;
-        hash = final.npmDepsHash;
-        fetcherVersion = 2;
-      };
-      npmFlags = ["--legacy-peer-deps"];
-    });
     inherit baseDomain letsEncryptEmail;
     # dashboardDomain defaults to "pangolin.${baseDomain}" — override here
     # only if the dashboard lives somewhere else.

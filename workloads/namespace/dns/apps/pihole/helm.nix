@@ -29,11 +29,12 @@ in {
 
           image:
             repository: pihole/pihole
-            tag: "2026.09.0"
+            tag: "2026.10.0@sha256:d34134716fc32038b052a8674c7c6879e0ff21f0e6d8af345166fffa2c27c113"
             pullPolicy: IfNotPresent
 
-          strategy:
-            type: RollingUpdate
+          # This chart uses strategyType, not strategy.type.
+          # Keep the persistent FTL database to one writer during upgrades.
+          strategyType: Recreate
 
           serviceType: ClusterIP
 

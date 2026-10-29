@@ -15,7 +15,7 @@
           containers = [
             {
               name = "exporter";
-              image = "docker.io/python:3.14.7@sha256:be8ccd085666c34273c9dc5607c9842f8b2e3116128aae45148ce164c07ce09d";
+              image = "docker.io/python:3.15.2@sha256:d7a732b20de2f5d3cf977cbcf69aacf30dc928a37908ff9fdb7bb3503024c91a";
               command = ["python3" "/app/exporter.py"];
               ports = [
                 {

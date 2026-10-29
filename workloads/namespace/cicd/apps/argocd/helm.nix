@@ -20,7 +20,7 @@
               # single-node networking behavior during the upgrade.
               create: false
             image:
-              tag: v3.5.3
+              tag: v3.5.6@sha256:8e5cc5bb008df8a09dba439462e58c94c55b7735888d3ebde0c25fc05e4e5335
 
           configs:
             params:
@@ -53,7 +53,7 @@
           controller:
             replicas: 1
             image:
-              tag: v3.5.3
+              tag: v3.5.6@sha256:8e5cc5bb008df8a09dba439462e58c94c55b7735888d3ebde0c25fc05e4e5335
             extraArgs:
               - --repo-server-timeout-seconds=180
             resources:

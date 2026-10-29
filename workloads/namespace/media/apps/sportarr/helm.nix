@@ -22,7 +22,7 @@
                     # Pinned to digest (upstream publishes mutable stable/dev tags,
                     # so this keeps deploys reproducible).
                     # Bump by re-resolving with: docker buildx imagetools inspect sportarr/sportarr:4.1
-                    tag: "4.1@sha256:5ab15cfdbac71aad8e5a4a6a97e0513f21e4e8315f247fcdff34d85654d3f6ef"
+                    tag: "4.1@sha256:5747ba701adac29fdf3c5139e4a9437c4b9d4f61ce8cddfe7a8b8194bd8fc46a"
                   env:
                     TZ: "Europe/Helsinki"
                     PUID: "1000"

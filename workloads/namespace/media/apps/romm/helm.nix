@@ -26,11 +26,12 @@
           controllers:
             main:
               replicas: 1
+              strategy: Recreate
               containers:
                 main:
                   image:
                     repository: docker.io/rommapp/romm
-                    tag: "5.3.1@sha256:0d66b4ea152a237c7f24b95e87459f46d3c596a7c0b35a82f26bc971487278b3"
+                    tag: "5.4.1@sha256:8677fb7b81b1d3db20b849e989a1dadc2a11159e51eb34a2acdcb01102274edf"
                   envFrom:
                     - secretRef:
                         name: romm-credentials
@@ -48,6 +49,17 @@
                     ENABLE_RESCAN_ON_FILESYSTEM_CHANGE: "true"
                     RESCAN_ON_FILESYSTEM_CHANGE_DELAY: "5"
                   probes:
+                    # 5.4 migrations can take 15–20 minutes; do not restart them.
+                    startup:
+                      enabled: true
+                      custom: true
+                      spec:
+                        httpGet:
+                          path: /api/heartbeat
+                          port: 8080
+                        periodSeconds: 10
+                        timeoutSeconds: 10
+                        failureThreshold: 150
                     liveness:
                       enabled: true
                       custom: true

@@ -38,7 +38,15 @@
       check_health() {
         check_selected
         [ "$booted" = "$current" ] || die "Reboot required; use --clean --reboot."
-        systemctl is-system-running --quiet || die "System is not healthy/running; inspect failed units."
+        health_state=$(systemctl is-system-running || true)
+        case "$health_state" in
+          running) ;;
+          degraded)
+            echo 'Warning: systemd is degraded; checking required services before cleanup.' >&2
+            systemctl --failed --no-legend >&2 || true
+            ;;
+          *) die "System is not ready (state: ''${health_state:-unknown})." ;;
+        esac
         systemctl is-active --quiet sshd || die "sshd is not active."
         case "$expected_host" in
           engineer) systemctl is-active --quiet k3s || die "k3s is not active." ;;
@@ -144,6 +152,7 @@
 
       Run inside nix develop (SSH_CONFIG_FILE required). No concurrent deployments.
       User profiles, other GC roots, application data and backups are untouched.
+      Unrelated failed units warn; SSH and the node's core services must be active.
       Reboot via engineer-local: engineer-remote's SSH resource is disabled on startup.
       Existing automatic GC policy is unchanged by this command.
       EOF
@@ -222,6 +231,7 @@
         remote reboot || status=$?
         [[ "$status" = 0 || "$status" = 255 ]] || die 'Reboot request failed; no cleanup performed.'
         ready=0
+        last_health_error='SSH has not returned with a new boot ID.'
         for ((attempt=0; attempt<60; attempt++)); do
           sleep 5
           if state=$(remote state 2>/dev/null); then
@@ -230,12 +240,15 @@
             [[ -n "$new_boot" && "$current" = "$expected_system" && "$booted" = "$expected_system" && "$selected" = "$expected_system" ]] \
               || die 'Unexpected system after reboot; no cleanup performed.'
             expected_boot=$new_boot
-            if remote health >/dev/null 2>&1; then ready=1; break; fi
+            if last_health_error=$(remote health 2>&1); then ready=1; break; fi
           fi
           printf '.'
         done
         echo
-        [ "$ready" = 1 ] || die 'Reboot/health check timed out after 60 attempts; no cleanup performed.'
+        if [ "$ready" != 1 ]; then
+          printf 'Last readiness check: %s\n' "$last_health_error" >&2
+          die "Reboot/health check timed out after 60 attempts; no cleanup performed. If the reboot completed, resolve the error above and retry: nix run .#store-cleanup -- $target --clean"
+        fi
       fi
       remote clean
     '');

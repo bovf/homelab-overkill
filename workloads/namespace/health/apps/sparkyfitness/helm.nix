@@ -23,7 +23,7 @@
                 server:
                   image:
                     repository: docker.io/codewithcj/sparkyfitness_server
-                    tag: "latest@sha256:2ccde3aed3faa3d5cbdd6bf97397da30677690e5540fafb5e2c4a852f03db12e"
+                    tag: "v1.10.0@sha256:375e0f2df6e8e4c54186cfe0cc6acdef6fcf02177314f287c8f037e29ce5d9f0"
                   envFrom:
                     - secretRef:
                         name: sparkyfitness-secrets
@@ -51,7 +51,7 @@
                 frontend:
                   image:
                     repository: docker.io/codewithcj/sparkyfitness
-                    tag: "latest@sha256:f4a2f30a7bf5bd7ed79a46b153ada6219ddbb597b429892e479cd382db9c0b6f"
+                    tag: "v1.10.0@sha256:864b052f7cbbc522f5bea2b2696c3734ba79e873abf9f144cb261ad3bd3539e5"
                   env:
                     SPARKY_FITNESS_FRONTEND_URL: "https://${config.sops.placeholder."pangolin/resources/sparkyfitness/domain"}"
                     SPARKY_FITNESS_SERVER_HOST: "127.0.0.1"

@@ -362,6 +362,7 @@ in {
       echo "  nix run .#store-cleanup -- <target> --report     - disk/store usage and reboot status (read-only)"
       echo "  nix run .#store-cleanup -- <target> --clean      - keep current + one rollback, GC and optimise"
       echo "  nix run .#store-cleanup -- <target> --clean --reboot - reboot, verify health, then clean"
+      echo "    After a completed reboot, retry --clean alone; unrelated failed units only warn."
       echo "    Reboot interrupts services; use engineer-local or pangolin-remote, not engineer-remote."
       echo "    Manual cleanup prunes system rollback history; weekly GC retains 30 days on both nodes."
       echo ""

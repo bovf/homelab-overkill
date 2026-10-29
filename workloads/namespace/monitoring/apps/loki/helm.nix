@@ -17,7 +17,7 @@
 
           loki:
             image:
-              tag: 3.7.8@sha256:1107dd5274e0ada47e42472b7a7e71f3b2a2fe878878108f3e2f9e51528f0193
+              tag: 3.7.9@sha256:0db216b630ae1f348a1584c67f3cead8b4c1fc839169a39501db664744158e28
             auth_enabled: false
             commonConfig:
               replication_factor: 1
@@ -57,7 +57,7 @@
 
           sidecar:
             image:
-              tag: 2.11.2@sha256:2912be006f62f9ea080194cf6d3afcd90daead8d101d0ba686a137a849f6a4f6
+              tag: 2.14.1@sha256:092dbe0c335fba9af414a27630ca68f34df6185784fa847d9954187e69dbfdd7
 
           singleBinary:
             replicas: 1

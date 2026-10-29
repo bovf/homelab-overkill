@@ -54,7 +54,8 @@
                 - ${config.sops.placeholder."pangolin/resources/alertmanager/domain"}
             alertmanagerSpec:
               image:
-                tag: v0.34.1
+                tag: v0.34.2
+                sha: 39d8bb3966c694a124428a3a88fbcffd40bd069129ecd47c059f8a3f17c55f3b
               # Makes the "View in Alertmanager" link in emails public.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/alertmanager/domain"}"
             config:
@@ -96,8 +97,8 @@
                 - ${config.sops.placeholder."pangolin/resources/prometheus/domain"}
             prometheusSpec:
               image:
-                tag: v3.15.0
-                sha: efd719c99d83b060d9daefdcf00360461adf279f45ef5391f8d111892118753e
+                tag: v3.15.1
+                sha: fa3302279710be2f21a8301ec17a8b4f2301fd829bd113839b3b6b02b6f191a2
               # Makes Prometheus generate public absolute links behind Traefik/Pangolin.
               externalUrl: "https://${config.sops.placeholder."pangolin/resources/prometheus/domain"}"
               enableFeatures:
@@ -130,11 +131,12 @@
             deploymentStrategy:
               type: Recreate
             image:
-              tag: "13.2.3"
+              tag: "13.3.0"
+              sha: 488984b716c0862639f91a698adbe2862677a5a07bad42da5f03f3030883b205
             sidecar:
               image:
-                tag: 2.11.2
-                sha: 2912be006f62f9ea080194cf6d3afcd90daead8d101d0ba686a137a849f6a4f6
+                tag: 2.14.1
+                sha: 092dbe0c335fba9af414a27630ca68f34df6185784fa847d9954187e69dbfdd7
             service:
               type: ClusterIP
               port: 32000
