@@ -257,7 +257,17 @@ nix build .#pangolin-install-iso
 ```bash
 nix run .#deploy -- update engineer-local
 nix run .#deploy -- update pangolin-remote
+# Conservative build parallelism on a small VPS:
+nix run .#deploy -- update pangolin-remote --low-cost
 ```
+
+`--low-cost` is opt-in for `update`, `switch` and `test`. It forwards
+`--max-jobs 1 --cores 1` to nixos-rebuild-ng, including its remote build command.
+These limit Nix scheduling and cooperative build parallelism, **not** hard CPU or
+RAM use. A single memory-heavy `npm ci` can still exceed a small VPS's RAM.
+The flag does not change an existing build; do not launch a second deployment
+while the first is still running. Prefer the native cached package over a custom
+source build on a small VPS.
 
 `pangolin` is remote-only. Its generated SSH target matches:
 
@@ -418,6 +428,45 @@ The cicd-gitops site keeps the legacy ConfigMap aggregator (cronjob in `cicd/app
 Supports:
 - **HTTP resources** — SSO, custom rules, headers
 - **Raw TCP/UDP resources** — SSH, k8s API, gitlab-shell, etc.
+
+### Attic public routing
+
+Attic uses the Basic WireGuard site, which has no Newt agent to report target
+health. Its Pangolin blueprint must omit Newt health checks. The Uptime Kuma
+monitor checks `/badwater/nix-cache-info`; split DNS still makes this a **LAN**
+check, not proof that the public VPS route works.
+
+Pangolin 1.24's blueprint API leaves old `unhealthy` state behind when disabling
+a check, but its **stock target-update API** correctly clears it. Attic adds an
+idempotent post-start step to engineer's blueprint sync: find only the declared
+Attic Basic-WireGuard target, refuse enabled checks or mismatched backends, and
+clear stale disabled health through that API. It verifies the result and makes
+no write when the state is already clear. No custom Pangolin package, SQL edits,
+or resource deletion is required.
+
+The existing integration API key must allow `listResources`, `listTargets` and
+`updateTarget` for this organization/resource, in addition to blueprint updates.
+Missing permissions fail visibly rather than silently claiming recovery. Keep
+credentials in the existing Bitwarden/SOPS workflow. Validate with:
+
+```bash
+python3 nix/apps/check-attic-cache.py
+```
+
+With stock Pangolin 1.24 already running, deploy **engineer only** to publish the
+corrected full blueprint, reconcile Attic's stale state and run the versioned
+Kuma monitor bootstrap:
+
+```bash
+nix run .#deploy -- update engineer-local
+```
+
+No VPS source build is needed for this fix. If also updating the VPS system, use
+`nix run .#deploy -- update pangolin-remote --low-cost`.
+
+Verify blueprint synchronization and test the VPS path explicitly; a successful
+LAN request or rebuild alone does not prove recovery. Do not delete Attic's PVC
+or edit Pangolin's database manually to repair this routing issue.
 
 ### sops-nix Symlink Patch
 

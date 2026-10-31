@@ -349,6 +349,7 @@ in {
       echo "  nix run .#bootstrap                              - decrypt node metadata into .cache/nodes.json"
       echo "  deploy <install/update/test> <node>-local        - deploy via local connection"
       echo "  deploy <install/update/test> <node>-remote       - deploy via remote connection"
+      echo "  nix run .#deploy -- update pangolin-remote --low-cost - max-jobs=1, cores=1 (not a RAM cap)"
       echo "  secrets <cmd>                                    - manage secrets"
       echo "  ssh <node>-local                                 - ssh to node (local)"
       echo "  ssh <node>-remote                                - ssh to node (remote)"
