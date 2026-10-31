@@ -50,6 +50,28 @@
       set -euo pipefail
       cmd="''${1:-help}"
       node_target="''${2:-}"
+      low_cost=0
+      for option in "''${@:3}"; do
+        case "$option" in
+          --low-cost)
+            if [ "$low_cost" = 1 ]; then
+              echo "Error: repeated --low-cost." >&2
+              exit 1
+            fi
+            low_cost=1
+            ;;
+          *)
+            echo "Error: unknown option '$option'. Use: nix run .#deploy -- help" >&2
+            exit 1
+            ;;
+        esac
+      done
+      if [ "$low_cost" = 1 ]; then
+        case "$cmd" in
+          update|switch|test) ;;
+          *) echo "Error: --low-cost is supported only for update, switch and test." >&2; exit 1 ;;
+        esac
+      fi
 
       list_nodes() {
         echo "Available node targets:"
@@ -115,6 +137,10 @@
         if [ "$use_sudo" = "1" ]; then
           rebuildArgs+=(--sudo --ask-sudo-password)
         fi
+        if [ "$low_cost" = 1 ]; then
+          rebuildArgs+=(--max-jobs 1 --cores 1)
+          echo "Low-cost build mode: max-jobs=1, cores=1 on $node_target"
+        fi
       }
 
       case "''${cmd}" in
@@ -178,7 +204,12 @@
 
         help|*)
           cat <<EOF
-      Usage: nix run .#deploy -- <command> <NODE_TARGET>
+      Usage: nix run .#deploy -- <command> <NODE_TARGET> [--low-cost]
+
+      Options:
+        --low-cost  For update/switch/test: pass --max-jobs 1 --cores 1 to the build host.
+                    These are Nix scheduling limits, not a hard CPU or RAM cap.
+                    They do not change an already-running deployment.
 
       Commands:
         install   Install a brand-new node via nixos-anywhere (uses .cache/extra-files/NODE if present).
@@ -203,7 +234,8 @@
         ssh pangolin-remote
         nix run .#deploy -- install engineer-local
         nix run .#deploy -- update engineer-local
-        nix run .#deploy -- update pangolin-remote
+        nix run .#deploy -- update pangolin-remote --low-cost
+        nix run .#deploy -- test engineer-local --low-cost
       EOF
           list_nodes
           ;;

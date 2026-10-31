@@ -18,7 +18,9 @@ activation are operator actions, not safe documentation checks.
    key. Record the site ID, assigned tunnel CIDR, Gerbil public key, endpoint,
    and allowed peer routes.
 2. Create an integration API key with permission to update the organization's
-   blueprint. Store its `<key_id>.<key_secret>` value securely. The current client
+   blueprint. Attic's post-sync reconciliation also needs `listResources`,
+   `listTargets` and `updateTarget` access for its organization/resource. Store
+   the key's `<key_id>.<key_secret>` value securely. The current client
    uses the integration endpoint `https://api.dobryops.com`, **not** a guessed
    dashboard API path.
 3. Keep these values in the corresponding Bitwarden notes and synchronize them

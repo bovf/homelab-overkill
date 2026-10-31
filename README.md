@@ -257,7 +257,17 @@ nix build .#pangolin-install-iso
 ```bash
 nix run .#deploy -- update engineer-local
 nix run .#deploy -- update pangolin-remote
+# Conservative build parallelism on a small VPS:
+nix run .#deploy -- update pangolin-remote --low-cost
 ```
+
+`--low-cost` is opt-in for `update`, `switch` and `test`. It forwards
+`--max-jobs 1 --cores 1` to nixos-rebuild-ng, including its remote build command.
+These limit Nix scheduling and cooperative build parallelism, **not** hard CPU or
+RAM use. A single memory-heavy `npm ci` can still exceed a small VPS's RAM.
+The flag does not change an existing build; do not launch a second deployment
+while the first is still running. Prefer the native cached package over a custom
+source build on a small VPS.
 
 `pangolin` is remote-only. Its generated SSH target matches:
 
