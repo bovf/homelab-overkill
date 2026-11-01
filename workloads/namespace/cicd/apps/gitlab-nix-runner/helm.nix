@@ -9,7 +9,7 @@
       spec:
         repo: https://charts.gitlab.io/
         chart: gitlab-runner
-        version: "0.88.3"
+        version: "0.94.2" # Runner 19.5.2, matching the GitLab 19.5 release line.
         targetNamespace: cicd
         createNamespace: false
         valuesContent: |

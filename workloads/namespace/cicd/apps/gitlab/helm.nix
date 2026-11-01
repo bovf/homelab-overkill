@@ -1,4 +1,10 @@
-{config, ...}: {
+{
+  config,
+  lib,
+  ...
+}: let
+  cfg = config.workloads.gitlab;
+in {
   sops.templates."helm/gitlab.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -9,7 +15,8 @@
       spec:
         repo: https://charts.gitlab.io/
         chart: gitlab
-        version: "9.5.1"
+        version: "${cfg.chartVersion}"
+        timeout: 30m
         targetNamespace: cicd
         createNamespace: false
         valuesContent: |
@@ -21,8 +28,15 @@
               registry:
                 name: ${config.sops.placeholder."pangolin/resources/registry/domain"}
 
+            # Chart 10 defaults to Envoy/Gateway API; retain our existing Traefik.
+            gatewayApi:
+              enabled: false
+              installEnvoy: false
+              configureCertmanager: false
+
             ingress:
               enabled: true
+              provider: traefik
               class: traefik
               configureCertmanager: false
               # TLS terminates at traefik (with the *.dobryops.com
@@ -48,10 +62,25 @@
                 secret: gitlab-postgres-secret
                 key: password
 
+            redis:
+              host: ${
+        if cfg.externalRedis
+        then "gitlab-redis-external.cicd.svc.cluster.local"
+        else "null"
+      }
+              port: 6379
+              auth:
+                enabled: true
+                secret: gitlab-redis-secret
+                key: secret
+
             minio:
               enabled: false
 
             appConfig:
+              backups:
+                bucket: gitlab-backups
+                tmpBucket: gitlab-tmp
               object_store:
                 enabled: true
                 # MinIO endpoint is cluster-internal DNS — browser-facing
@@ -140,6 +169,13 @@
             checkInterval: 30
 
           gitlab:
+            toolbox:
+              backups:
+                objectStorage:
+                  backend: s3
+                  config:
+                    secret: gitlab-backup-storage
+                    key: config
             gitaly:
               resources:
                 requests:
@@ -190,6 +226,7 @@
             install: false
 
           redis:
+            install: ${lib.boolToString (!cfg.externalRedis)}
             master:
               resources:
                 requests:

@@ -119,6 +119,10 @@ separate hourly labeled-ConfigMap aggregation path for CI-managed services.
   GitLab, Synapse, ezBookkeeping, SparkyFitness and RomM. MinIO serves GitLab and
   Loki. Their init Jobs provision accounts/buckets; they are not universal
   credential-rotation controllers.
+- GitLab's chart-10 target uses a [separate Redis workload](../workloads/namespace/cicd/apps/gitlab/redis.nix),
+  retaining the existing authentication Secret and requiring a verified copy into
+  a new PVC before startup. Native HTTP MCP uses GitLab OAuth, not Pangolin SSO;
+  follow the [staged upgrade and MCP guide](../workloads/namespace/cicd/apps/gitlab/UPGRADE.md).
 - Media apps share `media-pvc`. Jellyfin uses the Intel device plugin and host
   graphics libraries. qBittorrent shares Gluetun's VPN network namespace and
   synchronizes ProtonVPN's forwarded port.

@@ -58,6 +58,31 @@
       mode = "0644";
     };
 
+    # Toolbox uses s3cmd format, not the Rails object-store connection YAML.
+    "gitlab/backup-storage.yaml" = {
+      content = ''
+        apiVersion: v1
+        kind: Secret
+        metadata:
+          name: gitlab-backup-storage
+          namespace: cicd
+        type: Opaque
+        stringData:
+          config: |
+            [default]
+            access_key = ${config.sops.placeholder."database/minio/gitlab/gitlab_access_key"}
+            secret_key = ${config.sops.placeholder."database/minio/gitlab/gitlab_secret_key"}
+            bucket_location = us-east-1
+            host_base = minio.database.svc.cluster.local:9000
+            host_bucket = minio.database.svc.cluster.local:9000
+            use_https = False
+      '';
+      path = "/var/lib/rancher/k3s/server/manifests/gitlab-backup-storage.yaml";
+      owner = "root";
+      group = "root";
+      mode = "0600";
+    };
+
     "gitlab/registry-storage.yaml" = {
       content = ''
         apiVersion: v1

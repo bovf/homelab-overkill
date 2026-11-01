@@ -139,6 +139,10 @@ Per-node rescue/install images are also available:
 
 ## Update an existing machine
 
+**GitLab:** follow the [staged upgrade guide](../workloads/namespace/cicd/apps/gitlab/UPGRADE.md)
+before deploying the final chart-10 defaults over an older installation. Required
+upgrade stops and the Redis restore/cutover cannot be skipped.
+
 1. Review the diff and run [local checks](development.md#checks).
 2. For stateful changes, complete the [data checklist](#data-and-recovery) first.
 3. Activate **one target at a time**:
@@ -207,7 +211,8 @@ verify an isolated restore—not merely that an archive can be listed.
 | State | Protect together |
 | --- | --- |
 | PostgreSQL | Databases, roles/grants, migration state, app credentials and coordinated uploads/files |
-| MinIO and GitLab | Objects/buckets, Git repositories, configuration and keys; GitLab depends on both SQL and S3 |
+| MinIO and GitLab | Objects/buckets, Git repositories, configuration and keys; GitLab depends on SQL, S3 and Redis |
+| GitLab Redis | Full multi-part AOF directory/manifest and existing authentication Secret; preserve the old PVC during the verified copy/cutover |
 | Application/media PVCs | Local-path contents and app keys; requested PVC size is not a disk quota or a backup |
 | Pangolin | `/var/lib/pangolin`, organization/site identities, API and WG credentials, ACME state |
 | Grafana/Kuma | SQLite/data plus keys; see [manual monitoring backups](monitoring-storage-backups.md) |

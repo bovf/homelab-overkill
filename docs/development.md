@@ -54,7 +54,7 @@ uninstaller. Do not delete PVCs simply because their source import disappeared.
 ## Checks
 
 Run from the repository root. Non-live checks below require cached locked Nix
-inputs/tools for `--offline`; Python checks also require Python 3, and Glance/Attic
+inputs/tools for `--offline`; Python checks also require Python 3, and Glance/Attic/GitLab
 checks require `yq` (Go implementation). They do not require secret decryption.
 
 ```bash
@@ -75,10 +75,15 @@ nix eval --offline --no-write-lock-file --impure --file nix/apps/check-pangolin.
 nix eval --offline --no-write-lock-file --file nix/apps/check-ncps.nix
 python3 -B nix/apps/check-deploy.py
 python3 -B nix/apps/check-attic-cache.py
+python3 -B nix/apps/check-gitlab.py
 bash nix/apps/check-kubeconfig.sh
 bash nix/apps/check-store-cleanup.sh
 python3 -B workloads/namespace/dashboard/apps/glance/check.py
 ```
+
+The [GitLab guide](../workloads/namespace/cicd/apps/gitlab/UPGRADE.md#local-validation-and-recovery)
+also covers rendering every upgrade stop with downloaded public charts; its Redis
+checks use disposable files and synthetic credentials.
 
 Remove `--offline` when intentionally allowing Nix downloads. For a real code
 change, build the affected target separately; this builds but does not activate:

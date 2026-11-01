@@ -3,7 +3,7 @@
     apiVersion = "batch/v1";
     kind = "Job";
     metadata = {
-      name = "postgresql-gitlab-init";
+      name = "postgresql-gitlab-init-v2";
       namespace = "database";
     };
     spec = {
@@ -30,25 +30,24 @@
                   echo "PostgreSQL is ready!"
 
                   # Create GitLab database if it doesn't exist
-                  psql -h postgresql.database.svc.cluster.local -U postgres <<-EOSQL
+                  psql -v ON_ERROR_STOP=1 -v gitlab_password="$GITLAB_PASSWORD" \
+                    -h postgresql.database.svc.cluster.local -U postgres <<-'EOSQL'
                     -- Create database
                     SELECT 'CREATE DATABASE gitlabhq_production'
                     WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'gitlabhq_production')\gexec
 
-                    -- Create user
-                    DO \$\$
-                    BEGIN
-                      IF NOT EXISTS (SELECT FROM pg_user WHERE usename = 'gitlab') THEN
-                        CREATE USER gitlab WITH PASSWORD '$GITLAB_PASSWORD';
-                      END IF;
-                    END
-                    \$\$;
+                    -- Create a missing user without rotating an existing password.
+                    SELECT format('CREATE USER gitlab WITH PASSWORD %L', :'gitlab_password')
+                    WHERE NOT EXISTS (SELECT FROM pg_roles WHERE rolname = 'gitlab')\gexec
 
                     -- Grant privileges
                     GRANT ALL PRIVILEGES ON DATABASE gitlabhq_production TO gitlab;
 
                     -- Grant schema privileges
                     \c gitlabhq_production
+                    CREATE EXTENSION IF NOT EXISTS amcheck;
+                    CREATE EXTENSION IF NOT EXISTS btree_gist;
+                    CREATE EXTENSION IF NOT EXISTS pg_trgm;
                     GRANT ALL ON SCHEMA public TO gitlab;
                     ALTER DATABASE gitlabhq_production OWNER TO gitlab;
                   EOSQL
