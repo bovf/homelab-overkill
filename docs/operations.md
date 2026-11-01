@@ -139,9 +139,11 @@ Per-node rescue/install images are also available:
 
 ## Update an existing machine
 
-**GitLab:** follow the [staged upgrade guide](../workloads/namespace/cicd/apps/gitlab/UPGRADE.md)
-before deploying the final chart-10 defaults over an older installation. Required
-upgrade stops and the Redis restore/cutover cannot be skipped.
+**GitLab:** before a version change, check the running release against GitLab's
+[required upgrade stops](https://docs.gitlab.com/update/upgrade_paths/) and
+[chart mappings](https://docs.gitlab.com/charts/installation/version_mappings/).
+Complete backups and background migrations before advancing. See
+[GitLab and Redis](#gitlab-and-redis) for the current deployment and recovery boundaries.
 
 1. Review the diff and run [local checks](development.md#checks).
 2. For stateful changes, complete the [data checklist](#data-and-recovery) first.
@@ -180,6 +182,66 @@ that charts reconciled, the whole-org blueprint synced, or a backend works.
 For [SearXNG](../workloads/namespace/dashboard/apps/searxng/settings.nix), test a
 real search in a fresh browser session; `/healthz` alone does not test engines.
 
+## GitLab and Redis
+
+GitLab's [Helm values](../workloads/namespace/cicd/apps/gitlab/helm.nix) use
+PostgreSQL, MinIO and Redis outside the GitLab chart. Redis is a permanent
+[Nix-managed k3s workload](../workloads/namespace/cicd/apps/gitlab/redis.nix) in
+`cicd`, not a native NixOS service or a second Helm release.
+
+- Deployment, Service and PVC are named `gitlab-redis-external`.
+- The Service is cluster-only on port 6379, with exporter metrics on 9121.
+- One replica with `Recreate` uses an 8 GiB `local-path` claim and AOF persistence
+  (`appendfsync everysec`). This is single-node storage, not high availability.
+- Redis and GitLab share `cicd/gitlab-redis-secret`, key `secret`. Preserve that
+  generated credential alongside the data; it is not declared as a SOPS value.
+- Startup configures authentication without placing the password in process
+  arguments. There is no migration marker: **an empty PVC starts an empty Redis**.
+  Never replace the existing claim as a routine fix for a startup failure.
+
+With configured cluster access:
+
+```bash
+kubectl -n cicd rollout status deployment/gitlab-redis-external
+kubectl -n cicd exec deployment/gitlab-redis-external -c redis -- redis-cli ping
+kubectl -n cicd get pvc gitlab-redis-external
+```
+
+### Backup and recovery
+
+Protect PostgreSQL, Gitaly/repositories, MinIO GitLab buckets, the full Redis AOF
+directory/manifest, and generated Secrets, especially `gitlab-rails-secret` and
+`gitlab-redis-secret`. Keep encrypted copies off Engineer and test restoration.
+
+Toolbox backup storage is wired to the existing `gitlab-backups`/`gitlab-tmp`
+MinIO buckets. This does not enable a backup schedule or create off-host copies.
+The standard backup command is:
+
+```bash
+kubectl -n cicd exec deployment/gitlab-toolbox -c toolbox -- backup-utility --s3tool s3cmd
+```
+
+Inspect `:skipped` in `backup_information.yml`: a successful archive can omit
+object-store components. Back up omitted objects and required MinIO metadata
+separately. Redis persistence and Rails secrets also require separate handling.
+For a cold Redis copy, stop its clients and Redis first; never copy a changing
+AOF or mount one writable volume in two Redis servers.
+
+Recover a matched GitLab version with consistent SQL, repositories, objects,
+Redis data and keys. Restore data into the intended PVC **before** starting
+Redis/GitLab, and validate the AOF without `--fix` on the only recovery copy.
+An older Helm revision or NixOS generation does not undo database migrations.
+See the [official backup/restore guide](https://docs.gitlab.com/charts/backup-restore/).
+
+### Native MCP
+
+The configured GitLab release provides native HTTP MCP at
+`https://gitlab.dobryops.com/api/v4/mcp`. Verify **Admin > Settings > General >
+Visibility and access controls > MCP client access > Allow connection to GitLab**.
+Authorize the client in the browser with the `mcp` scope; no legacy experiment
+flags, separate MCP proxy, or new public port is required. GitLab's public route
+does not use Pangolin SSO. See [GitLab MCP](https://docs.gitlab.com/user/model_context_protocol/mcp_server/).
+
 ## Store maintenance
 
 ```bash
@@ -212,7 +274,7 @@ verify an isolated restore—not merely that an archive can be listed.
 | --- | --- |
 | PostgreSQL | Databases, roles/grants, migration state, app credentials and coordinated uploads/files |
 | MinIO and GitLab | Objects/buckets, Git repositories, configuration and keys; GitLab depends on SQL, S3 and Redis |
-| GitLab Redis | Full multi-part AOF directory/manifest and existing authentication Secret; preserve the old PVC during the verified copy/cutover |
+| GitLab Redis | Full multi-part AOF directory/manifest and authentication Secret; see [backup and recovery](#backup-and-recovery) |
 | Application/media PVCs | Local-path contents and app keys; requested PVC size is not a disk quota or a backup |
 | Pangolin | `/var/lib/pangolin`, organization/site identities, API and WG credentials, ACME state |
 | Grafana/Kuma | SQLite/data plus keys; see [manual monitoring backups](monitoring-storage-backups.md) |

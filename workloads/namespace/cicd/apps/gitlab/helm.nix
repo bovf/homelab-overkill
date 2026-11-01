@@ -1,10 +1,4 @@
-{
-  config,
-  lib,
-  ...
-}: let
-  cfg = config.workloads.gitlab;
-in {
+{config, ...}: {
   sops.templates."helm/gitlab.yaml" = {
     content = ''
       apiVersion: helm.cattle.io/v1
@@ -15,7 +9,7 @@ in {
       spec:
         repo: https://charts.gitlab.io/
         chart: gitlab
-        version: "${cfg.chartVersion}"
+        version: "10.5.4" # GitLab 19.5.3; native MCP is enabled by default.
         timeout: 30m
         targetNamespace: cicd
         createNamespace: false
@@ -63,11 +57,7 @@ in {
                 key: password
 
             redis:
-              host: ${
-        if cfg.externalRedis
-        then "gitlab-redis-external.cicd.svc.cluster.local"
-        else "null"
-      }
+              host: gitlab-redis-external.cicd.svc.cluster.local
               port: 6379
               auth:
                 enabled: true
@@ -225,16 +215,6 @@ in {
           postgresql:
             install: false
 
-          redis:
-            install: ${lib.boolToString (!cfg.externalRedis)}
-            master:
-              resources:
-                requests:
-                  cpu: 100m
-                  memory: 128Mi
-                limits:
-                  cpu: 500m
-                  memory: 512Mi
     '';
     path = "/var/lib/rancher/k3s/server/manifests/gitlab.yaml";
     owner = "root";

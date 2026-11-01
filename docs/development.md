@@ -81,9 +81,23 @@ bash nix/apps/check-store-cleanup.sh
 python3 -B workloads/namespace/dashboard/apps/glance/check.py
 ```
 
-The [GitLab guide](../workloads/namespace/cicd/apps/gitlab/UPGRADE.md#local-validation-and-recovery)
-also covers rendering every upgrade stop with downloaded public charts; its Redis
-checks use disposable files and synthetic credentials.
+The GitLab check covers current chart/Redis wiring and runs the inline Redis
+startup with a fake server, disposable files and synthetic credentials. To also
+render the current chart, download its public archive separately and pass its
+unpacked directory:
+
+```bash
+chart_dir=$(mktemp -d)
+version=$(nix eval --offline --no-write-lock-file --raw \
+  '.#nixosConfigurations.engineer.config.sops.templates."helm/gitlab.yaml".content' \
+  | yq -r '.spec.version')
+helm pull gitlab --repo https://charts.gitlab.io --version "$version" \
+  --untar --untardir "$chart_dir"
+python3 -B nix/apps/check-gitlab.py --chart-dir "$chart_dir/gitlab"
+```
+
+Only the download contacts the public chart repository. Rendering does not
+contact the cluster or establish live application health.
 
 Remove `--offline` when intentionally allowing Nix downloads. For a real code
 change, build the affected target separately; this builds but does not activate:

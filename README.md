@@ -81,7 +81,7 @@ updates dependencies; it does not deploy a host.
 | Architecture, app inventory and network paths | [Project map](docs/project-context.md) |
 | SSH, secrets, installation, deployment, cleanup and data safety | [Operations](docs/operations.md) |
 | Change a workload, run checks, understand CI | [Development](docs/development.md) |
-| Upgrade GitLab safely, migrate Redis, authorize native MCP | [GitLab upgrade](workloads/namespace/cicd/apps/gitlab/UPGRADE.md) |
+| Operate GitLab/Redis, protect their data, authorize MCP | [GitLab and Redis](docs/operations.md#gitlab-and-redis) |
 | Back up Grafana or Kuma manually | [Monitoring backups](docs/monitoring-storage-backups.md) |
 | Understand unresolved source limitations | [Known issues](docs/housekeeping-audit.md) |
 | Provision the Basic WireGuard site or Heavy SSH route | [Engineer tunnel setup](nodes/engineer/bootstrapping.md) |
